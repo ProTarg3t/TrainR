@@ -253,7 +253,7 @@ function BodyDiagram({ exercise, height = 260 }) {
   const views = detectViews(h);
   const both  = views === 'both';
   const figW  = height * (100 / 244);
-  const lbl   = { textAlign: 'center', fontSize: 9, letterSpacing: 2, color: '#484848', marginBottom: 4 };
+  const lbl   = { textAlign: 'center', fontSize: 9, letterSpacing: 2, color: '#808080', marginBottom: 4 };
   return (
     <div style={{ display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'flex-start' }}>
       {(views === 'front' || both) && (
@@ -286,13 +286,13 @@ function MuscleTags({ exercise }) {
     <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #212121' }}>
       {primary.length > 0 && (
         <div style={{ marginBottom: 8 }}>
-          <div style={{ fontSize: 9, color: '#484848', letterSpacing: 1.5, marginBottom: 5 }}>PRIMAIR</div>
+          <div style={{ fontSize: 9, color: '#808080', letterSpacing: 1.5, marginBottom: 5 }}>PRIMAIR</div>
           <div>{primary.map(m => tag(m, 'primary'))}</div>
         </div>
       )}
       {secondary.length > 0 && (
         <div>
-          <div style={{ fontSize: 9, color: '#484848', letterSpacing: 1.5, marginBottom: 5 }}>SECUNDAIR</div>
+          <div style={{ fontSize: 9, color: '#808080', letterSpacing: 1.5, marginBottom: 5 }}>SECUNDAIR</div>
           <div>{secondary.map(m => tag(m, 'secondary'))}</div>
         </div>
       )}
@@ -364,7 +364,7 @@ const EXERCISES = [
 
 const CATS = ['Core', 'Push', 'Legs', 'Pull', 'Cardio'];
 const LEVELS = ['BEGINNER', 'INTERMEDIATE', 'EXPERT'];
-const LEVEL_COLORS = ['#4a9eff', '#ff4d00', '#e0a000'];
+const LEVEL_COLORS = ['#34d399', '#a78bfa', '#fb7185'];
 const CAT_COLORS = { Core: '#ff4d00', Push: '#4a9eff', Legs: '#3daa5e', Pull: '#e0a000', Cardio: '#c026d3' };
 
 const DEFAULT_ROUTINE = {
@@ -450,7 +450,7 @@ const Btn = ({ onClick, children, bg = C.accent, color, style = {}, disabled: di
 };
 
 const Label = ({ children }) => (
-  <div style={{ color: C.muted, fontSize: 11, letterSpacing: '0.22em', marginBottom: 8 }}>{children}</div>
+  <div style={{ color: '#909090', fontSize: 11, letterSpacing: '0.22em', marginBottom: 8 }}>{children}</div>
 );
 
 // ================================================================
@@ -708,14 +708,14 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
             const active = selected.includes(ex.id);
             return (
               <div key={ex.id} onClick={() => toggleEx(ex.id)} style={{
-                border: `1px solid ${active ? C.accent : C.border}`, padding: '10px 14px', marginBottom: 6,
+                border: `1px solid ${active ? '#c0c0c0' : C.border}`, padding: '10px 14px', marginBottom: 6,
                 cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                opacity: active ? 1 : 0.55,
+                opacity: active ? 1 : 0.6,
               }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ color: active ? C.text : C.muted, fontSize: 13 }}>{ex.name}</div>
                   {ex.desc.split('\n').map((line, i) => (
-                    <div key={i} style={{ color: i === 0 ? '#888' : '#666', fontSize: 11, marginTop: i === 0 ? 2 : 1 }}>{line}</div>
+                    <div key={i} style={{ color: i === 0 ? '#aaa' : '#888', fontSize: 11, marginTop: i === 0 ? 2 : 1 }}>{line}</div>
                   ))}
                 </div>
                 <div style={{ color: active ? (CAT_COLORS[ex.cat] || C.accent) : C.dim, fontSize: 16, marginLeft: 10 }}>{active ? '●' : '○'}</div>
@@ -732,11 +732,11 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
               const ex = EXERCISES.find(e => e.id === id);
               return (
                 <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: `1px solid ${C.dim}` }}>
-                  <span style={{ color: '#777', fontSize: 12, width: 18 }}>{i+1}</span>
+                  <span style={{ color: '#909090', fontSize: 12, width: 18 }}>{i+1}</span>
                   <span style={{ color: C.text, fontSize: 13, flex: 1 }}>{ex?.name}</span>
                   <span style={{ color: CAT_COLORS[ex?.cat] || C.muted, fontSize: 10, marginRight: 4 }}>■</span>
                   <button onClick={() => setSelected(prev => prev.filter(x => x !== id))}
-                    style={{ background: 'none', border: 'none', color: '#777', cursor: 'pointer', fontSize: 14 }}>✕</button>
+                    style={{ background: 'none', border: 'none', color: '#909090', cursor: 'pointer', fontSize: 14 }}>✕</button>
                 </div>
               );
             })}
@@ -875,7 +875,11 @@ function TimerScreen({ dbRef, onNavigate, params }) {
   const skip = () => {
     clearInterval(intervalRef.current);
     const next = stepIdx + 1;
-    if (next >= sequence.length) { setPhase('done'); return; }
+    if (next >= sequence.length) {
+      const dur = Math.floor((Date.now() - startTs) / 1000);
+      saveSession(dur);
+      setPhase('done'); relWake(); return;
+    }
     setStepIdx(next); setTimeLeft(sequence[next].duration);
   };
 
@@ -999,7 +1003,7 @@ function TimerScreen({ dbRef, onNavigate, params }) {
           )}
 
           {sequence[stepIdx + 1] && !step.isRest && (
-            <div style={{ color: '#777', fontSize: 12, letterSpacing: '0.12em', marginBottom: 28 }}>
+            <div style={{ color: '#909090', fontSize: 12, letterSpacing: '0.12em', marginBottom: 28 }}>
               DAARNA → {sequence[stepIdx+1].name.toUpperCase()} ({sequence[stepIdx+1].duration}s)
             </div>
           )}
