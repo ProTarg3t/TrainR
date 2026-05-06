@@ -1,0 +1,166 @@
+/* ─────────────────────────────────────────────────────────────
+   TRAINR — Design Tokens
+   Athletic monochrome + signal yellow. Mono accents, sans body.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Color: surfaces ───────────────────────────────────── */
+  --bg-base:        #000000;            /* OLED true black */
+  --bg-elev-1:      #0A0A0B;            /* card / sheet */
+  --bg-elev-2:      #131315;            /* nested card */
+  --bg-elev-3:      #1C1C1F;            /* hover / pressed */
+  --bg-overlay:     rgba(0,0,0,0.72);
+
+  /* ── Color: foreground ─────────────────────────────────── */
+  /* Boosted contrast — leesbaarheid komt eerst */
+  --fg-primary:     #FAFAF9;            /* primary text — ~19:1 */
+  --fg-secondary:   #C8C8C7;            /* secondary / labels — ~12:1 */
+  --fg-tertiary:    #8E8E8D;            /* tertiary / meta — ~6:1 */
+  --fg-quaternary:  #4A4A49;            /* dividers / placeholder ink */
+
+  /* ── Color: borders ────────────────────────────────────── */
+  --border-subtle:  rgba(255,255,255,0.06);
+  --border-default: rgba(255,255,255,0.10);
+  --border-strong:  rgba(255,255,255,0.18);
+
+  /* ── Color: signal (single accent) ─────────────────────── */
+  --signal:         #E8FE3C;            /* signal yellow — primary accent */
+  --signal-dim:     #B8CC2E;            /* darker for hover/pressed text */
+  --signal-fg:      #0A0A0A;            /* foreground on signal fills */
+  --signal-glow:    rgba(232,254,60,0.20);
+  --signal-08:      rgba(232,254,60,0.08);
+
+  /* ── Color: status ─────────────────────────────────────── */
+  --status-go:      #6BE89B;            /* active / streak / success */
+  --status-rest:    #69A6FF;            /* rest / cooldown */
+  --status-warn:    #FFB454;            /* warning / pause */
+  --status-crit:    #FF5A5A;            /* critical / stop */
+
+  /* ── Color: heatmap (intensity 0→4) ────────────────────── */
+  --heat-0: #1A1A1C;                    /* untargeted */
+  --heat-1: #3A3A1A;                    /* light activation */
+  --heat-2: #76840F;                    /* moderate */
+  --heat-3: #C2DF1F;                    /* high */
+  --heat-4: #E8FE3C;                    /* maximum */
+
+  /* ── Type: families ────────────────────────────────────── */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ── Type: scale ───────────────────────────────────────── */
+  --text-xs:   12px;   /* micro labels, tab labels */
+  --text-sm:   14px;   /* secondary, captions */
+  --text-base: 16px;   /* body */
+  --text-md:   18px;   /* emphasized body */
+  --text-lg:   20px;   /* card title */
+  --text-xl:   24px;   /* section heading */
+  --text-2xl:  32px;   /* page heading */
+  --text-3xl:  44px;   /* hero / feature numerics */
+  --text-4xl:  64px;   /* timer */
+  --text-5xl:  96px;   /* full-bleed timer */
+
+  /* ── Type: weight ──────────────────────────────────────── */
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semi:    600;
+  --weight-bold:    700;
+
+  /* ── Type: tracking ────────────────────────────────────── */
+  --track-tight:  -0.02em;
+  --track-normal: 0;
+  --track-wide:   0.08em;     /* small caps labels */
+  --track-wider:  0.16em;     /* tab labels, eyebrows */
+
+  /* ── Spacing (4-step) ──────────────────────────────────── */
+  --space-0:  0;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-7:  32px;
+  --space-8:  40px;
+  --space-9:  56px;
+  --space-10: 72px;
+
+  /* ── Radius ────────────────────────────────────────────── */
+  --radius-xs:   4px;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+  --radius-pill: 999px;
+
+  /* ── Elevation ─────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.30);
+  --shadow-md: 0 6px 16px rgba(0,0,0,0.40);
+  --shadow-lg: 0 24px 48px rgba(0,0,0,0.55);
+  --shadow-signal: 0 0 0 1px var(--signal), 0 8px 32px var(--signal-glow);
+
+  /* ── Motion ────────────────────────────────────────────── */
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast:    140ms;
+  --dur-base:    220ms;
+  --dur-slow:    420ms;
+
+  /* ── Layout ────────────────────────────────────────────── */
+  --gutter: 20px;
+  --tab-h:  64px;
+  --topbar-h: 56px;
+}
+
+/* density tokens — overridden by [data-density] on root */
+:root[data-density="compact"] {
+  --space-row:  10px;
+  --card-pad:   14px;
+  --gutter:     16px;
+}
+:root[data-density="cozy"] {
+  --space-row:  16px;
+  --card-pad:   20px;
+  --gutter:     20px;
+}
+:root[data-density="comfortable"] {
+  --space-row:  22px;
+  --card-pad:   28px;
+  --gutter:     24px;
+}
+
+/* ── Resets ──────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-base);
+  color: var(--fg-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button { font-family: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; }
+
+/* ── Utility classes ─────────────────────────────────────── */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-secondary);
+  font-weight: 500;
+}
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-secondary);
+  font-weight: 500;
+}
+.numeric {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--track-tight);
+}
