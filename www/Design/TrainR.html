@@ -44,6 +44,10 @@
 <script type="text/babel" src="screen-onboarding.jsx"></script>
 <script type="text/babel" src="screen-profile.jsx"></script>
 <script type="text/babel" src="screen-finish.jsx"></script>
+<script type="text/babel" src="screen-routines.jsx"></script>
+<script type="text/babel" src="screen-routine-detail.jsx"></script>
+<script type="text/babel" src="screen-new-routine.jsx"></script>
+<script type="text/babel" src="screen-exercise-detail.jsx"></script>
 
 <script type="text/babel">
 const { useState } = React;
@@ -126,10 +130,28 @@ function App() {
             <PhoneShell><ActiveWorkout density={tweaks.density} onExit={() => {}} /></PhoneShell>
           </DCArtboard>
         </DCSection>
+
+        <DCSection id="batch-b" title="BATCH B — ROUTINES & OEFENINGEN">
+          <DCArtboard id="routines" label="ROUTINES — gefilterde lijst" width={400} height={840}>
+            <PhoneShell><RoutinesList density={tweaks.density} onOpen={() => {}} /></PhoneShell>
+          </DCArtboard>
+
+          <DCArtboard id="routine-detail" label="ROUTINE DETAIL — preview + start CTA" width={400} height={840}>
+            <PhoneShell><RoutineDetail density={tweaks.density} onStart={() => {}} onBack={() => {}} /></PhoneShell>
+          </DCArtboard>
+
+          <DCArtboard id="new-routine" label="NIEUWE ROUTINE — 3-staps builder" width={400} height={840}>
+            <PhoneShell><NewRoutine density={tweaks.density} onCancel={() => {}} onDone={() => {}} /></PhoneShell>
+          </DCArtboard>
+
+          <DCArtboard id="exercise-detail" label="OEFENING DETAIL — burpees voorbeeld" width={400} height={840}>
+            <PhoneShell><ExerciseDetail density={tweaks.density} onBack={() => {}} /></PhoneShell>
+          </DCArtboard>
+        </DCSection>
       </DesignCanvas>
 
       <TweaksPanel title="Tweaks">
-        <TweakSection title="Density">
+        <TweakSection label="Density">
           <TweakRadio
             label="Spacing"
             value={tweaks.density}

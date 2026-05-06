@@ -1,4 +1,4 @@
-/* global React, BodyMap */
+/* global React */
 const { useState } = React;
 
 // ─── PROFILE ─────────────────────────────────────────────────
