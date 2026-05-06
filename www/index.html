@@ -568,6 +568,7 @@ function HomeScreen({ dbRef, onNavigate }) {
     const d = new Date(); d.setDate(d.getDate() - (6 - i));
     return {
       label: ['Zo','Ma','Di','Wo','Do','Vr','Za'][d.getDay()],
+      date: d.getDate(),
       done: sessions.some(s => new Date(s.completedAt).toDateString() === d.toDateString()),
       isToday: d.toDateString() === today.toDateString(),
     };
@@ -1084,8 +1085,6 @@ function TimerScreen({ dbRef, onNavigate, params }) {
   };
 
   const totalMin = Math.floor(totalDur / 60), totalSec = totalDur % 60;
-  const circ = 2 * Math.PI * 54;
-  const strokeOff = step ? circ * (timeLeft / step.duration) : 0;
   const lvColor = LEVEL_COLORS[levelIdx];
 
   if (!routine) return <Loader />;
@@ -1450,7 +1449,7 @@ function HistoryScreen({ dbRef }) {
             <div>
               <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>{s.routineName}</div>
               <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 11, letterSpacing: '0.06em' }}>
-                {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} OEF · {Math.floor(s.duration/60)}:{String(s.duration%60).padStart(2,'0')} MIN
+                {LEVELS[s.levelIdx] ?? '—'} · {s.exercises?.length || 0} OEF · {Math.floor((s.duration||0)/60)}:{String((s.duration||0)%60).padStart(2,'0')} MIN
               </div>
             </div>
             <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 11, textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
