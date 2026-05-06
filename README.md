@@ -23,26 +23,61 @@ Voor de volledige PWA-ervaring (installeerbaar, offline):
   ```
 - Of gebruik een live server extensie in VS Code.
 
+Het designprototype openen: open `www/Design/TrainR.html` in een browser (óók via een lokale server — de Babel-transpiler vereist `http://`).
+
 ## Projectstructuur
 
 ```
 www/
-  index.html      — de volledige app (HTML + React + CSS in één bestand)
-  manifest.json   — PWA-configuratie
-  sw.js           — service worker voor offline gebruik
-  icon-192.png    — app-icoon
-  icon-512.png    — app-icoon (groot)
+  index.html        — productie-app (HTML + React + CSS in één bestand)
+  manifest.json     — PWA-configuratie
+  sw.js             — service worker voor offline gebruik
+  icon-192.png      — app-icoon
+  icon-512.png      — app-icoon (groot)
+
+  Design/
+    TrainR.html          — interactief design canvas (alle schermen naast elkaar)
+    tokens.css           — design tokens (kleuren, typografie, spacing, radius)
+    body-map.jsx         — spiergroep-heatmap component (heat 0–4)
+    design-canvas.jsx    — Figma-achtige canvas (pan/zoom, artboards, focus-mode)
+    android-frame.jsx    — Android device frame voor artboards
+    tweaks-panel.jsx     — zwevend tweak-paneel (density, kleur, etc.)
+    screen-home.jsx      — Home scherm
+    screen-routines.jsx  — Routines lijst (gefilterd)
+    screen-routine-detail.jsx — Routine detail + start CTA
+    screen-new-routine.jsx    — Nieuwe routine builder (3 stappen)
+    screen-active.jsx    — Actieve workout (timer ring, segmented progress)
+    screen-finish.jsx    — Sessie voltooid (heatmap + RPE slider)
+    screen-exercise-detail.jsx — Oefening detail (instructies + spieren)
+    screen-onboarding.jsx — Onboarding (Typeform-stijl, 8 stappen)
+    screen-profile.jsx   — Profiel (BMI, gewichtsdoel, stats)
 ```
+
+## Design richting
+
+Het `Design/`-prototype werkt met een eigen design system:
+
+| Token | Waarde |
+|---|---|
+| Achtergrond | `#000000` (OLED true black) |
+| Accent | `#E8FE3C` (signal yellow) |
+| Primaire tekst | `#FAFAF9` |
+| Font body | Inter |
+| Font labels/nummers | Geist Mono |
+
+De productie-app (`index.html`) loopt nog op het originele thema. Visuele integratie staat gepland.
 
 ## Technische keuzes
 
-- Eén HTML-bestand zonder build-stap — laagste instapdrempel
+- Productie: één HTML-bestand zonder build-stap — laagste instapdrempel
 - React 18 via CDN (geen npm vereist)
 - IndexedDB voor opslag — data blijft ook offline beschikbaar
 - Geen externe API's of accounts
+- Design-prototype: losse JSX-bestanden, getranspileerd via Babel in de browser
 
 ## Toekomstige plannen
 
+- [ ] Visuele integratie: design tokens uit `Design/tokens.css` doorvoeren in `index.html`
 - [ ] Oefeningen bewerkbaar maken in de app
 - [ ] Code opsplitsen in losse bestanden
 - [ ] Verpakken als native app via Capacitor

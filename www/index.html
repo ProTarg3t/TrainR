@@ -9,16 +9,51 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="TRAINR" />
-  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="theme-color" content="#000000" />
   <link rel="apple-touch-icon" href="./icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
+    :root {
+      --bg-base:        #000000;
+      --bg-elev-1:      #0A0A0B;
+      --bg-elev-2:      #131315;
+      --bg-elev-3:      #1C1C1F;
+      --fg-primary:     #FAFAF9;
+      --fg-secondary:   #C8C8C7;
+      --fg-tertiary:    #8E8E8D;
+      --border-subtle:  rgba(255,255,255,0.06);
+      --border-default: rgba(255,255,255,0.10);
+      --border-strong:  rgba(255,255,255,0.18);
+      --signal:         #E8FE3C;
+      --signal-fg:      #0A0A0A;
+      --signal-08:      rgba(232,254,60,0.08);
+      --status-go:      #6BE89B;
+      --status-rest:    #69A6FF;
+      --status-warn:    #FFB454;
+      --status-crit:    #FF5A5A;
+      --heat-0: #1A1A1C;
+      --heat-1: #3A3A1A;
+      --heat-2: #76840F;
+      --heat-3: #C2DF1F;
+      --heat-4: #E8FE3C;
+      --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+      --radius-sm:   8px;
+      --radius-md:   12px;
+      --radius-pill: 999px;
+      --tab-h:       64px;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { background: #0a0a0a; overscroll-behavior: none; }
+    body { background: #000; color: #FAFAF9; font-family: var(--font-sans); overscroll-behavior: none; -webkit-font-smoothing: antialiased; }
+    button { cursor: pointer; }
     input { -webkit-appearance: none; border-radius: 0; }
     ::-webkit-scrollbar { width: 0; }
+    .rpe-slider { position: absolute; inset: -10px 0; width: 100%; opacity: 0; cursor: pointer; -webkit-appearance: none; }
   </style>
 </head>
 <body>
@@ -65,9 +100,9 @@ const dbGetAll = (db, store) => new Promise((resolve, reject) => {
 // ════════════════════════════════════════════════════════════════
 
 const MUSCLE_COLORS = {
-  none:      { fill: '#171717', stroke: '#232323' },
-  secondary: { fill: '#3d3d3d', stroke: '#525252' },
-  primary:   { fill: '#cbcbcb', stroke: '#e8e8e8' },
+  none:      { fill: '#1A1A1C', stroke: '#252528' },
+  secondary: { fill: '#3A3A1A', stroke: '#76840F' },
+  primary:   { fill: '#C2DF1F', stroke: '#E8FE3C' },
 };
 
 const MUSCLE_CONFIG = {
@@ -118,13 +153,13 @@ function mergeRoutineMuscles(exercises) {
   return { name: 'Routine', muscles: { primary: [...prim], secondary: [...sec] } };
 }
 function pickStroke(level) {
-  if (level === 'primary')   return '#7a7a7a';
-  if (level === 'secondary') return '#525252';
-  return '#262626';
+  if (level === 'primary')   return '#E8FE3C';
+  if (level === 'secondary') return '#76840F';
+  return '#2a2a2d';
 }
 
 function Shell() {
-  const o = { fill: '#181818', stroke: '#2c2c2c', strokeWidth: 0.6, strokeLinejoin: 'round' };
+  const o = { fill: '#0a0a0b', stroke: '#1c1c1f', strokeWidth: 0.6, strokeLinejoin: 'round' };
   return (
     <g>
       <ellipse cx="50" cy="13" rx="9" ry="11.5" {...o}/>
@@ -253,7 +288,7 @@ function BodyDiagram({ exercise, height = 260 }) {
   const views = detectViews(h);
   const both  = views === 'both';
   const figW  = height * (100 / 244);
-  const lbl   = { textAlign: 'center', fontSize: 9, letterSpacing: 2, color: '#808080', marginBottom: 4 };
+  const lbl   = { textAlign: 'center', fontSize: 9, letterSpacing: 2, color: '#8E8E8D', marginBottom: 4, fontFamily: 'var(--font-mono)' };
   return (
     <div style={{ display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'flex-start' }}>
       {(views === 'front' || both) && (
@@ -276,23 +311,24 @@ function MuscleTags({ exercise }) {
   const { primary = [], secondary = [] } = exercise.muscles || {};
   const tag = (m, level) => (
     <span key={m} style={{
-      display: 'inline-block', padding: '2px 7px', borderRadius: 2,
-      background: level === 'primary' ? '#cacaca' : '#242424',
-      color:      level === 'primary' ? '#080808' : '#707070',
-      fontSize: 10, marginRight: 5, marginBottom: 4,
+      display: 'inline-block', padding: '3px 8px', borderRadius: 4,
+      background: level === 'primary' ? 'rgba(232,254,60,0.12)' : 'rgba(255,255,255,0.06)',
+      color:      level === 'primary' ? '#E8FE3C' : '#8E8E8D',
+      fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em',
+      marginRight: 5, marginBottom: 4,
     }}>{MUSCLE_CONFIG[m]?.label || m}</span>
   );
   return (
-    <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #212121' }}>
+    <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
       {primary.length > 0 && (
         <div style={{ marginBottom: 8 }}>
-          <div style={{ fontSize: 9, color: '#808080', letterSpacing: 1.5, marginBottom: 5 }}>PRIMAIR</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#8E8E8D', letterSpacing: '0.12em', marginBottom: 5 }}>PRIMAIR</div>
           <div>{primary.map(m => tag(m, 'primary'))}</div>
         </div>
       )}
       {secondary.length > 0 && (
         <div>
-          <div style={{ fontSize: 9, color: '#808080', letterSpacing: 1.5, marginBottom: 5 }}>SECUNDAIR</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#8E8E8D', letterSpacing: '0.12em', marginBottom: 5 }}>SECUNDAIR</div>
           <div>{secondary.map(m => tag(m, 'secondary'))}</div>
         </div>
       )}
@@ -342,8 +378,8 @@ const EXERCISES = [
 
 const CATS = ['Core', 'Push', 'Legs', 'Pull', 'Cardio'];
 const LEVELS = ['BEGINNER', 'INTERMEDIATE', 'EXPERT'];
-const LEVEL_COLORS = ['#34d399', '#a78bfa', '#fb7185'];
-const CAT_COLORS = { Core: '#ff4d00', Push: '#4a9eff', Legs: '#3daa5e', Pull: '#e0a000', Cardio: '#c026d3' };
+const LEVEL_COLORS = ['#6BE89B', '#FFB454', '#FF5A5A'];
+const CAT_COLORS = { Core: '#E8FE3C', Push: '#FFB454', Legs: '#6BE89B', Pull: '#69A6FF', Cardio: '#FF5A5A' };
 
 function getRoutineCategories(exerciseIds) {
   const seen = new Set();
@@ -432,29 +468,76 @@ function calcStreak(sessions) {
 // DESIGN TOKENS
 // ================================================================
 const C = {
-  bg: '#0a0a0a', surface: '#111', border: '#252525',
-  accent: '#ff4d00', text: '#e8e8e8', muted: '#909090', dim: '#333',
-  font: "'Courier New', Courier, monospace",
+  bg:       '#000000',
+  surface:  '#0A0A0B',
+  elev2:    '#131315',
+  elev3:    '#1C1C1F',
+  border:   'rgba(255,255,255,0.06)',
+  borderMd: 'rgba(255,255,255,0.10)',
+  accent:   '#E8FE3C',
+  accentFg: '#0A0A0A',
+  text:     '#FAFAF9',
+  secondary:'#C8C8C7',
+  muted:    '#8E8E8D',
+  dim:      '#1C1C1F',
+  statusGo:   '#6BE89B',
+  statusRest: '#69A6FF',
+  statusWarn: '#FFB454',
+  statusCrit: '#FF5A5A',
+  font: '"Inter", -apple-system, BlinkMacSystemFont, sans-serif',
+  mono: '"Geist Mono", ui-monospace, "SF Mono", Menlo, monospace',
 };
 
-const Btn = ({ onClick, children, bg = C.accent, color, style = {}, disabled: dis = false }) => {
-  const isSurface = bg === C.surface || bg === C.bg;
-  const borderColor = isSurface ? C.border : bg;
-  const textColor = color || (isSurface ? C.muted : bg);
+const Btn = ({ onClick, children, bg, color, style = {}, disabled: dis = false }) => {
+  const isPrimary = !bg || bg === C.accent;
   return (
     <button onClick={onClick} disabled={dis} style={{
-      background: 'transparent', color: textColor,
-      border: `1px solid ${borderColor}`,
-      padding: '12px 22px', fontSize: 12,
-      letterSpacing: '0.18em', cursor: dis ? 'default' : 'pointer',
-      fontFamily: C.font, textTransform: 'uppercase', opacity: dis ? 0.3 : 1, ...style,
+      background: isPrimary ? C.accent : 'transparent',
+      color: color || (isPrimary ? C.accentFg : C.muted),
+      border: `1px solid ${isPrimary ? C.accent : C.borderMd}`,
+      borderRadius: 8,
+      padding: '14px 22px', fontSize: 12,
+      letterSpacing: '0.14em', fontWeight: 600,
+      cursor: dis ? 'default' : 'pointer',
+      fontFamily: C.mono, textTransform: 'uppercase',
+      opacity: dis ? 0.35 : 1, ...style,
     }}>{children}</button>
   );
 };
 
 const Label = ({ children }) => (
-  <div style={{ color: '#909090', fontSize: 11, letterSpacing: '0.22em', marginBottom: 8 }}>{children}</div>
+  <div style={{ color: C.muted, fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 8 }}>{children}</div>
 );
+
+// ================================================================
+// ICONS
+// ================================================================
+const Icon = {
+  home: (s = 22) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-7 9 7v9a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2v-9z"/></svg>
+  ),
+  list: (s = 22) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  ),
+  stats: (s = 22) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M6 17V9M11 17V5M16 17v-6M21 17v-9"/></svg>
+  ),
+  back: (s = 20) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+  ),
+  play: (s = 14) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7V5z"/></svg>
+  ),
+  close: (s = 20) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+  ),
+  volume: (s = 20) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5zM15 9a4 4 0 0 1 0 6"/></svg>
+  ),
+  mute: (s = 20) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/></svg>
+  ),
+};
 
 // ================================================================
 // HOME SCREEN
@@ -492,66 +575,109 @@ function HomeScreen({ dbRef, onNavigate }) {
 
   if (!ready) return <Loader />;
 
+  const quickRoutines = routines.filter(r => r.quickStart !== false).slice(0, 4);
+  const doneThisWeek = last7.filter(d => d.done).length;
+
   return (
-    <div style={{ padding: '36px 20px 100px' }}>
-      <div style={{ color: C.muted, fontSize: 11, letterSpacing: '0.25em', marginBottom: 4 }}>{greeting}</div>
-      <div style={{ color: C.text, fontSize: 22, letterSpacing: '0.03em', marginBottom: 28 }}>
-        {todayDone ? 'Goed gedaan vandaag.' : 'Klaar om te trainen?'}
-      </div>
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', paddingBottom: 'calc(var(--tab-h) + 24px)', fontFamily: C.font }}>
 
-      {/* Week */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 24 }}>
-        {last7.map((d, i) => (
-          <div key={i} style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ width: '100%', aspectRatio: '1', background: d.done ? C.accent : C.surface, border: `1px solid ${d.isToday ? C.accent : C.border}`, opacity: d.done ? 1 : 0.4, marginBottom: 4 }} />
-            <div style={{ fontSize: 11, color: d.isToday ? C.accent : C.muted, letterSpacing: '0.05em' }}>{d.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Streak */}
-      <div style={{ border: `1px solid ${C.border}`, padding: '16px 20px', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <Label>STREAK</Label>
-          <div style={{ color: streak > 0 ? C.accent : C.muted, fontSize: 36, fontWeight: 'bold', lineHeight: 1 }}>{streak}</div>
+      {/* Hero */}
+      <header style={{ padding: '44px 20px 20px' }}>
+        <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 10 }}>{greeting}</div>
+        <h1 style={{ fontFamily: C.font, fontSize: 44, fontWeight: 700, lineHeight: 0.95, letterSpacing: '-0.04em', margin: '0 0 12px' }}>
+          PROTOCOL<br/>
+          <span style={{ color: C.accent }}>{todayDone ? 'VOLTOOID' : 'READY'}</span>
+        </h1>
+        <div style={{ color: C.muted, fontSize: 14 }}>
+          {todayDone ? 'Goed gedaan vandaag.' : routines.length > 0 ? `${quickRoutines.length} routine${quickRoutines.length !== 1 ? 's' : ''} beschikbaar.` : 'Maak je eerste routine aan.'}
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ color: C.muted, fontSize: 12 }}>{streak === 1 ? 'DAG' : 'DAGEN'} OP RIJ</div>
-          {streak >= 7 && <div style={{ color: C.accent, fontSize: 11, marginTop: 4, letterSpacing: '0.1em' }}>🔥 WEEK STREAK</div>}
-        </div>
-      </div>
+      </header>
 
-      {/* Last session */}
-      {lastSession && (
-        <div style={{ border: `1px solid ${C.border}`, padding: '14px 20px', marginBottom: 24 }}>
-          <Label>LAATSTE SESSIE</Label>
-          <div style={{ color: C.text, fontSize: 14, marginBottom: 4 }}>{lastSession.routineName}</div>
-          <div style={{ color: C.muted, fontSize: 11, display: 'flex', gap: 16 }}>
-            <span>{LEVELS[lastSession.levelIdx]}</span>
-            <span>{Math.floor(lastSession.duration/60)}:{String(lastSession.duration%60).padStart(2,'0')} min</span>
-            <span>{new Date(lastSession.completedAt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}</span>
-          </div>
+      {/* Week strip */}
+      <section style={{ padding: '8px 0 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px 12px' }}>
+          <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', color: C.muted }}>DEZE WEEK</span>
+          <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', color: C.accent }}>{doneThisWeek} / 7</span>
         </div>
-      )}
-
-      {/* Routines quick start */}
-      {routines.length > 0 ? (
-        <div>
-          <Label>SNEL STARTEN</Label>
-          {routines.filter(r => r.quickStart !== false).slice(0, 4).map(r => (
-            <div key={r.id} onClick={() => onNavigate('timer', { routineId: r.id })}
-              style={{ border: `1px solid ${C.border}`, padding: '14px 20px', marginBottom: 6, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ color: C.text, fontSize: 13, marginBottom: 6 }}>{r.name}</div>
-                <CatTags exerciseIds={r.exercises} count={r.exercises.length} />
-              </div>
-              <div style={{ color: C.accent, fontSize: 20, marginLeft: 12 }}>▶</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 6, padding: '0 20px' }}>
+          {last7.map((d, i) => (
+            <div key={i} style={{
+              aspectRatio: '1 / 1.2',
+              border: `1px solid ${d.isToday ? C.accent : C.border}`,
+              borderRadius: 8,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between',
+              padding: '7px 4px 6px',
+              background: d.done ? C.surface : 'transparent',
+              position: 'relative',
+            }}>
+              <div style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.06em', color: d.isToday ? C.accent : C.muted, fontWeight: 500 }}>{d.label}</div>
+              <div style={{ fontFamily: C.mono, fontSize: 15, fontWeight: 500, color: d.isToday ? C.accent : (d.done ? C.text : C.muted) }}>{String(d.date).padStart(2,'0')}</div>
+              {d.done && <div style={{ position: 'absolute', bottom: 5, width: 4, height: 4, borderRadius: '50%', background: C.accent }} />}
             </div>
           ))}
         </div>
+      </section>
+
+      {/* Streak card */}
+      <section style={{ padding: '20px 20px 0' }}>
+        <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'stretch', gap: 24 }}>
+          <div>
+            <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', color: C.muted, marginBottom: 4 }}>ACTIEVE STREAK</div>
+            <div style={{ fontFamily: C.mono, fontSize: 56, fontWeight: 600, lineHeight: 1, color: C.text, letterSpacing: '-0.04em', marginTop: 6 }}>
+              {String(streak).padStart(2,'0')}<span style={{ fontSize: 24, color: C.muted, marginLeft: 3 }}>d</span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, justifyContent: 'center', flex: 1 }}>
+            {[
+              { l: 'SESSIES', v: sessions.length },
+              { l: 'VANDAAG',  v: todayDone ? 'KLAAR ✓' : '—', hi: todayDone },
+              lastSession && { l: 'LAATSTE', v: new Date(lastSession.completedAt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }) },
+            ].filter(Boolean).map(row => (
+              <div key={row.l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.08em', color: C.muted }}>{row.l}</span>
+                <span style={{ fontFamily: C.mono, fontSize: 13, color: row.hi ? C.accent : C.text }}>{row.v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Quick start */}
+      {quickRoutines.length > 0 ? (
+        <section style={{ padding: '20px 0 0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px 12px' }}>
+            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', color: C.muted }}>SNEL STARTEN</span>
+            <span style={{ fontFamily: C.mono, fontSize: 11, color: C.muted }}>{quickRoutines.length} ROUTINES</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '0 20px' }}>
+            {quickRoutines.map(r => (
+              <button key={r.id} onClick={() => onNavigate('timer', { routineId: r.id })} style={{
+                textAlign: 'left', background: C.surface,
+                border: `1px solid ${C.border}`, borderRadius: 12,
+                padding: 16, display: 'grid',
+                gridTemplateColumns: '1fr auto', gridTemplateRows: 'auto auto',
+                gap: '6px 16px', alignItems: 'center',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <CatTags exerciseIds={r.exercises} />
+                  <span style={{ fontFamily: C.mono, fontSize: 11, color: C.muted, letterSpacing: '0.06em' }}>{r.exercises.length} OEF</span>
+                </div>
+                <div style={{
+                  gridRow: '1 / span 2', display: 'flex', alignItems: 'center', gap: 7,
+                  fontFamily: C.mono, fontSize: 12, letterSpacing: '0.10em', fontWeight: 600,
+                  color: C.accentFg, background: C.accent,
+                  borderRadius: 999, padding: '10px 14px', alignSelf: 'center', whiteSpace: 'nowrap',
+                }}>
+                  EXECUTE {Icon.play(12)}
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em', color: C.text }}>{r.name}</div>
+              </button>
+            ))}
+          </div>
+        </section>
       ) : (
-        <div style={{ textAlign: 'center', padding: '40px 0' }}>
-          <div style={{ color: C.muted, fontSize: 12, letterSpacing: '0.1em', marginBottom: 20 }}>Nog geen routines.</div>
+        <div style={{ textAlign: 'center', padding: '60px 20px 0' }}>
+          <div style={{ color: C.muted, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.1em', marginBottom: 20 }}>Nog geen routines.</div>
           <Btn onClick={() => onNavigate('builder', {})}>MAAK EERSTE ROUTINE</Btn>
         </div>
       )}
@@ -583,44 +709,97 @@ function RoutinesScreen({ dbRef, onNavigate }) {
     load();
   };
 
+  const [filterCatR, setFilterCatR] = useState('ALLE');
+
   if (!ready) return <Loader />;
 
+  const catFilters = ['ALLE', ...CATS.map(c => c.toUpperCase())];
+  const filteredRoutines = filterCatR === 'ALLE'
+    ? routines
+    : routines.filter(r => {
+        const cats = getRoutineCategories(r.exercises).map(c => c.toUpperCase());
+        return cats.includes(filterCatR);
+      });
+
   return (
-    <div style={{ padding: '36px 20px 100px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
-        <div style={{ color: C.text, fontSize: 22 }}>Routines</div>
-        <Btn onClick={() => onNavigate('builder', {})} style={{ padding: '8px 16px', fontSize: 11 }}>+ NIEUW</Btn>
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', paddingBottom: 'calc(var(--tab-h) + 24px)', fontFamily: C.font }}>
+
+      {/* Header */}
+      <header style={{ padding: '44px 20px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div>
+          <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>MIJN</div>
+          <h1 style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 0.95 }}>ROUTINES</h1>
+        </div>
+        <button onClick={() => onNavigate('builder', {})} style={{
+          width: 44, height: 44, borderRadius: '50%',
+          background: C.accent, color: C.accentFg,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 22, fontWeight: 300, border: 'none', flexShrink: 0,
+        }}>+</button>
+      </header>
+
+      {/* Filter pills */}
+      <div style={{ display: 'flex', gap: 8, padding: '0 20px 20px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+        {catFilters.map(c => {
+          const active = filterCatR === c;
+          return (
+            <button key={c} onClick={() => setFilterCatR(c)} style={{
+              background: active ? C.accent : 'transparent',
+              color: active ? C.accentFg : C.secondary,
+              border: `1px solid ${active ? C.accent : C.borderMd}`,
+              borderRadius: 999, padding: '7px 14px',
+              fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', fontWeight: 500,
+              whiteSpace: 'nowrap', flexShrink: 0,
+            }}>{c}</button>
+          );
+        })}
       </div>
 
-      {routines.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: C.muted, fontSize: 12 }}>Nog geen routines.</div>
-      )}
+      {/* Count */}
+      <div style={{ padding: '0 20px 12px', fontFamily: C.mono, fontSize: 11, color: C.muted, letterSpacing: '0.08em' }}>
+        {filteredRoutines.length} ROUTINE{filteredRoutines.length !== 1 ? 'S' : ''}
+      </div>
 
-      {routines.map(r => (
-        <div key={r.id} onClick={() => onNavigate('timer', { routineId: r.id })}
-          style={{ border: `1px solid ${C.border}`, marginBottom: 8, cursor: 'pointer' }}>
-          <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ color: C.text, fontSize: 14, marginBottom: 7 }}>{r.name}</div>
-              <CatTags exerciseIds={r.exercises} count={r.exercises.length} />
-            </div>
-            <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-              {r.quickStart !== false && <span style={{ color: '#555', fontSize: 13 }} title="Staat op home screen">⌂</span>}
-              <button onClick={e => { e.stopPropagation(); onNavigate('builder', { routineId: r.id }); }}
-                style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', fontSize: 14, fontFamily: C.font }}>✎</button>
-              <button onClick={e => del(r.id, e)}
-                style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', fontSize: 15, fontFamily: C.font }}>✕</button>
-              <div style={{ color: C.accent, fontSize: 20 }}>▶</div>
+      {/* List */}
+      <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {filteredRoutines.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: C.muted, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.1em' }}>
+            Nog geen routines.
+          </div>
+        )}
+        {filteredRoutines.map(r => (
+          <div key={r.id} onClick={() => onNavigate('timer', { routineId: r.id })}
+            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, cursor: 'pointer', overflow: 'hidden' }}>
+            <div style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em', marginBottom: 8 }}>{r.name}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <CatTags exerciseIds={r.exercises} />
+                  <span style={{ fontFamily: C.mono, fontSize: 11, color: C.muted }}>{r.exercises.length} OEF</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginLeft: 12, flexShrink: 0 }}>
+                <button onClick={e => { e.stopPropagation(); onNavigate('builder', { routineId: r.id }); }}
+                  style={{ background: 'none', border: 'none', color: C.muted, fontSize: 16, padding: '4px 6px' }}>✎</button>
+                <button onClick={e => del(r.id, e)}
+                  style={{ background: 'none', border: 'none', color: C.muted, fontSize: 16, padding: '4px 6px' }}>✕</button>
+                <div style={{
+                  color: C.accentFg, background: C.accent, borderRadius: 999,
+                  width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {Icon.play(12)}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
 
 // ================================================================
-// ROUTINE BUILDER
+// ROUTINES SCREEN — redesigned
 // ================================================================
 function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
   const isEdit = !!params?.routineId;
@@ -662,9 +841,12 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
   return (
     <div style={{ padding: '0 0 100px' }}>
       {/* Header */}
-      <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: `1px solid ${C.border}` }}>
-        <button onClick={() => onNavigate('routines', {})} style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', fontSize: 20, fontFamily: C.font }}>←</button>
-        <div style={{ color: C.text, fontSize: 16 }}>{isEdit ? 'Bewerken' : 'Nieuwe routine'}</div>
+      <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: `1px solid ${C.border}`, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 10 }}>
+        <button onClick={() => onNavigate('routines', {})} style={{
+          width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.muted, background: 'none',
+        }}>{Icon.back(18)}</button>
+        <div style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', color: C.text }}>{isEdit ? 'BEWERKEN' : 'NIEUWE ROUTINE'}</div>
       </div>
 
       <div style={{ padding: '24px 20px' }}>
@@ -672,8 +854,8 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
         <div style={{ marginBottom: 22 }}>
           <Label>NAAM</Label>
           <input value={name} onChange={e => setName(e.target.value)} placeholder="Bijv. Ochtend core..."
-            style={{ width: '100%', background: C.surface, border: `1px solid ${C.border}`, color: C.text,
-              padding: '12px 14px', fontSize: 13, fontFamily: C.font, outline: 'none' }} />
+            style={{ width: '100%', background: C.surface, border: `1px solid ${C.borderMd}`, color: C.text,
+              padding: '12px 14px', fontSize: 13, fontFamily: C.font, outline: 'none', borderRadius: 8 }} />
         </div>
 
         {/* Category */}
@@ -682,9 +864,11 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {CATS.map(c => (
               <button key={c} onClick={() => setCategory(c)} style={{
-                background: category === c ? (CAT_COLORS[c] || C.accent) : C.surface,
-                color: category === c ? '#fff' : C.muted, border: `1px solid ${category === c ? 'transparent' : C.border}`,
-                padding: '8px 14px', fontSize: 11, letterSpacing: '0.12em', cursor: 'pointer', fontFamily: C.font, textTransform: 'uppercase',
+                background: category === c ? C.accent : 'transparent',
+                color: category === c ? C.accentFg : C.secondary,
+                border: `1px solid ${category === c ? C.accent : C.borderMd}`,
+                borderRadius: 999, padding: '8px 16px',
+                fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', fontWeight: 500,
               }}>{c}</button>
             ))}
           </div>
@@ -697,9 +881,11 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
           <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto', paddingBottom: 2 }}>
             {CATS.map(c => (
               <button key={c} onClick={() => setFilterCat(c)} style={{
-                background: filterCat === c ? C.dim : 'transparent', color: filterCat === c ? C.text : C.muted,
-                border: `1px solid ${filterCat === c ? C.border : 'transparent'}`, padding: '6px 12px', fontSize: 11,
-                letterSpacing: '0.1em', cursor: 'pointer', fontFamily: C.font, textTransform: 'uppercase', whiteSpace: 'nowrap',
+                background: filterCat === c ? C.elev3 : 'transparent',
+                color: filterCat === c ? C.text : C.muted,
+                border: `1px solid ${filterCat === c ? C.borderMd : 'transparent'}`,
+                borderRadius: 999, padding: '6px 14px',
+                fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', whiteSpace: 'nowrap',
               }}>{c}</button>
             ))}
           </div>
@@ -707,9 +893,9 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
             const active = selected.includes(ex.id);
             return (
               <div key={ex.id} onClick={() => toggleEx(ex.id)} style={{
-                border: `1px solid ${active ? '#c0c0c0' : C.border}`, padding: '10px 14px', marginBottom: 6,
+                border: `1px solid ${active ? C.borderMd : C.border}`, borderRadius: 8, padding: '10px 14px', marginBottom: 6,
                 cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                opacity: active ? 1 : 0.6,
+                opacity: active ? 1 : 0.5, background: active ? C.surface : 'transparent',
               }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ color: active ? C.text : C.muted, fontSize: 13 }}>{ex.name}</div>
@@ -761,13 +947,13 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
         <div style={{ marginBottom: 16 }}>
           <Label>HOME SCREEN</Label>
           <button onClick={() => setQuickStart(v => !v)} style={{
-            width: '100%', background: 'transparent', cursor: 'pointer', fontFamily: C.font,
-            border: `1px solid ${quickStart ? '#c0c0c0' : C.border}`,
+            width: '100%', background: 'transparent', cursor: 'pointer',
+            border: `1px solid ${quickStart ? C.borderMd : C.border}`, borderRadius: 8,
             color: quickStart ? C.text : C.muted,
-            padding: '12px 16px', fontSize: 11, letterSpacing: '0.15em',
+            padding: '12px 16px', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em',
             display: 'flex', alignItems: 'center', gap: 10,
           }}>
-            <span style={{ color: quickStart ? C.accent : C.dim, fontSize: 14 }}>{quickStart ? '■' : '□'}</span>
+            <span style={{ color: quickStart ? C.accent : C.muted, fontSize: 14 }}>{quickStart ? '■' : '□'}</span>
             TONEN OP SNEL STARTEN
           </button>
         </div>
@@ -853,9 +1039,8 @@ function TimerScreen({ dbRef, onNavigate, params }) {
           const next = stepIdx + 1;
           if (next >= sequence.length) {
             const dur = Math.floor((Date.now() - startTs) / 1000);
-            saveSession(dur);
-            setPhase('done'); relWake();
             clearInterval(intervalRef.current);
+            saveSession(dur);
             return 0;
           }
           setStepIdx(next);
@@ -873,6 +1058,8 @@ function TimerScreen({ dbRef, onNavigate, params }) {
       id: `s-${Date.now()}`, routineId: routine.id, routineName: routine.name,
       levelIdx, duration: dur, exercises: activeEx.map(e => e.name), completedAt: Date.now(),
     }));
+    relWake();
+    onNavigate('finish', { routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx });
   };
 
   const startWorkout = () => {
@@ -891,8 +1078,7 @@ function TimerScreen({ dbRef, onNavigate, params }) {
     const next = stepIdx + 1;
     if (next >= sequence.length) {
       const dur = Math.floor((Date.now() - startTs) / 1000);
-      saveSession(dur);
-      setPhase('done'); relWake(); return;
+      saveSession(dur); return;
     }
     setStepIdx(next); setTimeLeft(sequence[next].duration);
   };
@@ -904,58 +1090,74 @@ function TimerScreen({ dbRef, onNavigate, params }) {
 
   if (!routine) return <Loader />;
 
+  const doneWorkCount = sequence.slice(0, stepIdx).filter(s => !s.isRest).length;
+  const ringColor = step?.isRest ? (step?.isMid ? C.statusWarn : C.statusRest) : C.accent;
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '70px 20px 40px', fontFamily: C.font }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: C.bg, color: C.text, fontFamily: C.font }}>
 
       {/* Fixed header */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: C.bg, borderBottom: `1px solid ${C.dim}`, zIndex: 10 }}>
-        <button onClick={() => { reset(); onNavigate('routines', {}); }} style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', fontSize: 20, fontFamily: C.font }}>←</button>
-        <div style={{ color: C.text, fontSize: 12, letterSpacing: '0.1em' }}>{routine.name}</div>
-        <button onClick={() => setSoundOn(v => !v)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, opacity: soundOn ? 1 : 0.3 }}>
-          {soundOn ? '🔊' : '🔇'}
-        </button>
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${C.border}`, zIndex: 10 }}>
+        <button onClick={() => { reset(); onNavigate('routines', {}); }} style={{
+          width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.muted, background: 'none',
+        }}>{Icon.back(18)}</button>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>{routine.name.toUpperCase()}</div>
+          {(phase === 'running' || phase === 'paused') &&
+            <div style={{ fontFamily: C.mono, fontSize: 13, color: C.text, marginTop: 2 }}>
+              {String(workIdx).padStart(2,'0')} / {String(workSteps.length).padStart(2,'0')}
+            </div>
+          }
+        </div>
+        <button onClick={() => setSoundOn(v => !v)} style={{
+          width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: C.muted, opacity: soundOn ? 1 : 0.35, background: 'none',
+        }}>{soundOn ? Icon.volume(18) : Icon.mute(18)}</button>
       </div>
 
       {/* IDLE */}
       {phase === 'idle' && (
-        <div style={{ width: '100%', maxWidth: 360 }}>
+        <div style={{ padding: '80px 20px 40px', display: 'flex', flexDirection: 'column', gap: 0 }}>
           {/* Level */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 20, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 24, justifyContent: 'center' }}>
             {LEVELS.map((lv, i) => (
               <button key={i} onClick={() => setLevelIdx(i)} style={{
-                background: i === levelIdx ? LEVEL_COLORS[i] : C.surface, color: i === levelIdx ? '#fff' : C.muted,
-                border: `1px solid ${i === levelIdx ? 'transparent' : C.border}`, padding: '8px 14px',
-                fontSize: 11, letterSpacing: '0.12em', cursor: 'pointer', fontFamily: C.font, textTransform: 'uppercase',
+                background: i === levelIdx ? LEVEL_COLORS[i] : 'transparent',
+                color: i === levelIdx ? C.bg : C.muted,
+                border: `1px solid ${i === levelIdx ? LEVEL_COLORS[i] : C.borderMd}`,
+                borderRadius: 999, padding: '8px 16px',
+                fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em', fontWeight: 600,
               }}>{lv}</button>
             ))}
           </div>
 
           {/* Exercise toggles */}
-          <div style={{ border: `1px solid ${C.border}`, padding: '14px 16px', marginBottom: 20 }}>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '6px 16px', marginBottom: 20, background: C.surface }}>
             {exercises.map((ex, i) => {
               const active = !disabled.has(i);
               return (
                 <div key={ex.id} onClick={() => setDisabled(prev => { const n = new Set(prev); active ? n.add(i) : n.delete(i); return n; })}
-                  style={{ display: 'flex', alignItems: 'center', padding: '8px 0', borderBottom: i < exercises.length - 1 ? `1px solid ${C.dim}` : 'none', cursor: 'pointer', opacity: active ? 1 : 0.3, userSelect: 'none' }}>
-                  <span style={{ color: active ? (CAT_COLORS[ex.cat] || lvColor) : C.dim, marginRight: 10, fontSize: 12 }}>{active ? '●' : '○'}</span>
-                  <span style={{ flex: 1, color: active ? C.text : C.muted, fontSize: 14 }}>{ex.name}</span>
-                  <span style={{ color: active ? (CAT_COLORS[ex.cat] || lvColor) : C.dim, fontSize: 13 }}>{ex.times[levelIdx]}s</span>
+                  style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: i < exercises.length - 1 ? `1px solid ${C.border}` : 'none', cursor: 'pointer', opacity: active ? 1 : 0.35, userSelect: 'none' }}>
+                  <span style={{ color: active ? (CAT_COLORS[ex.cat] || C.accent) : C.dim, marginRight: 12, fontSize: 10 }}>●</span>
+                  <span style={{ flex: 1, color: C.text, fontSize: 14, fontWeight: 500 }}>{ex.name}</span>
+                  <span style={{ fontFamily: C.mono, color: active ? C.muted : C.dim, fontSize: 12 }}>{ex.times[levelIdx]}s</span>
                 </div>
               );
             })}
           </div>
 
-          <div style={{ color: C.muted, fontSize: 13, letterSpacing: '0.08em', marginBottom: 20, textAlign: 'center' }}>
-            {activeEx.length} oefeningen · {totalMin}:{String(totalSec).padStart(2,'0')} min
+          <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 12, letterSpacing: '0.08em', marginBottom: 20, textAlign: 'center' }}>
+            {activeEx.length} OEFENINGEN · {totalMin}:{String(totalSec).padStart(2,'0')} MIN
           </div>
 
-          {/* Spiervisualisatie cumulatief voor actieve selectie */}
           {activeEx.length > 0 && (() => {
             const combined = mergeRoutineMuscles(activeEx);
             const hasMuscles = combined.muscles.primary.length > 0 || combined.muscles.secondary.length > 0;
             if (!hasMuscles) return null;
             return (
-              <div style={{ border: `1px solid ${C.border}`, padding: '16px 14px', marginBottom: 20 }}>
+              <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 14px', marginBottom: 24, background: C.surface }}>
                 <Label>SPIEREN</Label>
                 <BodyDiagram exercise={combined} height={220}/>
                 <MuscleTags exercise={combined}/>
@@ -969,93 +1171,228 @@ function TimerScreen({ dbRef, onNavigate, params }) {
 
       {/* COUNTDOWN */}
       {phase === 'countdown' && (
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ color: C.muted, fontSize: 12, letterSpacing: '0.3em', marginBottom: 36 }}>KLAAR VOOR START</div>
-          <div style={{ color: lvColor, fontSize: 110, fontWeight: 'bold', lineHeight: 1, minWidth: 100 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px 40px' }}>
+          <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 12, letterSpacing: '0.3em', marginBottom: 36 }}>KLAAR VOOR START</div>
+          <div style={{ fontFamily: C.mono, color: lvColor, fontSize: 110, fontWeight: 600, lineHeight: 1, letterSpacing: '-0.06em' }}>
             {countdown > 0 ? countdown : 'GO'}
           </div>
-          {countdown > 0 && <div style={{ color: C.muted, fontSize: 13, marginTop: 24, letterSpacing: '0.1em' }}>{sequence[0]?.name}</div>}
+          {countdown > 0 && <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 13, marginTop: 24, letterSpacing: '0.1em' }}>{sequence[0]?.name}</div>}
         </div>
       )}
 
       {/* RUNNING / PAUSED */}
       {(phase === 'running' || phase === 'paused') && step && (
-        <>
-          <div style={{ color: C.muted, fontSize: 12, letterSpacing: '0.2em', marginBottom: 20 }}>
-            {step.isRest ? 'RUST' : `OEFENING ${workIdx} / ${workSteps.length}`}
-          </div>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '74px 20px 0' }}>
 
-          {/* Circle */}
-          <div style={{ position: 'relative', width: 140, height: 140, marginBottom: 24 }}>
-            <svg width="140" height="140" style={{ transform: 'rotate(-90deg)' }}>
-              <circle cx="70" cy="70" r="54" fill="none" stroke={C.surface} strokeWidth="6" />
-              <circle cx="70" cy="70" r="54" fill="none"
-                stroke={step.isRest ? (step.isMid ? '#e0a000' : '#3daa5e') : lvColor}
-                strokeWidth="6" strokeDasharray={circ} strokeDashoffset={strokeOff}
-                strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.9s linear' }} />
-            </svg>
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-              <div style={{ color: step.isRest ? '#3daa5e' : lvColor, fontSize: 44, fontWeight: 'bold', lineHeight: 1 }}>{timeLeft}</div>
-              <div style={{ color: C.muted, fontSize: 11, letterSpacing: '0.2em' }}>SEC</div>
-            </div>
-          </div>
-
-          <div style={{ color: step.isRest ? (step.isMid ? '#e0a000' : '#3daa5e') : '#fff', fontSize: step.isRest ? 17 : 22, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, textAlign: 'center' }}>
-            {step.name}
-          </div>
-          <div style={{ textAlign: 'center', maxWidth: 280, marginBottom: 24 }}>
-            {step.desc.split('\n').map((line, i) => (
-              <div key={i} style={{ color: i === 0 ? '#ccc' : C.muted, fontSize: i === 0 ? 13 : 11, lineHeight: 1.6, marginBottom: i === 0 ? 4 : 0 }}>{line}</div>
+          {/* Segmented progress bar */}
+          <div style={{ display: 'flex', gap: 4, margin: '14px 0 12px' }}>
+            {activeEx.map((_, i) => (
+              <div key={i} style={{
+                flex: 1, height: 3, borderRadius: 2,
+                background: i < doneWorkCount ? C.accent : (i === doneWorkCount && !step.isRest ? `${C.accent}88` : C.border),
+              }} />
             ))}
           </div>
 
-          {/* Per-oefening spiervisualisatie (compact, alleen bij actieve oefening) */}
-          {!step.isRest && step.muscles && (
-            <div style={{ marginBottom: 16, opacity: 0.85 }}>
-              <BodyDiagram exercise={step} height={120}/>
-            </div>
-          )}
+          {/* Phase chip */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              fontFamily: C.mono, fontSize: 13, letterSpacing: '0.12em', fontWeight: 600,
+              padding: '7px 14px', borderRadius: 999,
+              background: step.isRest ? 'rgba(105,166,255,0.10)' : 'rgba(232,254,60,0.08)',
+              color: step.isRest ? C.statusRest : C.accent,
+              border: `1px solid ${step.isRest ? 'rgba(105,166,255,0.4)' : 'rgba(232,254,60,0.4)'}`,
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
+              {step.isRest ? 'RUST' : 'EXECUTE'}
+            </span>
+          </div>
 
+          {/* Timer ring */}
+          <div style={{ position: 'relative', alignSelf: 'center', margin: '8px 0 16px' }}>
+            <svg width="240" height="240" style={{ transform: 'rotate(-90deg)' }}>
+              <circle cx="120" cy="120" r="108" fill="none" stroke={C.border} strokeWidth="3" />
+              <circle cx="120" cy="120" r="108" fill="none"
+                stroke={ringColor}
+                strokeWidth="3" strokeLinecap="round"
+                strokeDasharray={`${2 * Math.PI * 108}`}
+                strokeDashoffset={`${2 * Math.PI * 108 * (1 - (1 - timeLeft / (step?.duration || 1)))}`}
+                style={{ transition: 'stroke-dashoffset 0.9s linear' }} />
+            </svg>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ fontFamily: C.mono, fontSize: 80, fontWeight: 600, lineHeight: 1, letterSpacing: '-0.06em', color: step.isRest ? ringColor : C.text }}>
+                {String(timeLeft).padStart(2,'0')}
+              </div>
+              <div style={{ fontFamily: C.mono, fontSize: 11, color: C.muted, letterSpacing: '0.14em', marginTop: 4 }}>SECONDEN</div>
+            </div>
+          </div>
+
+          {/* Exercise name + instruction */}
+          <div style={{ textAlign: 'center', padding: '0 8px', marginBottom: 12 }}>
+            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 10 }}>
+              {step.isRest ? 'RECOVERY' : step.name.toUpperCase()}
+            </div>
+            <p style={{ fontSize: 15, color: C.secondary, lineHeight: 1.5, margin: '0 auto', maxWidth: 300 }}>
+              {step.isRest ? 'Adem diep. Volgende oefening start automatisch.' : step.desc.split('\n')[0]}
+            </p>
+          </div>
+
+          {/* Next up */}
           {sequence[stepIdx + 1] && !step.isRest && (
-            <div style={{ color: '#909090', fontSize: 12, letterSpacing: '0.12em', marginBottom: 28 }}>
-              DAARNA → {sequence[stepIdx+1].name.toUpperCase()} ({sequence[stepIdx+1].duration}s)
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              margin: '0 0 12px', padding: '12px 14px',
+              border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface,
+            }}>
+              <div>
+                <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', color: C.muted, marginBottom: 2 }}>VOLGENDE</div>
+                <div style={{ fontSize: 15, fontWeight: 500 }}>{sequence[stepIdx+1].name}</div>
+              </div>
+              <div style={{ fontFamily: C.mono, fontSize: 15, fontWeight: 500, color: C.accent }}>{sequence[stepIdx+1].duration}s</div>
             </div>
           )}
 
-          {/* Progress */}
-          <div style={{ width: 280, marginBottom: 28 }}>
-            <div style={{ background: C.surface, height: 2 }}>
-              <div style={{ background: lvColor, height: 2, width: `${progress * 100}%`, transition: 'width 1s linear', opacity: 0.55 }} />
+          {/* Footer */}
+          <div style={{ marginTop: 'auto', paddingBottom: 24 }}>
+            <div style={{ height: 2, background: C.border, borderRadius: 2, overflow: 'hidden', marginBottom: 8 }}>
+              <div style={{ background: C.accent, height: 2, width: `${progress * 100}%`, transition: 'width 1s linear' }} />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, color: C.muted, fontSize: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: C.mono, fontSize: 12, color: C.muted, marginBottom: 14 }}>
               <span>{Math.floor(elapsed/60)}:{String(elapsed%60).padStart(2,'0')}</span>
               <span>{totalMin}:{String(totalSec).padStart(2,'0')}</span>
             </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: 8 }}>
-            {phase === 'running'
-              ? <Btn onClick={() => setPhase('paused')} bg={C.surface} color={C.muted}>PAUZE</Btn>
-              : <Btn onClick={() => setPhase('running')} bg={lvColor}>VERDER</Btn>
-            }
-            <Btn onClick={skip} bg={C.surface} color={C.muted}>SLA OVER</Btn>
-            <Btn onClick={reset} bg={C.surface} color="#333">RESET</Btn>
-          </div>
-        </>
-      )}
-
-      {/* DONE */}
-      {phase === 'done' && (
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ color: C.accent, fontSize: 72, marginBottom: 12 }}>✓</div>
-          <div style={{ color: C.text, fontSize: 22, letterSpacing: '0.1em', marginBottom: 6 }}>KLAAR</div>
-          <div style={{ color: C.muted, fontSize: 11, letterSpacing: '0.1em', marginBottom: 36 }}>Sessie opgeslagen</div>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-            <Btn onClick={reset}>OPNIEUW</Btn>
-            <Btn onClick={() => onNavigate('home', {})} bg={C.surface} color={C.muted}>HOME</Btn>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {phase === 'running'
+                ? <button onClick={() => setPhase('paused')} style={{ padding: '14px 0', border: `1px solid ${C.borderMd}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600, color: C.text, background: C.surface }}>❚❚  PAUZE</button>
+                : <button onClick={() => setPhase('running')} style={{ padding: '14px 0', border: `1px solid ${lvColor}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600, color: lvColor, background: 'transparent' }}>▶  VERDER</button>
+              }
+              <button onClick={skip} style={{ padding: '14px 0', background: C.accent, color: C.accentFg, border: `1px solid ${C.accent}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600 }}>SLA OVER →</button>
+            </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ================================================================
+// FINISH SCREEN
+// ================================================================
+function FinishScreen({ dbRef, onNavigate, params }) {
+  const { routineName = '', levelIdx = 1, duration = 0, exerciseCount = 0, exercises = [] } = params || {};
+  const [rpe, setRpe] = useState(7);
+  const [sessions, setSessions] = useState([]);
+
+  useEffect(() => {
+    if (!dbRef.current) return;
+    dbGetAll(dbRef.current, 'sessions').then(s => setSessions(s));
+  }, []);
+
+  const streak = useMemo(() => calcStreak(sessions), [sessions]);
+  const combined = useMemo(() => exercises.length > 0 ? mergeRoutineMuscles(exercises) : { muscles: { primary: [], secondary: [] } }, [exercises]);
+  const hasMuscles = combined.muscles.primary.length > 0 || combined.muscles.secondary.length > 0;
+  const fmt = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  const heatColors = ['#1A1A1C','#3A3A1A','#76840F','#C2DF1F','#E8FE3C'];
+  const heatLabels = ['NIET','LICHT','MEDIUM','HOOG','MAX'];
+
+  const rpeDesc = rpe <= 3 ? 'Lichte inspanning. Kun je nog doorgaan.' :
+                  rpe <= 6 ? 'Stevige inspanning. Praten gaat moeilijker.' :
+                  rpe <= 8 ? 'Hard. Je voelt de spieren werken.' :
+                  'Maximaal. Niets meer over in de tank.';
+
+  return (
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', fontFamily: C.font, overflowY: 'auto', paddingBottom: 32 }}>
+
+      {/* Top bar */}
+      <div style={{ padding: '12px 20px', display: 'flex', justifyContent: 'flex-end' }}>
+        <button onClick={() => onNavigate('home', {})} style={{
+          width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.secondary, background: 'none',
+        }}>{Icon.close(18)}</button>
+      </div>
+
+      {/* Hero */}
+      <div style={{ padding: '8px 20px 0' }}>
+        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.accent, marginBottom: 12 }}>SESSIE VOLTOOID</div>
+        <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1, margin: '0 0 12px' }}>{routineName.toUpperCase()}</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.14em' }}>
+          <span style={{ color: C.accent, fontSize: 14 }}>●</span>
+          <span>DAG {streak}</span>
+          <span style={{ color: C.muted, marginLeft: 4 }}>· streak verlengd</span>
+        </div>
+      </div>
+
+      {/* KPI grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: '20px 20px 0' }}>
+        {[
+          { num: fmt(duration), label: 'DUUR', hi: false },
+          { num: `${exerciseCount}`, label: 'VOLTOOID', hi: true },
+          { num: LEVELS[levelIdx], label: 'NIVEAU', hi: false },
+        ].map(({ num, label, hi }) => (
+          <div key={label} style={{
+            padding: '16px 12px', border: `1px solid ${hi ? C.accent : C.border}`,
+            borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 6,
+            background: hi ? 'rgba(232,254,60,0.08)' : C.surface,
+          }}>
+            <div style={{ fontFamily: C.mono, fontSize: 22, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1, color: hi ? C.accent : C.text }}>{num}</div>
+            <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', color: C.muted }}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Body diagram */}
+      {hasMuscles && (
+        <section style={{ padding: '24px 0 0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 20px 12px' }}>
+            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', color: C.muted }}>SPIERGROEPEN GETARGET</span>
+            <span style={{ fontFamily: C.mono, fontSize: 11, color: C.muted }}>INTENSITEIT</span>
+          </div>
+          <div style={{ padding: '0 20px 12px', display: 'flex', justifyContent: 'center' }}>
+            <BodyDiagram exercise={combined} height={220}/>
+          </div>
+          <div style={{ display: 'flex', gap: 12, padding: '0 20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {heatColors.map((col, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ width: 22, height: 8, borderRadius: 2, background: col }} />
+                <span style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.08em', color: C.muted }}>{heatLabels[i]}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* RPE slider */}
+      <section style={{ padding: '24px 20px 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+          <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', color: C.muted }}>HOE VOELDE HET?</span>
+          <span style={{ fontFamily: C.mono, fontSize: 11, color: C.accent }}>{rpe} / 10</span>
+        </div>
+        <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 16, background: C.surface }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', marginBottom: 14, fontWeight: 500 }}>
+            <span style={{ color: C.statusGo }}>EASY</span>
+            <span style={{ color: C.accent }}>STERK</span>
+            <span style={{ color: C.statusCrit }}>MAX</span>
+          </div>
+          <div style={{ position: 'relative', height: 4, background: C.elev3, borderRadius: 2, marginBottom: 12 }}>
+            <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${(rpe/10)*100}%`, background: `linear-gradient(90deg, ${C.statusGo}, ${C.accent}, ${C.statusCrit})`, borderRadius: 2 }} />
+            <input type="range" min="1" max="10" value={rpe} onChange={e => setRpe(parseInt(e.target.value))} className="rpe-slider" />
+            <div style={{ position: 'absolute', top: -8, left: `${((rpe-1)/9)*100}%`, width: 20, height: 20, borderRadius: '50%', background: '#fff', transform: 'translateX(-10px)', boxShadow: `0 0 0 3px ${C.bg}`, pointerEvents: 'none' }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
+            {[1,2,3,4,5,6,7,8,9,10].map(n => (
+              <div key={n} style={{ width: 2, height: 8, borderRadius: 1, background: n <= rpe ? C.accent : C.borderMd }} />
+            ))}
+          </div>
+          <div style={{ fontSize: 14, color: C.secondary, lineHeight: 1.5 }}>{rpeDesc}</div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 8, padding: '24px 20px 0' }}>
+        <button onClick={() => onNavigate('history', {})} style={{ padding: '16px 0', background: C.surface, color: C.text, border: `1px solid ${C.border}`, borderRadius: 12, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.14em' }}>DETAILS</button>
+        <button onClick={() => onNavigate('home', {})} style={{ padding: '16px 0', background: C.accent, color: C.accentFg, border: 'none', borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600 }}>KLAAR →</button>
+      </div>
     </div>
   );
 }
@@ -1081,40 +1418,47 @@ function HistoryScreen({ dbRef }) {
   if (!ready) return <Loader />;
 
   return (
-    <div style={{ padding: '36px 20px 100px' }}>
-      <div style={{ color: C.text, fontSize: 22, marginBottom: 24 }}>Geschiedenis</div>
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', paddingBottom: 'calc(var(--tab-h) + 24px)', fontFamily: C.font }}>
 
-      {/* Stats */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
+      {/* Header */}
+      <header style={{ padding: '44px 20px 20px' }}>
+        <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>MIJN</div>
+        <h1 style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 0.95 }}>STATS</h1>
+      </header>
+
+      {/* Stats grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: '0 20px 24px' }}>
         {[
           { label: 'SESSIES', value: sessions.length },
           { label: 'STREAK', value: `${streak}d` },
           { label: 'TOTAAL', value: `${Math.floor(totalTime/60)}m` },
         ].map(({ label, value }) => (
-          <div key={label} style={{ flex: 1, border: `1px solid ${C.border}`, padding: '14px 10px', textAlign: 'center' }}>
-            <div style={{ color: C.accent, fontSize: 24, fontWeight: 'bold', marginBottom: 4 }}>{value}</div>
-            <div style={{ color: C.muted, fontSize: 11, letterSpacing: '0.15em' }}>{label}</div>
+          <div key={label} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '14px 10px', textAlign: 'center' }}>
+            <div style={{ fontFamily: C.mono, fontSize: 26, fontWeight: 600, letterSpacing: '-0.03em', color: C.accent, lineHeight: 1, marginBottom: 6 }}>{value}</div>
+            <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em', color: C.muted }}>{label}</div>
           </div>
         ))}
       </div>
 
       {sessions.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: C.muted, fontSize: 12 }}>Nog geen sessies afgerond.</div>
+        <div style={{ textAlign: 'center', padding: '60px 0', fontFamily: C.mono, color: C.muted, fontSize: 12, letterSpacing: '0.1em' }}>Nog geen sessies afgerond.</div>
       )}
 
-      {sessions.map(s => (
-        <div key={s.id} style={{ borderBottom: `1px solid ${C.border}`, padding: '14px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <div style={{ color: C.text, fontSize: 13, marginBottom: 4 }}>{s.routineName}</div>
-            <div style={{ color: C.muted, fontSize: 11 }}>
-              {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} oef · {Math.floor(s.duration/60)}:{String(s.duration%60).padStart(2,'0')} min
+      <div style={{ padding: '0 20px' }}>
+        {sessions.map(s => (
+          <div key={s.id} style={{ borderBottom: `1px solid ${C.border}`, padding: '14px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>{s.routineName}</div>
+              <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 11, letterSpacing: '0.06em' }}>
+                {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} OEF · {Math.floor(s.duration/60)}:{String(s.duration%60).padStart(2,'0')} MIN
+              </div>
+            </div>
+            <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 11, textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
+              {new Date(s.completedAt).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}
             </div>
           </div>
-          <div style={{ color: C.muted, fontSize: 11, textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
-            {new Date(s.completedAt).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -1124,25 +1468,40 @@ function HistoryScreen({ dbRef }) {
 // ================================================================
 function Loader() {
   return (
-    <div style={{ color: C.muted, textAlign: 'center', paddingTop: 100, fontSize: 11, letterSpacing: '0.3em', fontFamily: C.font }}>
+    <div style={{ color: C.muted, textAlign: 'center', paddingTop: 100, fontSize: 11, letterSpacing: '0.3em', fontFamily: C.mono }}>
       LADEN...
     </div>
   );
 }
 
 function BottomNav({ current, onNavigate }) {
+  const tabs = [
+    { id: 'home',     label: 'HOME',     icon: Icon.home  },
+    { id: 'routines', label: 'ROUTINES', icon: Icon.list  },
+    { id: 'history',  label: 'STATS',    icon: Icon.stats },
+  ];
   return (
-    <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: C.bg, borderTop: `1px solid ${C.border}`, display: 'flex', zIndex: 100 }}>
-      {[
-        { id: 'home', label: 'HOME', icon: '⌂' },
-        { id: 'routines', label: 'ROUTINES', icon: '≡' },
-        { id: 'history', label: 'HISTORY', icon: '◷' },
-      ].map(t => (
-        <button key={t.id} onClick={() => onNavigate(t.id, {})} style={{ flex: 1, background: 'none', border: 'none', padding: '12px 0', cursor: 'pointer', fontFamily: C.font }}>
-          <div style={{ fontSize: 20, color: current === t.id ? C.accent : '#555', marginBottom: 2 }}>{t.icon}</div>
-          <div style={{ fontSize: 11, letterSpacing: '0.12em', color: current === t.id ? C.accent : C.muted }}>{t.label}</div>
-        </button>
-      ))}
+    <div style={{
+      position: 'fixed', bottom: 0, left: 0, right: 0,
+      height: 'var(--tab-h)',
+      display: 'grid', gridTemplateColumns: 'repeat(3,1fr)',
+      background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)',
+      borderTop: '1px solid var(--border-subtle)', zIndex: 100,
+    }}>
+      {tabs.map(t => {
+        const active = current === t.id;
+        return (
+          <button key={t.id} onClick={() => onNavigate(t.id, {})} style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: 4, color: active ? C.accent : C.muted,
+            fontFamily: C.mono, fontSize: 10, letterSpacing: '0.10em', fontWeight: 500,
+            background: 'none', border: 'none',
+          }}>
+            {t.icon(20)}
+            <span>{t.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -1169,11 +1528,11 @@ function App() {
   }, []);
 
   const navigate = useCallback((s, p = {}) => { setScreen(s); setParams(p); }, []);
-  const showNav = !['timer', 'builder'].includes(screen);
+  const showNav = !['timer', 'builder', 'finish'].includes(screen);
 
   if (!ready) return (
     <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.font }}>
-      <div style={{ color: C.accent, fontSize: 18, letterSpacing: '0.4em' }}>TRAINR</div>
+      <div style={{ color: C.accent, fontSize: 18, letterSpacing: '0.4em', fontFamily: C.mono }}>TRAINR</div>
     </div>
   );
 
@@ -1183,6 +1542,7 @@ function App() {
       {screen === 'routines' && <RoutinesScreen dbRef={dbRef} onNavigate={navigate} />}
       {screen === 'builder'  && <RoutineBuilderScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
       {screen === 'timer'    && <TimerScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
+      {screen === 'finish'   && <FinishScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
       {screen === 'history'  && <HistoryScreen dbRef={dbRef} />}
       {showNav && <BottomNav current={screen} onNavigate={navigate} />}
     </div>
