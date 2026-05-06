@@ -1,4 +1,4 @@
-/* global React, BodyMap */
+/* global React */
 const { useState, useEffect, useRef } = React;
 
 // ─── ACTIVE WORKOUT (Coach mode) ─────────────────────────────
