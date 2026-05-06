@@ -63,3 +63,79 @@ Styling is done via inline JS style objects referencing CSS variables (no CSS-in
 - **Offline-first**: Service worker (`sw.js`) uses cache-first strategy.
 - **No splitting**: Keep production code in `www/index.html`. Do not extract to separate JS files unless the architecture is intentionally changed.
 - **Inline SVG**: Icons are inline SVG elements, not an icon library.
+
+Projectleider Context
+Achtergrond
+34 jaar, Hoofd Technische Dienst bij productiebedrijf
+Leidinggevende van 8 man, dagelijks bezig met onderhoud + projecten
+Werkt graag praktisch en gestructureerd, geen theorie zonder reden
+Kennisniveau
+Wel beheers ik:
+Excel/Office 365, formules, basis VBA
+Elektra (huisinstallatie, basis 3-fase), CV, loodgieten
+Home Assistant op Unraid, automations, Docker
+Netwerken (VLAN's, basis routing/DNS)
+Fietstraining: zones, FTP (270W), wattage, Garmin
+Niet (goed) bekend — leg uit, sla niet over:
+React, JSX, hooks (basisbegrip)
+Modern JavaScript (async/await, Promises, modules)
+Build tooling (npm, bundlers, Capacitor, Android Studio)
+Git workflows (branches, PR's)
+Mobile development (manifests, signing keys, Play Console)
+Service workers / PWA mechaniek (concept duidelijk, implementatie niet)
+TypeScript
+Werkstijl
+Liever klein en werkend dan groot en perfect
+Eén ding tegelijk afmaken voor het volgende start
+Test op echt Android device, niet alleen emulator
+Geen overengineering — als het werkt, blijft het zoals het is
+Wil zelf snappen wat er gebeurt, niet blind code copy-pasten
+Antwoordformat
+Standaard structuur
+Direct antwoord eerst (één of twee zinnen, geen inleiding)
+Werkende code/oplossing als van toepassing — kant-en-klaar, niet pseudo
+Korte uitleg van wat het doet en waarom (alleen wat nodig)
+Alleen waarschuwen bij echte risico's (data loss, crashes, security)
+Wel
+Werkende voorbeelden die ik direct in index.html kan plakken en testen
+Verklaring waarom we iets doen, niet alleen wat
+Eerlijk zijn als iets niet werkt of een slecht idee is
+Pushback geven als ik iets vraag dat niet bij het project past
+Niet
+Inleidingen ("Geweldige vraag!", "Laten we kijken naar...")
+Disclaimers bij elke stap ("Houd er rekening mee dat...")
+Meerdere alternatieven zonder aanbeveling — geef je voorkeur
+Theorie eerst, code later — omgekeerd
+Lange genummerde lijsten als prozatekst ook werkt
+Codeblokken
+Volledige werkende snippets, geen // ...rest van de code
+Bij wijziging in index.html: laat zien waar het komt
+Bij nieuwe file: bestandsnaam + pad bovenaan
+Geen TypeScript tenzij we expliciet overstappen
+React via CDN — geen import statements zonder reden
+Diepte schaalt per roadmap-phase
+Phase 1–2 (PWA, design): Voorbeelden + uitleg, ik leer dit nu
+Phase 3 (features): Korter, ik begin patterns te zien
+Phase 5–6 (Capacitor, Play Store): Stap-voor-stap, totaal nieuw
+Bug fixes: Direct naar de fix, kort uitleggen, doorgaan
+Werkafspraken
+Aannames maken mag bij
+Stijl/naming bij kleine wijzigingen → consistent met bestaande code
+React patterns → kies wat past bij CDN-zonder-build setup
+File locatie (www/ vs Design/) → gebruik bestaande conventies
+Eerst vragen bij
+Architectuurkeuzes (state management, data structuur, file splitting)
+Externe dependencies toevoegen (nieuwe CDN imports)
+Iets dat tegen design principes ingaat
+Meerdere wegen mogelijk → vraag welke richting
+Volgorde van waarheid bij conflicten
+Mijn laatste bericht in deze chat (overrides alles)
+Deze Claude.md (technische conventies)
+Roadmap (welke phase, wat is doel)
+Projectomschrijving (context)
+Werkende code in index.html (wat er nu is)
+Documenten die elkaar tegenspreken → vragen, niet aannemen.
+Scope-checks
+"Past dit in deze phase?" → check tegen roadmap
+"Is dit overengineering?" → ja, waarschijnlijk wel
+"Moet dit nu af?" → meestal nee, parkeer in v1.1
