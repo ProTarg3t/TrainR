@@ -10,17 +10,17 @@ TrainR is a Dutch-language PWA fitness app for home training (no equipment neede
 
 ```bash
 # Serve the production app
-npx serve www
+npx serve Docs
 
 # Or any local HTTP server:
-python3 -m http.server 8080 --directory www
+python3 -m http.server 8080 --directory Docs
 ```
 
 Open `http://localhost:PORT` for the app, or `http://localhost:PORT/Design/TrainR.html` for the interactive design prototype. There are no tests or linters.
 
 ## Architecture
 
-### Production App (`www/index.html`)
+### Production App (`Docs/index.html`)
 
 One ~1600-line self-contained file. All React components, logic, and styles live here. Dependencies load from CDN (React 18, Babel standalone, Google Fonts). No JSX transpilation at build time — Babel runs in the browser.
 
@@ -35,11 +35,11 @@ One ~1600-line self-contained file. All React components, logic, and styles live
 
 All data stays on-device; there are no external APIs.
 
-### Design Prototype (`www/Design/`)
+### Design Prototype (`Docs/Design/`)
 
 A separate Figma-style interactive canvas, also browser-rendered via Babel. `design-canvas.jsx` handles artboard pan/zoom; individual `screen-*.jsx` files are screen mockups. `tokens.css` is the master design system (60+ CSS variables).
 
-The tokens from `tokens.css` are mirrored into `www/index.html` — keep them in sync when updating the design system.
+The tokens from `tokens.css` are mirrored into `Docs/index.html` — keep them in sync when updating the design system.
 
 ## Design System
 
@@ -61,7 +61,7 @@ Styling is done via inline JS style objects referencing CSS variables (no CSS-in
 - **Language**: All UI text is Dutch.
 - **Mobile-first**: No desktop layout; designed for Android/iOS PWA install.
 - **Offline-first**: Service worker (`sw.js`) uses cache-first strategy.
-- **No splitting**: Keep production code in `www/index.html`. Do not extract to separate JS files unless the architecture is intentionally changed.
+- **No splitting**: Keep production code in `Docs/index.html`. Do not extract to separate JS files unless the architecture is intentionally changed.
 - **Inline SVG**: Icons are inline SVG elements, not an icon library.
 
 Projectleider Context
@@ -122,7 +122,7 @@ Werkafspraken
 Aannames maken mag bij
 Stijl/naming bij kleine wijzigingen → consistent met bestaande code
 React patterns → kies wat past bij CDN-zonder-build setup
-File locatie (www/ vs Design/) → gebruik bestaande conventies
+File locatie (Docs/ vs Design/) → gebruik bestaande conventies
 Eerst vragen bij
 Architectuurkeuzes (state management, data structuur, file splitting)
 Externe dependencies toevoegen (nieuwe CDN imports)
