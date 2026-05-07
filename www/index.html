@@ -1692,7 +1692,7 @@ function ProfileScreen({ dbRef, onNavigate }) {
         <div>
           <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>PROFIEL</div>
           <h1 style={{ fontSize: 38, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1 }}>
-            {hasName ? profile.name.toUpperCase() : 'NIEUW'}
+            {hasName ? profile.name.toUpperCase() : 'STEL PROFIEL IN'}
           </h1>
         </div>
         <button onClick={() => setEditing(true)} style={{
@@ -1716,13 +1716,14 @@ function ProfileScreen({ dbRef, onNavigate }) {
       {!hasName && (
         <div style={{ padding: '24px 20px 0' }}>
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '24px 20px', background: C.surface, textAlign: 'center' }}>
-            <div style={{ color: C.secondary, marginBottom: 16, lineHeight: 1.6, fontSize: 15 }}>
-              Vul je gegevens in voor BMI, calorieën en gewichtsdoel.
+            <div style={{ fontWeight: 600, fontSize: 17, marginBottom: 8 }}>Stel je profiel in</div>
+            <div style={{ color: C.secondary, marginBottom: 20, lineHeight: 1.6, fontSize: 14 }}>
+              Voor BMI, gewichtsdoel en calorieën
             </div>
             <button onClick={() => setEditing(true)} style={{
               padding: '14px 24px', background: C.accent, color: C.accentFg, border: 'none', borderRadius: 12,
               fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600, cursor: 'pointer',
-            }}>STEL JE PROFIEL IN</button>
+            }}>BEGIN</button>
           </div>
         </div>
       )}
@@ -1735,7 +1736,7 @@ function ProfileScreen({ dbRef, onNavigate }) {
             <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: bmiCat.label === 'GEZOND' ? C.accent : C.text }}>{bmiCat.label}</span>
           </div>
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, background: C.surface }}>
-            <div style={{ fontSize: 56, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: 16 }}>
+            <div style={{ fontSize: 48, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: 16, fontFamily: C.mono }}>
               {bmi.toFixed(1)}
             </div>
             <div style={{ position: 'relative', height: 10, borderRadius: 4, overflow: 'hidden', display: 'flex' }}>
@@ -1761,7 +1762,7 @@ function ProfileScreen({ dbRef, onNavigate }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
             <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>GEWICHTSDOEL</span>
             <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: goalReached ? C.statusGo : C.accent }}>
-              {goalReached ? 'DOEL BEREIKT' : `${goalPct}%`}
+              {goalReached ? 'DOEL BEREIKT 🎯' : `${goalPct}%`}
             </span>
           </div>
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, background: C.surface }}>
@@ -1770,9 +1771,9 @@ function ProfileScreen({ dbRef, onNavigate }) {
               <GoalCol label="NU"    value={`${profile.weightKg}kg`} highlight />
               <GoalCol label="DOEL"  value={`${profile.goalWeightKg}kg`} align="right" />
             </div>
-            <div style={{ position: 'relative', height: 4, background: C.elev3, borderRadius: 2, marginBottom: 12 }}>
-              <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${goalPct}%`, background: C.accent, borderRadius: 2 }} />
-              <div style={{ position: 'absolute', top: -4, left: `${goalPct}%`, width: 12, height: 12, borderRadius: '50%', background: C.accent, transform: 'translateX(-6px)' }} />
+            <div style={{ position: 'relative', height: 6, background: C.elev3, borderRadius: 3, marginBottom: 12 }}>
+              <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${goalPct}%`, background: C.accent, borderRadius: 3 }} />
+              <div style={{ position: 'absolute', top: -3, left: `${goalPct}%`, width: 12, height: 12, borderRadius: '50%', background: C.accent, transform: 'translateX(-6px)' }} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.06em' }}>
               <span style={{ color: C.statusGo }}>
@@ -1786,18 +1787,16 @@ function ProfileScreen({ dbRef, onNavigate }) {
         </section>
       )}
 
-      {/* Persoonlijk — alleen als naam ingevuld */}
-      {hasName && (
-        <section style={{ padding: '32px 20px 0' }}>
+      {/* Persoonlijk — altijd zichtbaar */}
+      <section style={{ padding: '32px 20px 0' }}>
           <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 12 }}>PERSOONLIJK</div>
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden' }}>
-            <PersonalRow label="LEEFTIJD" value={profile.age    ? `${profile.age} jaar`      : '—'} />
-            <PersonalRow label="GESLACHT" value={profile.gender ? profile.gender.toUpperCase() : '—'} />
-            <PersonalRow label="LENGTE"   value={profile.heightCm ? `${profile.heightCm} cm` : '—'} />
-            <PersonalRow label="GEWICHT"  value={profile.weightKg ? `${profile.weightKg} kg` : '—'} last />
+            <PersonalRow label="LEEFTIJD" value={profile?.age    ? `${profile.age} jaar`      : '—'} />
+            <PersonalRow label="GESLACHT" value={profile?.gender ? profile.gender.toUpperCase() : '—'} />
+            <PersonalRow label="LENGTE"   value={profile?.heightCm ? `${profile.heightCm} cm` : '—'} />
+            <PersonalRow label="GEWICHT"  value={profile?.weightKg ? `${profile.weightKg} kg` : '—'} last />
           </div>
         </section>
-      )}
 
       {editing && <ProfileEditModal profile={profile} onSave={async p => {
         await saveProfile(dbRef.current, { ...(profile || {}), ...p, createdAt: profile?.createdAt || Date.now() });
