@@ -580,7 +580,7 @@ const C = {
   accentFg: '#0A0A0A',
   text:     '#FAFAF9',
   secondary:'#C8C8C7',
-  muted:    '#8E8E8D',
+  muted:    '#A0A0A0',
   dim:      '#1C1C1F',
   statusGo:   '#6BE89B',
   statusRest: '#69A6FF',
@@ -695,7 +695,7 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNaviga
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <CatTags exerciseIds={r.exercises} />
-                  <span style={{ fontFamily: C.mono, fontSize: 11, color: C.muted, letterSpacing: '0.06em' }}>{r.exercises.length} OEF</span>
+                  <span style={{ fontFamily: C.mono, fontSize: 13, color: C.muted, letterSpacing: '0.06em' }}>{r.exercises.length} OEF</span>
                 </div>
                 <div style={{
                   gridRow: '1 / span 2', display: 'flex', alignItems: 'center', gap: 7,
@@ -705,7 +705,7 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNaviga
                 }}>
                   EXECUTE {Icon.play(12)}
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em', color: C.text }}>{r.name}</div>
+                <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.01em', color: C.text }}>{r.name}</div>
               </button>
             ))}
           </div>
@@ -1117,9 +1117,9 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
                 opacity: active ? 1 : 0.5, background: active ? C.surface : 'transparent',
               }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ color: active ? C.text : C.muted, fontSize: 13 }}>{ex.name}</div>
+                  <div style={{ color: active ? C.text : C.muted, fontSize: 16, fontWeight: 500 }}>{ex.name}</div>
                   {ex.desc.split('\n').map((line, i) => (
-                    <div key={i} style={{ color: i === 0 ? '#aaa' : '#888', fontSize: 11, marginTop: i === 0 ? 2 : 1 }}>{line}</div>
+                    <div key={i} style={{ color: i === 0 ? '#C8C8C7' : '#A0A0A0', fontSize: 13, marginTop: i === 0 ? 2 : 1 }}>{line}</div>
                   ))}
                 </div>
                 <div style={{ color: active ? (CAT_COLORS[ex.cat] || C.accent) : C.dim, fontSize: 16, marginLeft: 10 }}>{active ? '●' : '○'}</div>
@@ -1137,7 +1137,7 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
               return (
                 <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: `1px solid ${C.dim}` }}>
                   <span style={{ color: '#909090', fontSize: 12, width: 18 }}>{i+1}</span>
-                  <span style={{ color: C.text, fontSize: 13, flex: 1 }}>{ex?.name}</span>
+                  <span style={{ color: C.text, fontSize: 16, flex: 1 }}>{ex?.name}</span>
                   <span style={{ color: CAT_COLORS[ex?.cat] || C.muted, fontSize: 10, marginRight: 4 }}>■</span>
                   <button onClick={() => setSelected(prev => prev.filter(x => x !== id))}
                     style={{ background: 'none', border: 'none', color: '#909090', cursor: 'pointer', fontSize: 14 }}>✕</button>
@@ -1364,8 +1364,8 @@ function TimerScreen({ dbRef, onNavigate, params }) {
                 <div key={ex.id} onClick={() => setDisabled(prev => { const n = new Set(prev); active ? n.add(i) : n.delete(i); return n; })}
                   style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: i < exercises.length - 1 ? `1px solid ${C.border}` : 'none', cursor: 'pointer', opacity: active ? 1 : 0.35, userSelect: 'none' }}>
                   <span style={{ color: active ? (CAT_COLORS[ex.cat] || C.accent) : C.dim, marginRight: 12, fontSize: 10 }}>●</span>
-                  <span style={{ flex: 1, color: C.text, fontSize: 14, fontWeight: 500 }}>{ex.name}</span>
-                  <span style={{ fontFamily: C.mono, color: active ? C.muted : C.dim, fontSize: 12 }}>{ex.times[levelIdx]}s</span>
+                  <span style={{ flex: 1, color: C.text, fontSize: 17, fontWeight: 500 }}>{ex.name}</span>
+                  <span style={{ fontFamily: C.mono, color: active ? C.muted : C.dim, fontSize: 14 }}>{ex.times[levelIdx]}s</span>
                 </div>
               );
             })}
@@ -1810,7 +1810,7 @@ function PersonalRow({ label, value, last }) {
       padding: '14px 16px', borderBottom: last ? 'none' : `1px solid ${C.border}`,
     }}>
       <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em', color: C.muted }}>{label}</span>
-      <span style={{ fontFamily: C.mono, fontSize: 13, color: C.text }}>{value}</span>
+      <span style={{ fontFamily: C.mono, fontSize: 16, color: C.text }}>{value}</span>
     </div>
   );
 }
@@ -1980,8 +1980,8 @@ function HistoryScreen({ dbRef }) {
         {sessions.map(s => (
           <div key={s.id} style={{ borderBottom: `1px solid ${C.border}`, padding: '14px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>{s.routineName}</div>
-              <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 11, letterSpacing: '0.06em' }}>
+              <div style={{ fontSize: 17, fontWeight: 500, marginBottom: 4 }}>{s.routineName}</div>
+              <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 13, letterSpacing: '0.06em' }}>
                 {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} OEF · {Math.floor(s.duration/60)}:{String(s.duration%60).padStart(2,'0')} MIN
               </div>
             </div>
