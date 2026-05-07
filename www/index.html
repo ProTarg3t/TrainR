@@ -534,15 +534,29 @@ function isPlanDayCompleted(plan, dayNumber, sessions) {
 // ================================================================
 // AUDIO
 // ================================================================
-function beep(ctx, freq = 880) {
+function beep(ctx, type = 'tick') {
   if (!ctx) return;
   try {
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.frequency.value = freq;
-    g.gain.setValueAtTime(0.08, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-    o.start(); o.stop(ctx.currentTime + 0.15);
+    const cues = {
+      tick:     [{ f: 440,  t: 0,    d: 0.08, g: 0.30, w: 'sine'   }],
+      go:       [{ f: 660,  t: 0,    d: 0.10, g: 0.40, w: 'square' },
+                 { f: 880,  t: 0.13, d: 0.10, g: 0.40, w: 'square' },
+                 { f: 1100, t: 0.26, d: 0.18, g: 0.50, w: 'square' }],
+      exercise: [{ f: 880,  t: 0,    d: 0.10, g: 0.40, w: 'square' },
+                 { f: 1100, t: 0.13, d: 0.18, g: 0.50, w: 'square' }],
+      rest:     [{ f: 660,  t: 0,    d: 0.30, g: 0.25, w: 'sine'   }],
+      warn:     [{ f: 440,  t: 0,    d: 0.06, g: 0.20, w: 'sine'   }],
+    }[type] || [];
+    cues.forEach(({ f, t, d, g, w }) => {
+      const o = ctx.createOscillator(), gn = ctx.createGain();
+      o.connect(gn); gn.connect(ctx.destination);
+      o.type = w; o.frequency.value = f;
+      gn.gain.setValueAtTime(0, ctx.currentTime + t);
+      gn.gain.linearRampToValueAtTime(g, ctx.currentTime + t + 0.01);
+      gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + d);
+      o.start(ctx.currentTime + t);
+      o.stop(ctx.currentTime + t + d + 0.02);
+    });
   } catch(e) {}
 }
 
@@ -1252,17 +1266,17 @@ function TimerScreen({ dbRef, onNavigate, params }) {
     if (phase !== 'countdown') return;
     if (countdown <= 0) {
       setPhase('running'); setStepIdx(0); setTimeLeft(sequence[0]?.duration || 0);
-      if (soundOn) beep(audioCtxRef.current, 880);
+      if (soundOn) beep(audioCtxRef.current, 'go');
       return;
     }
-    if (soundOn) beep(audioCtxRef.current, 660);
+    if (soundOn) beep(audioCtxRef.current, 'tick');
     const t = setTimeout(() => setCountdown(c => c - 1), 1000);
     return () => clearTimeout(t);
   }, [phase, countdown]);
 
   // Beep on step change
   useEffect(() => {
-    if (phase === 'running' && step && soundOn) beep(audioCtxRef.current, step.isRest ? 660 : 880);
+    if (phase === 'running' && step && soundOn) beep(audioCtxRef.current, step.isRest ? 'rest' : 'exercise');
   }, [stepIdx]);
 
   // Main interval
@@ -1281,6 +1295,7 @@ function TimerScreen({ dbRef, onNavigate, params }) {
           setStepIdx(next);
           return sequence[next].duration;
         }
+        if (t - 1 <= 3 && t - 1 > 0 && soundOn && !step?.isRest) beep(audioCtxRef.current, 'warn');
         return t - 1;
       });
     }, 1000);
