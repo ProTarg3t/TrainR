@@ -56,6 +56,12 @@ The tokens from `tokens.css` are mirrored into `www/index.html` — keep them in
 
 Styling is done via inline JS style objects referencing CSS variables (no CSS-in-JS library, no Tailwind).
 
+## Git Workflow
+
+- Na elke push: altijd een pull request aanmaken (of de bestaande PR updaten).
+- PR naar `main`, vanuit de feature branch.
+- PR-titel en -body in het Nederlands.
+
 ## Key Conventions
 
 - **Language**: All UI text is Dutch.
