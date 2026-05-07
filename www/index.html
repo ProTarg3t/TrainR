@@ -454,6 +454,69 @@ const DEFAULT_ROUTINE = {
 };
 
 // ================================================================
+// BUILTIN PLANS
+// ================================================================
+const BUILTIN_PLANS = [
+  {
+    id: 'core-30',
+    title: 'Core Protocol',
+    subtitle: '30 DAGEN · CORE FOCUS',
+    color: '#6BE89B',
+    days: [
+      { day: 1,  restDay: false, exercises: ['dead-bug','plank','dead-bug','bicycles','glute-bridge'] },
+      { day: 2,  restDay: false, exercises: ['plank','side-l','side-r','bicycles','mountain-cl'] },
+      { day: 3,  restDay: true },
+      { day: 4,  restDay: false, exercises: ['dead-bug','plank','dead-bug','bicycles','glute-bridge'] },
+      { day: 5,  restDay: false, exercises: ['plank','side-l','side-r','bicycles','mountain-cl'] },
+      { day: 6,  restDay: true },
+      { day: 7,  restDay: false, exercises: ['dead-bug','plank','mountain-cl','bicycles','glute-bridge','dead-bug'] },
+      { day: 8,  restDay: false, exercises: ['plank','plank','side-l','side-r','bicycles','bicycles'] },
+      { day: 9,  restDay: false, exercises: ['dead-bug','mountain-cl','mountain-cl','glute-bridge','dead-bug','plank'] },
+      { day: 10, restDay: true },
+      { day: 11, restDay: false, exercises: ['plank','side-l','side-r','bicycles','bicycles','mountain-cl'] },
+      { day: 12, restDay: false, exercises: ['plank','dead-bug','mountain-cl','glute-bridge','dead-bug','plank'] },
+      { day: 13, restDay: true },
+      { day: 14, restDay: false, exercises: ['mountain-cl','plank','side-l','side-r','bicycles','mountain-cl','bicycles'] },
+      { day: 15, restDay: false, exercises: ['plank','plank','bicycles','mountain-cl','mountain-cl','glute-bridge'] },
+      { day: 16, restDay: false, exercises: ['dead-bug','side-l','side-r','burpees','bicycles','dead-bug'] },
+      { day: 17, restDay: true },
+      { day: 18, restDay: false, exercises: ['plank','plank','bicycles','mountain-cl','mountain-cl','burpees'] },
+      { day: 19, restDay: false, exercises: ['dead-bug','side-l','side-r','glute-bridge','bicycles','mountain-cl'] },
+      { day: 20, restDay: true },
+      { day: 21, restDay: false, exercises: ['plank','plank','burpees','bicycles','mountain-cl','side-l','side-r'] },
+      { day: 22, restDay: false, exercises: ['dead-bug','plank','plank','bicycles','mountain-cl','mountain-cl','glute-bridge'] },
+      { day: 23, restDay: false, exercises: ['side-l','side-r','burpees','bicycles','dead-bug','plank','plank'] },
+      { day: 24, restDay: true },
+      { day: 25, restDay: false, exercises: ['mountain-cl','plank','bicycles','mountain-cl','dead-bug','side-l','side-r'] },
+      { day: 26, restDay: false, exercises: ['plank','burpees','glute-bridge','bicycles','dead-bug','mountain-cl','plank'] },
+      { day: 27, restDay: true },
+      { day: 28, restDay: false, exercises: ['dead-bug','plank','plank','side-l','side-r','bicycles','mountain-cl','burpees'] },
+      { day: 29, restDay: false, exercises: ['mountain-cl','glute-bridge','bicycles','dead-bug','plank','plank','bicycles','burpees'] },
+      { day: 30, restDay: false, exercises: ['dead-bug','plank','plank','side-l','side-r','bicycles','mountain-cl','mountain-cl','burpees'] },
+    ]
+  }
+];
+
+function isPlanDayUnlocked(plan, dayNumber, sessions) {
+  if (dayNumber === 1) return true;
+  const prevDay = plan.days.find(d => d.day === dayNumber - 1);
+  if (!prevDay) return false;
+  if (prevDay.restDay) return isPlanDayUnlocked(plan, dayNumber - 1, sessions);
+  return sessions.some(s => s.planId === plan.id && s.planDay === dayNumber - 1);
+}
+
+function isPlanDayCompleted(plan, dayNumber, sessions) {
+  const day = plan.days.find(d => d.day === dayNumber);
+  if (!day) return false;
+  if (day.restDay) {
+    const nextDay = plan.days.find(d => d.day === dayNumber + 1);
+    if (!nextDay) return true;
+    return isPlanDayUnlocked(plan, dayNumber + 1, sessions);
+  }
+  return sessions.some(s => s.planId === plan.id && s.planDay === dayNumber);
+}
+
+// ================================================================
 // AUDIO
 // ================================================================
 function beep(ctx, freq = 880) {
@@ -657,76 +720,117 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNaviga
   );
 }
 
-function PlanTab({ activePlan, routines, onNavigate }) {
+function PlanTab({ sessions, onNavigate }) {
+  const plan = BUILTIN_PLANS[0];
+  const workDays = plan.days.filter(d => !d.restDay);
+  const completedCount = workDays.filter(d => isPlanDayCompleted(plan, d.day, sessions)).length;
+  const currentDay = workDays.find(d =>
+    !isPlanDayCompleted(plan, d.day, sessions) && isPlanDayUnlocked(plan, d.day, sessions)
+  ) || null;
+
+  const startPlanDay = (day) => {
+    const routine = {
+      id: `plan-${plan.id}-day-${day.day}`,
+      name: `DAG ${day.day} — ${plan.title}`,
+      exercises: day.exercises,
+      category: 'Core',
+    };
+    onNavigate('timer', { routine, planId: plan.id, planDay: day.day, backTo: 'home' });
+  };
+
+  const pct = workDays.length > 0 ? (completedCount / workDays.length) * 100 : 0;
+
+  const IcoCheck = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6BE89B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5"/>
+    </svg>
+  );
+  const IcoLock = () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  );
+  const IcoMoon = () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  );
+
   return (
     <>
-      <div style={{ padding: '0 20px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div>
-          <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>MIJN</div>
-          <h2 style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, margin: 0 }}>PLAN</h2>
+      {/* Header */}
+      <div style={{ padding: '0 20px 16px' }}>
+        <div style={{ fontFamily: C.mono, fontSize: 26, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1, color: C.text, marginBottom: 4 }}>
+          {plan.title.toUpperCase()}
         </div>
-        <button onClick={() => {}} style={{
-          fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em', fontWeight: 600,
-          background: C.surface, color: C.text,
-          border: `1px solid ${C.borderMd}`, borderRadius: 8,
-          padding: '10px 14px', cursor: 'pointer',
-        }}>+ NIEUW</button>
+        <div style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.16em', color: C.muted }}>
+          {plan.subtitle}
+        </div>
       </div>
 
-      {!activePlan ? (
-        <div style={{ textAlign: 'center', padding: '60px 20px', color: C.muted, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.10em', lineHeight: 1.9 }}>
-          Geen actief plan.<br/>Maak een plan aan.
+      {/* Progress bar */}
+      <div style={{ padding: '0 20px 20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <div style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.12em', color: C.muted }}>VOORTGANG</div>
+          <div style={{ fontFamily: C.mono, fontSize: 11, color: plan.color }}>{completedCount} / {workDays.length} DAGEN</div>
         </div>
-      ) : (
-        <div style={{ padding: '0 20px' }}>
-          <div style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', color: C.text, marginBottom: 12 }}>{activePlan.name}</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {(activePlan.days || []).map((day, i) => {
-              const routine = day.routineId ? routines.find(r => r.id === day.routineId) : null;
-              const completed = (activePlan.completedDays || []).includes(day.dayIndex);
-              const unlocked = day.dayIndex === 0 || (activePlan.completedDays || []).includes(day.dayIndex - 1);
-              return (
-                <div key={i} style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  background: C.surface, border: `1px solid ${C.border}`,
-                  borderRadius: 10, padding: '14px 16px',
-                  opacity: (!day.isRest && !unlocked && !completed) ? 0.5 : 1,
+        <div style={{ height: 4, background: C.surface, borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${pct}%`, background: plan.color, borderRadius: 2 }} />
+        </div>
+      </div>
+
+      {/* Days list */}
+      <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 24 }}>
+        {plan.days.map(day => {
+          const completed = !day.restDay && isPlanDayCompleted(plan, day.day, sessions);
+          const isCurrent = !day.restDay && currentDay?.day === day.day;
+          const unlocked = isPlanDayUnlocked(plan, day.day, sessions);
+
+          return (
+            <div key={day.day} style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              background: C.surface,
+              border: `1px solid ${isCurrent ? C.accent : completed ? 'rgba(107,232,155,0.22)' : C.border}`,
+              borderRadius: 10, padding: '13px 16px',
+              opacity: !day.restDay && !unlocked && !completed ? 0.38 : 1,
+            }}>
+              {/* Status icon left */}
+              <div style={{ width: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {completed ? <IcoCheck /> : day.restDay ? <IcoMoon /> : null}
+              </div>
+
+              {/* Text */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', fontWeight: 600,
+                  color: completed ? C.muted : day.restDay ? C.muted : isCurrent ? C.accent : C.secondary,
                 }}>
-                  <div style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.12em', color: C.muted, minWidth: 38, flexShrink: 0 }}>
-                    DAG {day.dayIndex + 1}
-                  </div>
-                  <div style={{ flex: 1, fontSize: 14, fontWeight: 500, minWidth: 0 }}>
-                    {day.isRest ? (
-                      <span style={{ color: C.muted, fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em' }}>RUSTDAG</span>
-                    ) : (
-                      <span style={{ color: C.text }}>{routine?.name || '—'}</span>
-                    )}
-                  </div>
-                  {!day.isRest && (
-                    completed ? (
-                      <span style={{ fontFamily: C.mono, fontSize: 16, color: C.accent, flexShrink: 0 }}>✓</span>
-                    ) : unlocked ? (
-                      <button
-                        onClick={() => routine && onNavigate('timer', { routineId: day.routineId })}
-                        disabled={!routine}
-                        style={{
-                          fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em', fontWeight: 600,
-                          background: C.accent, color: C.accentFg,
-                          border: 'none', borderRadius: 6, padding: '8px 12px',
-                          cursor: routine ? 'pointer' : 'not-allowed', flexShrink: 0,
-                          opacity: routine ? 1 : 0.4,
-                        }}
-                      >START</button>
-                    ) : (
-                      <span style={{ fontSize: 15, color: C.muted, flexShrink: 0 }}>🔒</span>
-                    )
-                  )}
+                  {day.restDay ? `DAG ${day.day} — RUST` : `DAG ${day.day}`}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+                {!day.restDay && !completed && (
+                  <div style={{ fontFamily: C.mono, fontSize: 10, color: C.muted, marginTop: 2, letterSpacing: '0.06em' }}>
+                    {day.exercises.length} OEF
+                  </div>
+                )}
+              </div>
+
+              {/* Action right */}
+              {!day.restDay && !completed && unlocked && (
+                <button onClick={() => startPlanDay(day)} style={{
+                  fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em', fontWeight: 600,
+                  background: isCurrent ? C.accent : 'transparent',
+                  color: isCurrent ? C.accentFg : C.muted,
+                  border: `1px solid ${isCurrent ? C.accent : '#555'}`,
+                  borderRadius: 6, padding: '8px 12px',
+                  cursor: 'pointer', flexShrink: 0,
+                }}>START</button>
+              )}
+              {!day.restDay && !completed && !unlocked && <IcoLock />}
+            </div>
+          );
+        })}
+      </div>
     </>
   );
 }
@@ -735,7 +839,6 @@ function HomeScreen({ dbRef, onNavigate }) {
   const [activeTab, setActiveTab] = useState('home');
   const [sessions, setSessions] = useState([]);
   const [routines, setRoutines] = useState([]);
-  const [plans, setPlans] = useState([]);
   const [profile, setProfile] = useState(null);
   const [ready, setReady] = useState(false);
 
@@ -744,12 +847,10 @@ function HomeScreen({ dbRef, onNavigate }) {
     Promise.all([
       dbGetAll(dbRef.current, 'sessions'),
       dbGetAll(dbRef.current, 'routines'),
-      dbGetAll(dbRef.current, 'plans'),
       getProfile(dbRef.current),
-    ]).then(([s, r, p, prof]) => {
+    ]).then(([s, r, prof]) => {
       setSessions(s.sort((a, b) => b.completedAt - a.completedAt));
       setRoutines(r);
-      setPlans(p);
       setProfile(prof);
       setReady(true);
     });
@@ -762,7 +863,6 @@ function HomeScreen({ dbRef, onNavigate }) {
   const greeting = hours < 6 ? 'GOEDE NACHT' : hours < 12 ? 'GOEDEMORGEN' : hours < 18 ? 'GOEDEMIDDAG' : 'GOEDENAVOND';
 
   const quickRoutines = routines.filter(r => r.quickStart !== false).slice(0, 4);
-  const activePlan = plans.find(p => p.active) || null;
 
   const tabBtn = (tab) => ({
     flex: 1, padding: '10px 0',
@@ -796,8 +896,7 @@ function HomeScreen({ dbRef, onNavigate }) {
       )}
       {activeTab === 'plan' && (
         <PlanTab
-          activePlan={activePlan}
-          routines={routines}
+          sessions={sessions}
           onNavigate={onNavigate}
         />
       )}
@@ -1104,9 +1203,10 @@ function TimerScreen({ dbRef, onNavigate, params }) {
   const wakeLockRef = useRef(null);
 
   useEffect(() => {
+    if (params?.routine) { setRoutine(params.routine); return; }
     if (!params?.routineId || !dbRef.current) return;
     dbOp(dbRef.current, 'routines', 'readonly', s => s.get(params.routineId)).then(r => setRoutine(r));
-  }, [params?.routineId]);
+  }, []);
 
   const exercises = useMemo(() => {
     if (!routine) return [];
@@ -1174,10 +1274,13 @@ function TimerScreen({ dbRef, onNavigate, params }) {
 
   const saveSession = async dur => {
     if (!dbRef.current || !routine) return;
-    await dbOp(dbRef.current, 'sessions', 'readwrite', s => s.put({
+    const sessionData = {
       id: `s-${Date.now()}`, routineId: routine.id, routineName: routine.name,
       levelIdx, duration: dur, exercises: activeEx.map(e => e.name), completedAt: Date.now(),
-    }));
+    };
+    if (params?.planId)  sessionData.planId  = params.planId;
+    if (params?.planDay) sessionData.planDay = params.planDay;
+    await dbOp(dbRef.current, 'sessions', 'readwrite', s => s.put(sessionData));
     relWake();
     onNavigate('finish', { routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx });
   };
@@ -1218,7 +1321,7 @@ function TimerScreen({ dbRef, onNavigate, params }) {
 
       {/* Fixed header */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${C.border}`, zIndex: 10 }}>
-        <button onClick={() => { reset(); onNavigate('routines', {}); }} style={{
+        <button onClick={() => { reset(); onNavigate(params?.backTo || 'routines', {}); }} style={{
           width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.muted, background: 'none',
         }}>{Icon.back(18)}</button>
