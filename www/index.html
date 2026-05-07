@@ -84,15 +84,30 @@ const initDB = () => new Promise((resolve, reject) => {
 // Profile helpers
 const getProfile = async db => {
   const all = await dbGetAll(db, 'profile');
-  return all.find(p => p.id === 'me') || null;
+  return all.find(p => p.id === 'profile' || p.id === 'me') || null;
 };
 const saveProfile = (db, profile) => dbOp(db, 'profile', 'readwrite', s => s.put({
-  ...profile, id: 'me', updatedAt: Date.now(),
+  ...profile, id: 'profile', updatedAt: Date.now(),
 }));
 
 // MET-waarden per categorie (Compendium of Physical Activities)
 const MET_BY_CAT = { Core: 4.0, Push: 5.0, Pull: 5.0, Legs: 5.5, Cardio: 8.0 };
 const MET_REST = 1.5;
+const MET_SESSION = { Core: 3.5, Push: 4.0, Legs: 5.0, Pull: 4.0, Cardio: 7.0 };
+
+function calcSessionKcal(exercises, durationSec, weightKg) {
+  if (!weightKg || !durationSec || !exercises?.length) return 0;
+  const counts = {};
+  exercises.forEach(ex => { counts[ex.cat] = (counts[ex.cat] || 0) + 1; });
+  let dom = exercises[0].cat, max = 0;
+  const seen = new Set();
+  for (const ex of exercises) {
+    if (seen.has(ex.cat)) continue;
+    seen.add(ex.cat);
+    if (counts[ex.cat] > max) { max = counts[ex.cat]; dom = ex.cat; }
+  }
+  return Math.round((MET_SESSION[dom] || 4.0) * weightKg * (durationSec / 3600));
+}
 
 // Calorieën voor een lijst oefeningen + duur (seconden) bij gegeven gewicht
 // Verdeling: ~70% van duur = oefening (gemiddelde MET van categorieën), ~30% rust
@@ -1274,9 +1289,12 @@ function TimerScreen({ dbRef, onNavigate, params }) {
 
   const saveSession = async dur => {
     if (!dbRef.current || !routine) return;
+    const prof = await getProfile(dbRef.current);
+    const kcal = calcSessionKcal(activeEx, dur, prof?.weightKg);
     const sessionData = {
       id: `s-${Date.now()}`, routineId: routine.id, routineName: routine.name,
       levelIdx, duration: dur, exercises: activeEx.map(e => e.name), completedAt: Date.now(),
+      kcal,
     };
     if (params?.planId)  sessionData.planId  = params.planId;
     if (params?.planDay) sessionData.planDay = params.planDay;
@@ -1642,136 +1660,147 @@ function ProfileScreen({ dbRef, onNavigate }) {
 
   useEffect(() => { loadAll(); }, []);
 
-  const streak = useMemo(() => calcStreak(sessions), [sessions]);
-  const totalCal = useMemo(() => sessions.reduce((sum, s) => sum + (s.calories || 0), 0), [sessions]);
+  const streak   = useMemo(() => calcStreak(sessions), [sessions]);
+  const totalKcal = useMemo(() => sessions.reduce((sum, s) => sum + (s.kcal || 0), 0), [sessions]);
 
   if (!ready) return <Loader />;
 
-  // Lege staat: geen profiel
-  if (!profile) {
-    return (
-      <div style={{ background: C.bg, color: C.text, minHeight: '100vh', fontFamily: C.font, padding: '60px 20px 100px' }}>
-        <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 12 }}>PROFIEL</div>
-        <h1 style={{ fontSize: 38, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: 24 }}>NIEUW</h1>
-        <p style={{ color: C.secondary, marginBottom: 24, lineHeight: 1.5 }}>Je hebt nog geen profiel. Vul je gegevens in voor BMI, calorieën en gewichtsdoel.</p>
-        <button onClick={() => setEditing(true)} style={{
-          padding: '16px 24px', background: C.accent, color: C.accentFg, border: 'none', borderRadius: 12,
-          fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600,
-        }}>PROFIEL AANMAKEN</button>
-        {editing && <ProfileEditModal profile={null} onSave={async p => {
-          await saveProfile(dbRef.current, { ...p, createdAt: Date.now() });
-          setEditing(false);
-          loadAll();
-        }} onClose={() => setEditing(false)} />}
-      </div>
-    );
+  const hasName = !!(profile?.name);
+  const hasBMI  = !!(profile?.heightCm && profile?.weightKg);
+  const hasGoal = !!(profile?.startWeightKg && profile?.goalWeightKg);
+
+  const bmi    = hasBMI ? calcBMI(profile.weightKg, profile.heightCm) : 0;
+  const bmiCat = hasBMI ? bmiCategory(bmi) : null;
+
+  let goalPct = 0, goalReached = false;
+  if (hasGoal) {
+    const { startWeightKg, goalWeightKg, weightKg } = profile;
+    if (weightKg <= goalWeightKg) {
+      goalReached = true; goalPct = 100;
+    } else {
+      goalPct = Math.min(100, Math.max(0, Math.round(
+        (startWeightKg - weightKg) / (startWeightKg - goalWeightKg) * 100
+      )));
+    }
   }
-
-  const bmi = calcBMI(profile.weight, profile.height);
-  const bmiCat = bmiCategory(bmi);
-
-  // Gewichtsdoel progress (0–100%)
-  const totalDelta = Math.abs((profile.startWeight || profile.weight) - (profile.targetWeight || profile.weight));
-  const currentDelta = Math.abs((profile.startWeight || profile.weight) - profile.weight);
-  const goalProgress = totalDelta > 0 ? Math.min(100, Math.round((currentDelta / totalDelta) * 100)) : 0;
-  const losing = (profile.targetWeight || profile.weight) < (profile.startWeight || profile.weight);
-  const deltaSign = profile.weight - (profile.startWeight || profile.weight);
-  const remaining = Math.abs(profile.weight - (profile.targetWeight || profile.weight));
 
   return (
     <div style={{ background: C.bg, color: C.text, minHeight: '100vh', fontFamily: C.font, paddingBottom: 100 }}>
 
       {/* Header */}
-      <div style={{ padding: '24px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ padding: '44px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>PROFIEL</div>
-          <h1 style={{ fontSize: 38, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1 }}>{profile.name.toUpperCase()}</h1>
+          <h1 style={{ fontSize: 38, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1 }}>
+            {hasName ? profile.name.toUpperCase() : 'NIEUW'}
+          </h1>
         </div>
         <button onClick={() => setEditing(true)} style={{
-          display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px',
+          display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', marginTop: 44,
           background: 'transparent', color: C.text, border: `1px solid ${C.border}`,
-          borderRadius: 999, fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em',
+          borderRadius: 999, fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em', cursor: 'pointer',
         }}>
           {Icon.edit(14)}
           <span>BEWERK</span>
         </button>
       </div>
 
-      {/* Stat tegels */}
+      {/* Stat tiles — altijd zichtbaar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: '24px 20px 0' }}>
         <StatTile num={streak} label="DAG STREAK" />
         <StatTile num={sessions.length} label="SESSIES" />
-        <StatTile num={totalCal >= 1000 ? `${(totalCal/1000).toFixed(1)}k` : totalCal} label="CAL TOTAAL" />
+        <StatTile num={totalKcal >= 1000 ? `${(totalKcal/1000).toFixed(1)}k` : totalKcal} label="CAL TOTAAL" />
       </div>
 
-      {/* BMI */}
-      <section style={{ padding: '32px 20px 0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-          <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>BMI</span>
-          <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: bmiCat.color }}>{bmiCat.label}</span>
-        </div>
-        <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, background: C.surface }}>
-          <div style={{ fontSize: 56, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: 16 }}>
-            {bmi.toFixed(1)}
-          </div>
-          {/* BMI gradient bar */}
-          <div style={{ position: 'relative', height: 10, borderRadius: 4, overflow: 'hidden', display: 'flex' }}>
-            <div style={{ flex: 18.5, background: '#69A6FF' }} />
-            <div style={{ flex: 6.5,  background: '#6BE89B' }} />
-            <div style={{ flex: 5,    background: '#FFB454' }} />
-            <div style={{ flex: 10,   background: '#FF5A5A' }} />
-            {/* Indicator */}
-            <div style={{
-              position: 'absolute', top: -3, height: 16, width: 3, background: '#fff', borderRadius: 2,
-              left: `${Math.min(100, (Math.min(bmi, 40) / 40) * 100)}%`, transform: 'translateX(-1.5px)',
-            }} />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontFamily: C.mono, fontSize: 10, color: C.muted, letterSpacing: '0.06em' }}>
-            <span>0</span><span>18.5</span><span>25</span><span>30</span><span>40</span>
+      {/* CTA als profiel leeg */}
+      {!hasName && (
+        <div style={{ padding: '24px 20px 0' }}>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '24px 20px', background: C.surface, textAlign: 'center' }}>
+            <div style={{ color: C.secondary, marginBottom: 16, lineHeight: 1.6, fontSize: 15 }}>
+              Vul je gegevens in voor BMI, calorieën en gewichtsdoel.
+            </div>
+            <button onClick={() => setEditing(true)} style={{
+              padding: '14px 24px', background: C.accent, color: C.accentFg, border: 'none', borderRadius: 12,
+              fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600, cursor: 'pointer',
+            }}>STEL JE PROFIEL IN</button>
           </div>
         </div>
-      </section>
+      )}
 
-      {/* Gewichtsdoel */}
-      {profile.targetWeight && profile.startWeight && (
-        <section style={{ padding: '24px 20px 0' }}>
+      {/* BMI — alleen als lengte + gewicht ingevuld */}
+      {hasBMI && (
+        <section style={{ padding: '32px 20px 0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>GEWICHTSDOEL</span>
-            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.accent }}>{goalProgress}%</span>
+            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>BMI</span>
+            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: bmiCat.label === 'GEZOND' ? C.accent : C.text }}>{bmiCat.label}</span>
           </div>
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, background: C.surface }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 18 }}>
-              <GoalCol label="START" value={`${profile.startWeight}kg`} />
-              <GoalCol label="NU"    value={`${profile.weight}kg`} highlight />
-              <GoalCol label="DOEL"  value={`${profile.targetWeight}kg`} align="right" />
+            <div style={{ fontSize: 56, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: 16 }}>
+              {bmi.toFixed(1)}
             </div>
-            <div style={{ position: 'relative', height: 4, background: C.elev3, borderRadius: 2, marginBottom: 12 }}>
-              <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${goalProgress}%`, background: C.accent, borderRadius: 2 }} />
-              <div style={{ position: 'absolute', top: -4, left: `${goalProgress}%`, width: 12, height: 12, borderRadius: '50%', background: C.accent, transform: 'translateX(-6px)' }} />
+            <div style={{ position: 'relative', height: 10, borderRadius: 4, overflow: 'hidden', display: 'flex' }}>
+              <div style={{ flex: 18.5, background: '#69A6FF' }} />
+              <div style={{ flex: 6.5,  background: '#E8FE3C' }} />
+              <div style={{ flex: 5,    background: '#FFB454' }} />
+              <div style={{ flex: 10,   background: '#FF5A5A' }} />
+              <div style={{
+                position: 'absolute', top: -3, height: 16, width: 3, background: '#fff', borderRadius: 2,
+                left: `${Math.min(100, (Math.min(bmi, 40) / 40) * 100)}%`, transform: 'translateX(-1.5px)',
+              }} />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.06em' }}>
-              <span style={{ color: deltaSign < 0 ? C.statusGo : C.muted }}>
-                {deltaSign === 0 ? 'geen wijziging' : `${deltaSign > 0 ? '+' : ''}${deltaSign.toFixed(1)} kg ${losing ? (deltaSign < 0 ? 'afgevallen' : 'aangekomen') : (deltaSign > 0 ? 'aangekomen' : 'kwijt')}`}
-              </span>
-              <span style={{ color: C.muted }}>{remaining.toFixed(1)} kg te gaan</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontFamily: C.mono, fontSize: 10, color: C.muted, letterSpacing: '0.06em' }}>
+              <span>0</span><span>18.5</span><span>25</span><span>30</span><span>40</span>
             </div>
           </div>
         </section>
       )}
 
-      {/* Persoonlijk blok */}
-      <section style={{ padding: '32px 20px 0' }}>
-        <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 12 }}>PERSOONLIJK</div>
-        <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden' }}>
-          <PersonalRow label="LEEFTIJD" value={`${profile.age} jaar`} />
-          <PersonalRow label="GESLACHT" value={profile.gender.toUpperCase()} />
-          <PersonalRow label="LENGTE"   value={`${profile.height} cm`} />
-          <PersonalRow label="GEWICHT"  value={`${profile.weight} kg`} last />
-        </div>
-      </section>
+      {/* Gewichtsdoel — alleen als start + doel ingevuld */}
+      {hasGoal && (
+        <section style={{ padding: '24px 20px 0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>GEWICHTSDOEL</span>
+            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: goalReached ? C.statusGo : C.accent }}>
+              {goalReached ? 'DOEL BEREIKT' : `${goalPct}%`}
+            </span>
+          </div>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, background: C.surface }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 18 }}>
+              <GoalCol label="START" value={`${profile.startWeightKg}kg`} />
+              <GoalCol label="NU"    value={`${profile.weightKg}kg`} highlight />
+              <GoalCol label="DOEL"  value={`${profile.goalWeightKg}kg`} align="right" />
+            </div>
+            <div style={{ position: 'relative', height: 4, background: C.elev3, borderRadius: 2, marginBottom: 12 }}>
+              <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${goalPct}%`, background: C.accent, borderRadius: 2 }} />
+              <div style={{ position: 'absolute', top: -4, left: `${goalPct}%`, width: 12, height: 12, borderRadius: '50%', background: C.accent, transform: 'translateX(-6px)' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.06em' }}>
+              <span style={{ color: C.statusGo }}>
+                -{(profile.startWeightKg - profile.weightKg).toFixed(1)} kg afgevallen
+              </span>
+              <span style={{ color: C.muted }}>
+                {Math.max(0, profile.weightKg - profile.goalWeightKg).toFixed(1)} kg te gaan
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Persoonlijk — alleen als naam ingevuld */}
+      {hasName && (
+        <section style={{ padding: '32px 20px 0' }}>
+          <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 12 }}>PERSOONLIJK</div>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden' }}>
+            <PersonalRow label="LEEFTIJD" value={profile.age    ? `${profile.age} jaar`      : '—'} />
+            <PersonalRow label="GESLACHT" value={profile.gender ? profile.gender.toUpperCase() : '—'} />
+            <PersonalRow label="LENGTE"   value={profile.heightCm ? `${profile.heightCm} cm` : '—'} />
+            <PersonalRow label="GEWICHT"  value={profile.weightKg ? `${profile.weightKg} kg` : '—'} last />
+          </div>
+        </section>
+      )}
 
       {editing && <ProfileEditModal profile={profile} onSave={async p => {
-        await saveProfile(dbRef.current, { ...profile, ...p });
+        await saveProfile(dbRef.current, { ...(profile || {}), ...p, createdAt: profile?.createdAt || Date.now() });
         setEditing(false);
         loadAll();
       }} onClose={() => setEditing(false)} />}
@@ -1819,26 +1848,29 @@ function PersonalRow({ label, value, last }) {
 // PROFILE EDIT MODAL
 // ================================================================
 function ProfileEditModal({ profile, onSave, onClose }) {
-  const [name,   setName]   = useState(profile?.name   || '');
-  const [age,    setAge]    = useState(profile?.age    || '');
-  const [gender, setGender] = useState(profile?.gender || 'man');
-  const [height, setHeight] = useState(profile?.height || '');
-  const [weight, setWeight] = useState(profile?.weight || '');
-  const [startWeight,  setStartWeight]  = useState(profile?.startWeight  || '');
-  const [targetWeight, setTargetWeight] = useState(profile?.targetWeight || '');
-
-  const valid = name.trim() && age && height && weight;
+  const [name,         setName]         = useState(profile?.name         || '');
+  const [age,          setAge]          = useState(profile?.age          || '');
+  const [gender,       setGender]       = useState(profile?.gender       || 'man');
+  const [height,       setHeight]       = useState(profile?.heightCm     || '');
+  const [weight,       setWeight]       = useState(profile?.weightKg     || '');
+  const [startWeight,  setStartWeight]  = useState(profile?.startWeightKg || '');
+  const [targetWeight, setTargetWeight] = useState(profile?.goalWeightKg  || '');
+  const [error,        setError]        = useState('');
 
   const handleSave = () => {
-    if (!valid) return;
+    if (!name.trim())                      { setError('Naam is verplicht.');             return; }
+    if (!age || parseInt(age) <= 0)        { setError('Leeftijd is verplicht.');         return; }
+    if (!height || parseInt(height) <= 0)  { setError('Lengte is verplicht.');           return; }
+    if (!weight || parseFloat(weight) <= 0){ setError('Gewicht is verplicht.');          return; }
+    setError('');
     onSave({
       name: name.trim(),
       age: parseInt(age),
       gender,
-      height: parseInt(height),
-      weight: parseFloat(weight),
-      startWeight: startWeight ? parseFloat(startWeight) : parseFloat(weight),
-      targetWeight: targetWeight ? parseFloat(targetWeight) : parseFloat(weight),
+      heightCm:      parseInt(height),
+      weightKg:      parseFloat(weight),
+      startWeightKg: startWeight  ? parseFloat(startWeight)  : null,
+      goalWeightKg:  targetWeight ? parseFloat(targetWeight) : null,
     });
   };
 
@@ -1916,12 +1948,13 @@ function ProfileEditModal({ profile, onSave, onClose }) {
             </div>
           </div>
 
-          <button onClick={handleSave} disabled={!valid} style={{
-            marginTop: 12, padding: '16px 0',
-            background: valid ? C.accent : C.elev3, color: valid ? C.accentFg : C.muted,
+          {error && <div style={{ color: C.statusCrit, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', marginTop: 4 }}>{error}</div>}
+          <button onClick={handleSave} style={{
+            marginTop: 12, padding: '16px 0', width: '100%',
+            background: C.accent, color: C.accentFg,
             border: 'none', borderRadius: 12,
             fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600,
-            cursor: valid ? 'pointer' : 'not-allowed',
+            cursor: 'pointer',
           }}>OPSLAAN</button>
         </div>
       </div>
