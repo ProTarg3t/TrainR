@@ -66,7 +66,7 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 // Swap dbOp / dbGetAll for fetch() calls when going public
 // ================================================================
 const DB_NAME = 'trainr_v1';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 const initDB = () => new Promise((resolve, reject) => {
   const req = indexedDB.open(DB_NAME, DB_VERSION);
@@ -75,6 +75,7 @@ const initDB = () => new Promise((resolve, reject) => {
     if (!db.objectStoreNames.contains('routines')) db.createObjectStore('routines', { keyPath: 'id' });
     if (!db.objectStoreNames.contains('sessions')) db.createObjectStore('sessions', { keyPath: 'id' });
     if (!db.objectStoreNames.contains('profile'))  db.createObjectStore('profile',  { keyPath: 'id' });
+    if (!db.objectStoreNames.contains('plans'))    db.createObjectStore('plans',    { keyPath: 'id' });
   };
   req.onsuccess = e => resolve(e.target.result);
   req.onerror = e => reject(e.target.error);
@@ -586,109 +587,36 @@ const Icon = {
 // ================================================================
 // HOME SCREEN
 // ================================================================
-function HomeScreen({ dbRef, onNavigate }) {
-  const [sessions, setSessions] = useState([]);
-  const [routines, setRoutines] = useState([]);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    if (!dbRef.current) return;
-    Promise.all([dbGetAll(dbRef.current, 'sessions'), dbGetAll(dbRef.current, 'routines')])
-      .then(([s, r]) => {
-        setSessions(s.sort((a, b) => b.completedAt - a.completedAt));
-        setRoutines(r);
-        setReady(true);
-      });
-  }, []);
-
-  const streak = useMemo(() => calcStreak(sessions), [sessions]);
-  const lastSession = sessions[0];
-  const today = new Date();
-  const todayDone = sessions.some(s => new Date(s.completedAt).toDateString() === today.toDateString());
-  const hours = today.getHours();
-  const greeting = hours < 12 ? 'GOEDEMORGEN' : hours < 18 ? 'GOEDEMIDDAG' : 'GOEDENAVOND';
-
-  const last7 = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(); d.setDate(d.getDate() - (6 - i));
-    return {
-      label: ['Zo','Ma','Di','Wo','Do','Vr','Za'][d.getDay()],
-      done: sessions.some(s => new Date(s.completedAt).toDateString() === d.toDateString()),
-      isToday: d.toDateString() === today.toDateString(),
-    };
-  });
-
-  if (!ready) return <Loader />;
-
-  const quickRoutines = routines.filter(r => r.quickStart !== false).slice(0, 4);
-  const doneThisWeek = last7.filter(d => d.done).length;
-
+function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNavigate }) {
   return (
-    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', paddingBottom: 'calc(var(--tab-h) + 24px)', fontFamily: C.font }}>
+    <>
+      <div style={{ padding: '0 20px 20px' }}>
+        <div style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.22em', color: C.muted, marginBottom: 8 }}>TRAINR</div>
+        <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em', color: C.muted, marginBottom: 6, textTransform: 'lowercase' }}>{greeting}</div>
+        {profile?.name ? (
+          <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1 }}>{profile.name}</div>
+        ) : null}
+      </div>
 
-      {/* Hero */}
-      <header style={{ padding: '44px 20px 20px' }}>
-        <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 10 }}>{greeting}</div>
-        <h1 style={{ fontFamily: C.font, fontSize: 44, fontWeight: 700, lineHeight: 0.95, letterSpacing: '-0.04em', margin: '0 0 12px' }}>
-          PROTOCOL<br/>
-          <span style={{ color: C.accent }}>{todayDone ? 'VOLTOOID' : 'READY'}</span>
-        </h1>
-        <div style={{ color: C.muted, fontSize: 14 }}>
-          {todayDone ? 'Goed gedaan vandaag.' : routines.length > 0 ? `${quickRoutines.length} routine${quickRoutines.length !== 1 ? 's' : ''} beschikbaar.` : 'Maak je eerste routine aan.'}
-        </div>
-      </header>
-
-      {/* Week strip */}
-      <section style={{ padding: '8px 0 0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px 12px' }}>
-          <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', color: C.muted }}>DEZE WEEK</span>
-          <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', color: C.accent }}>{doneThisWeek} / 7</span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 6, padding: '0 20px' }}>
-          {last7.map((d, i) => (
-            <div key={i} style={{
-              aspectRatio: '1 / 1.2',
-              border: `1px solid ${d.isToday ? C.accent : C.border}`,
-              borderRadius: 8,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between',
-              padding: '7px 4px 6px',
-              background: d.done ? C.surface : 'transparent',
-              position: 'relative',
-            }}>
-              <div style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.06em', color: d.isToday ? C.accent : C.muted, fontWeight: 500 }}>{d.label}</div>
-              <div style={{ fontFamily: C.mono, fontSize: 15, fontWeight: 500, color: d.isToday ? C.accent : (d.done ? C.text : C.muted) }}>{String(d.date).padStart(2,'0')}</div>
-              {d.done && <div style={{ position: 'absolute', bottom: 5, width: 4, height: 4, borderRadius: '50%', background: C.accent }} />}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Streak card */}
-      <section style={{ padding: '20px 20px 0' }}>
-        <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'stretch', gap: 24 }}>
-          <div>
-            <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', color: C.muted, marginBottom: 4 }}>ACTIEVE STREAK</div>
-            <div style={{ fontFamily: C.mono, fontSize: 56, fontWeight: 600, lineHeight: 1, color: C.text, letterSpacing: '-0.04em', marginTop: 6 }}>
-              {String(streak).padStart(2,'0')}<span style={{ fontSize: 24, color: C.muted, marginLeft: 3 }}>d</span>
-            </div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, justifyContent: 'center', flex: 1 }}>
-            {[
-              { l: 'SESSIES', v: sessions.length },
-              { l: 'VANDAAG',  v: todayDone ? 'KLAAR ✓' : '—', hi: todayDone },
-              lastSession && { l: 'LAATSTE', v: new Date(lastSession.completedAt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }) },
-            ].filter(Boolean).map(row => (
-              <div key={row.l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.08em', color: C.muted }}>{row.l}</span>
-                <span style={{ fontFamily: C.mono, fontSize: 13, color: row.hi ? C.accent : C.text }}>{row.v}</span>
-              </div>
-            ))}
+      {/* Stats strip */}
+      <div style={{ display: 'flex', gap: 10, padding: '0 20px 20px' }}>
+        <div style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 14px' }}>
+          <div style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.12em', color: C.muted, marginBottom: 6 }}>STREAK</div>
+          <div style={{ fontFamily: C.mono, fontSize: 28, fontWeight: 600, lineHeight: 1, color: C.text }}>
+            {streak}<span style={{ fontSize: 14, color: C.muted, marginLeft: 3 }}>d</span>
           </div>
         </div>
-      </section>
+        <div style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 14px' }}>
+          <div style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.12em', color: C.muted, marginBottom: 6 }}>VANDAAG</div>
+          <div style={{ fontFamily: C.mono, fontSize: todayDone ? 16 : 28, fontWeight: 600, lineHeight: 1, color: todayDone ? C.accent : C.muted }}>
+            {todayDone ? 'KLAAR ✓' : '—'}
+          </div>
+        </div>
+      </div>
 
       {/* Quick start */}
       {quickRoutines.length > 0 ? (
-        <section style={{ padding: '20px 0 0' }}>
+        <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px 12px' }}>
             <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', color: C.muted }}>SNEL STARTEN</span>
             <span style={{ fontFamily: C.mono, fontSize: 11, color: C.muted }}>{quickRoutines.length} ROUTINES</span>
@@ -724,6 +652,154 @@ function HomeScreen({ dbRef, onNavigate }) {
           <div style={{ color: C.muted, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.1em', marginBottom: 20 }}>Nog geen routines.</div>
           <Btn onClick={() => onNavigate('builder', {})}>MAAK EERSTE ROUTINE</Btn>
         </div>
+      )}
+    </>
+  );
+}
+
+function PlanTab({ activePlan, routines, onNavigate }) {
+  return (
+    <>
+      <div style={{ padding: '0 20px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div>
+          <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>MIJN</div>
+          <h2 style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, margin: 0 }}>PLAN</h2>
+        </div>
+        <button onClick={() => {}} style={{
+          fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em', fontWeight: 600,
+          background: C.surface, color: C.text,
+          border: `1px solid ${C.borderMd}`, borderRadius: 8,
+          padding: '10px 14px', cursor: 'pointer',
+        }}>+ NIEUW</button>
+      </div>
+
+      {!activePlan ? (
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: C.muted, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.10em', lineHeight: 1.9 }}>
+          Geen actief plan.<br/>Maak een plan aan.
+        </div>
+      ) : (
+        <div style={{ padding: '0 20px' }}>
+          <div style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', color: C.text, marginBottom: 12 }}>{activePlan.name}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {(activePlan.days || []).map((day, i) => {
+              const routine = day.routineId ? routines.find(r => r.id === day.routineId) : null;
+              const completed = (activePlan.completedDays || []).includes(day.dayIndex);
+              const unlocked = day.dayIndex === 0 || (activePlan.completedDays || []).includes(day.dayIndex - 1);
+              return (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  background: C.surface, border: `1px solid ${C.border}`,
+                  borderRadius: 10, padding: '14px 16px',
+                  opacity: (!day.isRest && !unlocked && !completed) ? 0.5 : 1,
+                }}>
+                  <div style={{ fontFamily: C.mono, fontSize: 10, letterSpacing: '0.12em', color: C.muted, minWidth: 38, flexShrink: 0 }}>
+                    DAG {day.dayIndex + 1}
+                  </div>
+                  <div style={{ flex: 1, fontSize: 14, fontWeight: 500, minWidth: 0 }}>
+                    {day.isRest ? (
+                      <span style={{ color: C.muted, fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em' }}>RUSTDAG</span>
+                    ) : (
+                      <span style={{ color: C.text }}>{routine?.name || '—'}</span>
+                    )}
+                  </div>
+                  {!day.isRest && (
+                    completed ? (
+                      <span style={{ fontFamily: C.mono, fontSize: 16, color: C.accent, flexShrink: 0 }}>✓</span>
+                    ) : unlocked ? (
+                      <button
+                        onClick={() => routine && onNavigate('timer', { routineId: day.routineId })}
+                        disabled={!routine}
+                        style={{
+                          fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em', fontWeight: 600,
+                          background: C.accent, color: C.accentFg,
+                          border: 'none', borderRadius: 6, padding: '8px 12px',
+                          cursor: routine ? 'pointer' : 'not-allowed', flexShrink: 0,
+                          opacity: routine ? 1 : 0.4,
+                        }}
+                      >START</button>
+                    ) : (
+                      <span style={{ fontSize: 15, color: C.muted, flexShrink: 0 }}>🔒</span>
+                    )
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function HomeScreen({ dbRef, onNavigate }) {
+  const [activeTab, setActiveTab] = useState('home');
+  const [sessions, setSessions] = useState([]);
+  const [routines, setRoutines] = useState([]);
+  const [plans, setPlans] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!dbRef.current) return;
+    Promise.all([
+      dbGetAll(dbRef.current, 'sessions'),
+      dbGetAll(dbRef.current, 'routines'),
+      dbGetAll(dbRef.current, 'plans'),
+      getProfile(dbRef.current),
+    ]).then(([s, r, p, prof]) => {
+      setSessions(s.sort((a, b) => b.completedAt - a.completedAt));
+      setRoutines(r);
+      setPlans(p);
+      setProfile(prof);
+      setReady(true);
+    });
+  }, []);
+
+  const streak = useMemo(() => calcStreak(sessions), [sessions]);
+  const today = new Date();
+  const todayDone = sessions.some(s => new Date(s.completedAt).toDateString() === today.toDateString());
+  const hours = today.getHours();
+  const greeting = hours < 6 ? 'GOEDE NACHT' : hours < 12 ? 'GOEDEMORGEN' : hours < 18 ? 'GOEDEMIDDAG' : 'GOEDENAVOND';
+
+  const quickRoutines = routines.filter(r => r.quickStart !== false).slice(0, 4);
+  const activePlan = plans.find(p => p.active) || null;
+
+  const tabBtn = (tab) => ({
+    flex: 1, padding: '10px 0',
+    background: activeTab === tab ? C.accent : 'transparent',
+    color: activeTab === tab ? C.accentFg : C.text,
+    border: `1px solid ${activeTab === tab ? C.accent : '#555'}`,
+    borderRadius: 8,
+    fontFamily: C.mono, fontSize: 12, letterSpacing: '0.14em', fontWeight: 600,
+    cursor: 'pointer',
+  });
+
+  if (!ready) return <Loader />;
+
+  return (
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', paddingBottom: 'calc(var(--tab-h) + 24px)', fontFamily: C.font }}>
+      {/* Tab bar */}
+      <div style={{ padding: '52px 20px 20px', display: 'flex', gap: 8 }}>
+        <button style={tabBtn('home')} onClick={() => setActiveTab('home')}>HOME</button>
+        <button style={tabBtn('plan')} onClick={() => setActiveTab('plan')}>PLAN</button>
+      </div>
+
+      {activeTab === 'home' && (
+        <HomeTab
+          greeting={greeting}
+          profile={profile}
+          streak={streak}
+          todayDone={todayDone}
+          quickRoutines={quickRoutines}
+          onNavigate={onNavigate}
+        />
+      )}
+      {activeTab === 'plan' && (
+        <PlanTab
+          activePlan={activePlan}
+          routines={routines}
+          onNavigate={onNavigate}
+        />
       )}
     </div>
   );
