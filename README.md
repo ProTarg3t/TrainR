@@ -1,61 +1,78 @@
 # TrainR
 
-Thuistrainings-app zonder materiaal. Bouw je eigen routines, train met een timer en volg je voortgang.
+Offline-first bodyweight fitness PWA voor thuistraining zonder materiaal.
+Bouw eigen routines, train met een automatische timer en volg je voortgang.
 
-## Wat doet de app
+---
 
-- **Routines** aanmaken met oefeningen uit 5 categorieën: Core, Push, Legs, Pull, Cardio
-- **Timer** met automatische rust-pauzes en geluidssignalen
-- **3 niveaus**: Beginner / Intermediate / Expert (bepaalt de duur per oefening)
-- **Spiervisualisatie** per oefening en per routine
-- **Streak en geschiedenis** bijhouden
-- Werkt offline (PWA / Progressive Web App)
-- Data wordt lokaal opgeslagen via IndexedDB (blijft op het apparaat)
+## Wat de app doet
 
-## Hoe starten
+- Onboarding bij eerste start (naam, geslacht, leeftijd, lengte, gewicht, doel, niveau)
+- Routines aanmaken uit 53 oefeningen in 5 categorieën: Core, Push, Legs, Pull, Cardio
+- 30-dagen trainingsplan (Core Plan) met dag-voor-dag voortgang
+- Timer met automatische rustpauzes, geluidssignalen en wake lock
+- 3 niveaus: Beginner / Intermediate / Expert
+- Calorieverbranding per sessie (MET-gebaseerd, op basis van profiel)
+- Spiergroepvisualisatie (heatmap voor + achter) per oefening en na sessie
+- RPE-score na afloop (hoe voelde het, 1–10)
+- Exercise detail scherm per oefening (instructies, spieren, duraties per niveau)
+- Profiel met BMI, gewichtsdoel en voortgangstrack
+- Streak en sessiegeschiedenis
+- Stats-scherm: totaal sessies, streak, trainingstijd
+- Werkt offline (PWA, cache-first)
+- Data lokaal opgeslagen via IndexedDB — geen account, geen cloud
 
-Open `www/index.html` in een browser. Geen installatie nodig.
+---
 
-Voor de volledige PWA-ervaring (installeerbaar, offline):
-- Serveer de `www/` map via een lokale webserver, bijv.:
-  ```
-  npx serve www
-  ```
-- Of gebruik een live server extensie in VS Code.
+## Starten
 
-Het designprototype openen: open `www/Design/TrainR.html` in een browser (óók via een lokale server — de Babel-transpiler vereist `http://`).
+```bash
+npx serve www
+```
+
+Open `http://localhost:3000` in de browser.  
+Voor Android PWA-installatie: open in Chrome → "Toevoegen aan startscherm".
+
+Het designprototype (Figma-stijl canvas met alle schermen):
+
+```bash
+# vereist http:// vanwege Babel-transpiler
+open www/Design/TrainR.html
+```
+
+---
 
 ## Projectstructuur
 
 ```
 www/
-  index.html        — productie-app (HTML + React + CSS in één bestand)
-  manifest.json     — PWA-configuratie
-  sw.js             — service worker voor offline gebruik
-  icon-192.png      — app-icoon
-  icon-512.png      — app-icoon (groot)
+  index.html          — productie-app (HTML + React + CSS, één bestand)
+  manifest.json       — PWA-configuratie
+  sw.js               — service worker (cache-first, offline)
+  icon-192.png
+  icon-512.png
 
   Design/
-    TrainR.html          — interactief design canvas (alle schermen naast elkaar)
-    tokens.css           — design tokens (kleuren, typografie, spacing, radius)
-    body-map.jsx         — spiergroep-heatmap component (heat 0–4)
-    design-canvas.jsx    — Figma-achtige canvas (pan/zoom, artboards, focus-mode)
-    android-frame.jsx    — Android device frame voor artboards
-    tweaks-panel.jsx     — zwevend tweak-paneel (density, kleur, etc.)
-    screen-home.jsx      — Home scherm
-    screen-routines.jsx  — Routines lijst (gefilterd)
-    screen-routine-detail.jsx — Routine detail + start CTA
-    screen-new-routine.jsx    — Nieuwe routine builder (3 stappen)
-    screen-active.jsx    — Actieve workout (timer ring, segmented progress)
-    screen-finish.jsx    — Sessie voltooid (heatmap + RPE slider)
-    screen-exercise-detail.jsx — Oefening detail (instructies + spieren)
-    screen-onboarding.jsx — Onboarding (Typeform-stijl, 8 stappen)
-    screen-profile.jsx   — Profiel (BMI, gewichtsdoel, stats)
+    TrainR.html                  — interactief design canvas
+    tokens.css                   — design tokens (master)
+    body-map.jsx                 — spiergroep-heatmap component
+    design-canvas.jsx            — pan/zoom artboard canvas
+    android-frame.jsx            — device frame
+    tweaks-panel.jsx             — live tweak-paneel
+    screen-home.jsx
+    screen-routines.jsx
+    screen-routine-detail.jsx
+    screen-new-routine.jsx
+    screen-active.jsx
+    screen-finish.jsx
+    screen-exercise-detail.jsx
+    screen-onboarding.jsx
+    screen-profile.jsx
 ```
 
-## Design richting
+---
 
-Het `Design/`-prototype werkt met een eigen design system:
+## Design systeem
 
 | Token | Waarde |
 |---|---|
@@ -63,22 +80,47 @@ Het `Design/`-prototype werkt met een eigen design system:
 | Accent | `#E8FE3C` (signal yellow) |
 | Primaire tekst | `#FAFAF9` |
 | Font body | Inter |
-| Font labels/nummers | Geist Mono |
+| Font labels/data | Geist Mono |
+| Status go | `#6BE89B` |
+| Status rust | `#69A6FF` |
+| Status waarschuw | `#FFB454` |
+| Status kritiek | `#FF5A5A` |
 
-De productie-app (`index.html`) loopt nog op het originele thema. Visuele integratie staat gepland.
+Stijling via inline JS style-objecten met CSS-variabelen. Geen Tailwind, geen CSS-in-JS library.
+
+---
 
 ## Technische keuzes
 
-- Productie: één HTML-bestand zonder build-stap — laagste instapdrempel
-- React 18 via CDN (geen npm vereist)
-- IndexedDB voor opslag — data blijft ook offline beschikbaar
-- Geen externe API's of accounts
-- Design-prototype: losse JSX-bestanden, getranspileerd via Babel in de browser
+- Één HTML-bestand, geen build-stap — laagste instapdrempel
+- React 18 via CDN + Babel standalone (transpilatie in browser)
+- IndexedDB stores: `routines`, `sessions`, `profile`, `plans`
+- Geen externe API's, geen accounts
+- PWA: installeerbaar, offline bruikbaar via service worker
 
-## Toekomstige plannen
+---
 
-- [ ] Visuele integratie: design tokens uit `Design/tokens.css` doorvoeren in `index.html`
-- [ ] Oefeningen bewerkbaar maken in de app
-- [ ] Code opsplitsen in losse bestanden
-- [ ] Verpakken als native app via Capacitor
-- [ ] Meer standaard-routines per categorie
+## Roadmap
+
+| Fase | Status |
+|---|---|
+| Phase 1 — Stabilisatie & PWA | ✅ Afgerond |
+| Phase 2 — Design integratie | ✅ Afgerond |
+| Phase 3 — Feature expansion | ✅ Afgerond |
+| Phase 4 — Refinement & testing | ← Huidig |
+| Phase 5 — Native build (Capacitor) | Gepland |
+| Phase 6 — Google Play Store | Gepland |
+
+---
+
+## Recente wijzigingen (Phase 3)
+
+- Onboarding flow (8 stappen, eenmalig bij eerste start)
+- Caloriëberekening per sessie op Finish-screen
+- Exercise detail scherm met instructies, heatmap en niveau-duraties
+- Profile scherm: BMI, gewichtsdoel, voortgangsbar
+- Home screen v2 met HOME/PLAN tabs
+- 30-dagen Core Plan in PLAN tab
+- Audio verbeterd: duidelijkere geluiden tijdens workout
+- Data layer: DB v4 migratie, profile KV-schema, sessie calories/RPE opslag
+- Leesbaarheid verbeterd over alle schermen
