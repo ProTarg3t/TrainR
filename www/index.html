@@ -102,7 +102,14 @@ const getProfile = async db => {
 const setProfileField = (db, key, value) =>
   dbOp(db, 'profile', 'readwrite', s => s.put({ key, value }));
 const saveProfile = async (db, profile) => {
-  const FIELDS = ['name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal', 'goal', 'level', 'selectedPlanId', 'planConfirmed', 'onboardingComplete', 'createdAt'];
+  const FIELDS = [
+    'name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal',
+    'level',
+    'goal', 'trainingGoal',
+    'selectedPlanId', 'planConfirmed', 'starterPlanProfile', 'starterPlanSelection',
+    'availableDays',
+    'onboardingComplete', 'createdAt',
+  ];
   await Promise.all(
     FIELDS
       .filter(k => profile[k] !== undefined && profile[k] !== null)
