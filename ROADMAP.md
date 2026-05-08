@@ -423,3 +423,7 @@
 ---
 
 **Klaar om te starten? Begin met Phase 1.1 (PWA setup) volgende week.**
+
+## Strategische basis
+- Zie `PRODUCT_STRATEGY_PHASES.md` voor productvisie, fase-opbouw en KPI-outcomes (single source of truth).
+
