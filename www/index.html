@@ -102,7 +102,7 @@ const getProfile = async db => {
 const setProfileField = (db, key, value) =>
   dbOp(db, 'profile', 'readwrite', s => s.put({ key, value }));
 const saveProfile = async (db, profile) => {
-  const FIELDS = ['name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal', 'level', 'createdAt'];
+  const FIELDS = ['name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal', 'level', 'onboardingComplete', 'createdAt'];
   await Promise.all(
     FIELDS
       .filter(k => profile[k] !== undefined && profile[k] !== null)
@@ -1078,6 +1078,7 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
   const [filterCat, setFilterCat] = useState('Core');
   const [quickStart, setQuickStart] = useState(true);
   const [ready, setReady] = useState(!isEdit);
+  const [detailEx, setDetailEx] = useState(null);
 
   useEffect(() => {
     if (!isEdit || !dbRef.current) return;
@@ -1172,7 +1173,10 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
                     <div key={i} style={{ color: i === 0 ? '#C8C8C7' : '#A0A0A0', fontSize: 13, marginTop: i === 0 ? 2 : 1 }}>{line}</div>
                   ))}
                 </div>
-                <div style={{ color: active ? (CAT_COLORS[ex.cat] || C.accent) : C.dim, fontSize: 16, marginLeft: 10 }}>{active ? '●' : '○'}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button onClick={e => { e.stopPropagation(); setDetailEx(ex); }} style={{ background: 'none', border: 'none', color: C.muted, fontSize: 18, padding: '2px 4px', cursor: 'pointer', lineHeight: 1 }}>ⓘ</button>
+                  <div style={{ color: active ? (CAT_COLORS[ex.cat] || C.accent) : C.dim, fontSize: 16 }}>{active ? '●' : '○'}</div>
+                </div>
               </div>
             );
           })}
@@ -1231,6 +1235,12 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
           {isEdit ? 'OPSLAAN' : 'ROUTINE AANMAKEN'}
         </Btn>
       </div>
+
+      {detailEx && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: C.bg, overflowY: 'auto' }}>
+          <ExerciseDetailScreen exercise={detailEx} onBack={() => setDetailEx(null)} dbRef={dbRef} />
+        </div>
+      )}
     </div>
   );
 }
@@ -1337,7 +1347,7 @@ function TimerScreen({ dbRef, onNavigate, params }) {
     if (params?.planDay) sessionData.planDay = params.planDay;
     await dbOp(dbRef.current, 'sessions', 'readwrite', s => s.put(sessionData));
     relWake();
-    onNavigate('finish', { sessionId, routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx });
+    onNavigate('finish', { sessionId, routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx, calories });
   };
 
   const startWorkout = () => {
@@ -1415,12 +1425,14 @@ function TimerScreen({ dbRef, onNavigate, params }) {
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '6px 16px', marginBottom: 20, background: C.surface }}>
             {exercises.map((ex, i) => {
               const active = !disabled.has(i);
+              const toggle = () => setDisabled(prev => { const n = new Set(prev); active ? n.add(i) : n.delete(i); return n; });
               return (
-                <div key={ex.id} onClick={() => setDisabled(prev => { const n = new Set(prev); active ? n.add(i) : n.delete(i); return n; })}
-                  style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: i < exercises.length - 1 ? `1px solid ${C.border}` : 'none', cursor: 'pointer', opacity: active ? 1 : 0.35, userSelect: 'none' }}>
-                  <span style={{ color: active ? (CAT_COLORS[ex.cat] || C.accent) : C.dim, marginRight: 12, fontSize: 12 }}>●</span>
-                  <span style={{ flex: 1, color: C.text, fontSize: 17, fontWeight: 500 }}>{ex.name}</span>
-                  <span style={{ fontFamily: C.mono, color: active ? C.muted : C.dim, fontSize: 14 }}>{ex.times[levelIdx]}s</span>
+                <div key={ex.id} style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: i < exercises.length - 1 ? `1px solid ${C.border}` : 'none', opacity: active ? 1 : 0.35 }}>
+                  <span onClick={toggle} style={{ color: active ? (CAT_COLORS[ex.cat] || C.accent) : C.dim, marginRight: 12, fontSize: 12, cursor: 'pointer', userSelect: 'none' }}>●</span>
+                  <span onClick={toggle} style={{ flex: 1, color: C.text, fontSize: 17, fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>{ex.name}</span>
+                  <span style={{ fontFamily: C.mono, color: active ? C.muted : C.dim, fontSize: 14, marginRight: 8 }}>{ex.times[levelIdx]}s</span>
+                  <button onClick={() => onNavigate('exerciseDetail', { exercise: ex, backTo: 'timer', backToParams: params })}
+                    style={{ background: 'none', border: 'none', color: C.muted, fontSize: 18, padding: '2px 4px', cursor: 'pointer', lineHeight: 1 }}>ⓘ</button>
                 </div>
               );
             })}
@@ -1558,7 +1570,7 @@ function TimerScreen({ dbRef, onNavigate, params }) {
 // FINISH SCREEN
 // ================================================================
 function FinishScreen({ dbRef, onNavigate, params }) {
-  const { sessionId, routineName = '', levelIdx = 1, duration = 0, exerciseCount = 0, exercises = [] } = params || {};
+  const { sessionId, routineName = '', levelIdx = 1, duration = 0, exerciseCount = 0, exercises = [], calories = 0 } = params || {};
   const [rpe, setRpe] = useState(7);
   const [sessions, setSessions] = useState([]);
 
@@ -1605,8 +1617,8 @@ function FinishScreen({ dbRef, onNavigate, params }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: '20px 20px 0' }}>
         {[
           { num: fmt(duration), label: 'DUUR', hi: false },
-          { num: `${exerciseCount}`, label: 'VOLTOOID', hi: true },
-          { num: LEVELS[levelIdx], label: 'NIVEAU', hi: false },
+          { num: calories > 0 ? `${calories}` : '—', label: 'CALORIEËN', hi: true },
+          { num: `${exerciseCount}`, label: 'VOLTOOID', hi: false },
         ].map(({ num, label, hi }) => (
           <div key={label} style={{
             padding: '16px 12px', border: `1px solid ${hi ? C.accent : C.border}`,
@@ -1897,6 +1909,7 @@ function ProfileEditModal({ profile, onSave, onClose }) {
   const [weight,       setWeight]       = useState(profile?.weight      || '');
   const [startWeight,  setStartWeight]  = useState(profile?.weightStart || '');
   const [targetWeight, setTargetWeight] = useState(profile?.weightGoal  || '');
+  const [level,        setLevel]        = useState(profile?.level       || 'intermediate');
   const [error,        setError]        = useState('');
 
   const handleSave = () => {
@@ -1913,6 +1926,7 @@ function ProfileEditModal({ profile, onSave, onClose }) {
       weight:      parseFloat(weight),
       weightStart: startWeight  ? parseFloat(startWeight)  : null,
       weightGoal:  targetWeight ? parseFloat(targetWeight) : null,
+      level,
     });
   };
 
@@ -1988,6 +2002,23 @@ function ProfileEditModal({ profile, onSave, onClose }) {
               <label style={labelStyle}>DOELGEWICHT</label>
               <input style={inputStyle} type="number" step="0.1" value={targetWeight} onChange={e => setTargetWeight(e.target.value)} placeholder="95" />
             </div>
+          </div>
+
+          <div style={{ height: 1, background: C.border, margin: '4px 0' }} />
+          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted }}>TRAININGSNIVEAU</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[
+              { key: 'beginner',     label: 'BEGINNER' },
+              { key: 'intermediate', label: 'INTERMEDIATE' },
+              { key: 'expert',       label: 'EXPERT' },
+            ].map(({ key, label }) => (
+              <button key={key} onClick={() => setLevel(key)} style={{
+                flex: 1, padding: '10px 6px', border: `1px solid ${level === key ? C.accent : C.borderMd}`,
+                borderRadius: 8, background: level === key ? 'rgba(232,254,60,0.08)' : 'transparent',
+                fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', fontWeight: 600,
+                color: level === key ? C.accent : C.secondary, cursor: 'pointer',
+              }}>{label}</button>
+            ))}
           </div>
 
           {error && <div style={{ color: C.statusCrit, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', marginTop: 4 }}>{error}</div>}
@@ -2115,6 +2146,278 @@ function BottomNav({ current, onNavigate }) {
 }
 
 // ================================================================
+// ONBOARDING SCREEN
+// ================================================================
+function OnboardingScreen({ dbRef, onComplete }) {
+  const [step, setStep] = useState(1);
+  const [name, setName] = useState('');
+  const [gender, setGender] = useState(null);
+  const [age, setAge] = useState('');
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [weightGoal, setWeightGoal] = useState('');
+  const [level, setLevel] = useState(null);
+
+  const goNext = () => setStep(s => s + 1);
+  const goBack = () => setStep(s => s - 1);
+
+  const finish = async () => {
+    const goalW = weightGoal ? parseFloat(weightGoal) : parseFloat(weight);
+    await saveProfile(dbRef.current, {
+      name: name.trim(),
+      gender,
+      age: parseInt(age),
+      height: parseInt(height),
+      weight: parseFloat(weight),
+      weightStart: parseFloat(weight),
+      weightGoal: goalW,
+      level,
+      onboardingComplete: true,
+      createdAt: Date.now(),
+    });
+    onComplete();
+  };
+
+  const inputStyle = {
+    width: '100%', padding: '16px 18px', background: C.elev2,
+    border: `1px solid ${C.borderMd}`, borderRadius: 12, color: C.text,
+    fontFamily: C.font, fontSize: 18, outline: 'none',
+  };
+
+  const tileBtn = (selected, onClick, children) => (
+    <button onClick={onClick} style={{
+      flex: 1, padding: '20px 10px', border: `1px solid ${selected ? C.accent : C.borderMd}`,
+      borderRadius: 12, cursor: 'pointer', background: selected ? 'rgba(232,254,60,0.08)' : C.surface,
+      fontFamily: C.mono, fontSize: 13, letterSpacing: '0.12em', fontWeight: 600,
+      color: selected ? C.accent : C.secondary, display: 'flex', flexDirection: 'column', gap: 8,
+    }}>{children}</button>
+  );
+
+  const ctaBtn = (label, onClick, disabled = false) => (
+    <button onClick={onClick} disabled={disabled} style={{
+      width: '100%', padding: '18px 0',
+      background: disabled ? C.elev3 : C.accent,
+      color: disabled ? C.muted : C.accentFg,
+      border: 'none', borderRadius: 14,
+      fontFamily: C.mono, fontSize: 14, letterSpacing: '0.16em', fontWeight: 600,
+      cursor: disabled ? 'default' : 'pointer',
+    }}>{label}</button>
+  );
+
+  return (
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', fontFamily: C.font, display: 'flex', flexDirection: 'column' }}>
+      {/* Top bar */}
+      <div style={{ padding: '52px 20px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {step > 1 ? (
+          <button onClick={goBack} style={{ background: 'none', border: 'none', color: C.muted, display: 'flex', alignItems: 'center', gap: 6, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', cursor: 'pointer', padding: 0 }}>
+            {Icon.back(16)} TERUG
+          </button>
+        ) : <div />}
+        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.22em', color: C.muted }}>STAP {step} / 8</div>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ display: 'flex', gap: 4, padding: '0 20px', marginBottom: 40 }}>
+        {[1,2,3,4,5,6,7,8].map(s => (
+          <div key={s} style={{ flex: 1, height: 3, borderRadius: 2, background: s <= step ? C.accent : C.border }} />
+        ))}
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, padding: '0 20px', display: 'flex', flexDirection: 'column' }}>
+
+        {step === 1 && (
+          <>
+            <h1 style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 16 }}>Welkom bij TrainR.</h1>
+            <p style={{ fontSize: 16, color: C.secondary, lineHeight: 1.6, flex: 1 }}>Stel je profiel in. Duurt 1 minuut.</p>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('STARTEN →', goNext)}</div>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Hoe heet je?</h1>
+            <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Voornaam" />
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !name.trim())}</div>
+          </>
+        )}
+
+        {step === 3 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Wat is je geslacht?</h1>
+            <div style={{ display: 'flex', gap: 12 }}>
+              {tileBtn(gender === 'man', () => setGender('man'), 'MAN')}
+              {tileBtn(gender === 'vrouw', () => setGender('vrouw'), 'VROUW')}
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !gender)}</div>
+          </>
+        )}
+
+        {step === 4 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Hoe oud ben je?</h1>
+            <input style={inputStyle} type="number" min="10" max="99" value={age} onChange={e => setAge(e.target.value)} placeholder="34" />
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !age || parseInt(age) < 10 || parseInt(age) > 99)}</div>
+          </>
+        )}
+
+        {step === 5 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Hoe lang ben je?</h1>
+            <div style={{ position: 'relative' }}>
+              <input style={{ ...inputStyle, paddingRight: 60 }} type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="180" />
+              <span style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', fontFamily: C.mono, color: C.muted, fontSize: 16 }}>cm</span>
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !height || parseInt(height) <= 0)}</div>
+          </>
+        )}
+
+        {step === 6 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 12 }}>Wat weeg je nu?</h1>
+            <p style={{ fontSize: 14, color: C.muted, marginBottom: 28 }}>Wordt gebruikt voor calorieënberekening.</p>
+            <div style={{ position: 'relative' }}>
+              <input style={{ ...inputStyle, paddingRight: 60 }} type="number" step="0.1" value={weight} onChange={e => setWeight(e.target.value)} placeholder="80" />
+              <span style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', fontFamily: C.mono, color: C.muted, fontSize: 16 }}>kg</span>
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !weight || parseFloat(weight) <= 0)}</div>
+          </>
+        )}
+
+        {step === 7 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 12 }}>Wat is je doelgewicht?</h1>
+            <p style={{ fontSize: 14, color: C.muted, marginBottom: 28 }}>Geen doel? Vul hetzelfde in als huidig gewicht.</p>
+            <div style={{ position: 'relative' }}>
+              <input style={{ ...inputStyle, paddingRight: 60 }} type="number" step="0.1" value={weightGoal} onChange={e => setWeightGoal(e.target.value)} placeholder={weight || '75'} />
+              <span style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', fontFamily: C.mono, color: C.muted, fontSize: 16 }}>kg</span>
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext)}</div>
+          </>
+        )}
+
+        {step === 8 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Wat is je trainingsniveau?</h1>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {[
+                { key: 'beginner',     label: 'BEGINNER',      desc: 'Net begonnen of lang gestopt.' },
+                { key: 'intermediate', label: 'INTER-\nMEDIATE', desc: 'Regelmatig actief, basisconditie aanwezig.' },
+                { key: 'expert',       label: 'EXPERT',        desc: 'Dagelijks sportief, hoge belasting aankunnen.' },
+              ].map(({ key, label, desc }) => (
+                tileBtn(level === key, () => setLevel(key), (
+                  <>
+                    <span style={{ whiteSpace: 'pre-line' }}>{label}</span>
+                    <span style={{ fontSize: 11, letterSpacing: '0.04em', fontWeight: 400, color: level === key ? C.accent : C.muted, lineHeight: 1.4 }}>{desc}</span>
+                  </>
+                ))
+              ))}
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('KLAAR → STARTEN', finish, !level)}</div>
+          </>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
+// EXERCISE DETAIL SCREEN
+// ================================================================
+function ExerciseDetailScreen({ exercise, onBack, dbRef }) {
+  const [usedIn, setUsedIn] = useState([]);
+
+  useEffect(() => {
+    if (!dbRef?.current) return;
+    dbGetAll(dbRef.current, 'routines').then(routines => {
+      setUsedIn(routines.filter(r => r.exercises.includes(exercise.id)).map(r => r.name));
+    });
+  }, []);
+
+  const catColor = CAT_COLORS[exercise.cat] || C.accent;
+  const [line1, line2] = exercise.desc.split('\n');
+
+  return (
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', fontFamily: C.font, overflowY: 'auto', paddingBottom: 40 }}>
+      {/* Header */}
+      <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${C.border}`, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 10 }}>
+        <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.muted, background: 'none' }}>
+          {Icon.back(18)}
+        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: catColor }} />
+          <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.14em', color: catColor }}>{exercise.cat.toUpperCase()}</span>
+        </div>
+      </div>
+
+      <div style={{ padding: '28px 20px 0' }}>
+        {/* Naam */}
+        <h1 style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 28 }}>
+          {exercise.name.toUpperCase()}
+        </h1>
+
+        {/* Spiergroepen */}
+        <div style={{ marginBottom: 28 }}>
+          <Label>SPIERGROEPEN</Label>
+          <BodyDiagram exercise={exercise} height={200} />
+          <MuscleTags exercise={exercise} />
+        </div>
+
+        {/* Hoe uitvoeren */}
+        <div style={{ marginBottom: 28 }}>
+          <Label>HOE UITVOEREN</Label>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 18px', background: C.surface }}>
+            <p style={{ fontSize: 15, color: C.text, lineHeight: 1.65, marginBottom: line2 ? 12 : 0 }}>{line1}</p>
+            {line2 && <p style={{ fontSize: 14, color: C.secondary, lineHeight: 1.65 }}>{line2}</p>}
+          </div>
+        </div>
+
+        {/* Niveau tiles */}
+        <div style={{ marginBottom: 28 }}>
+          <Label>NIVEAU</Label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+            {LEVELS.map((lv, i) => (
+              <div key={lv} style={{ padding: '16px 10px', border: `1px solid ${C.border}`, borderRadius: 12, textAlign: 'center', background: C.surface }}>
+                <div style={{ fontFamily: C.mono, fontSize: 26, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1, color: LEVEL_COLORS[i], marginBottom: 6 }}>
+                  {exercise.times[i]}s
+                </div>
+                <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>{lv}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Gebruik in routines */}
+        <div style={{ marginBottom: 28 }}>
+          <Label>GEBRUIK IN ROUTINES</Label>
+          {usedIn.length === 0 ? (
+            <div style={{ color: C.muted, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.08em', padding: '12px 0' }}>
+              Nog niet gebruikt in een routine
+            </div>
+          ) : (
+            <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden' }}>
+              {usedIn.map((rname, i) => (
+                <div key={i} style={{ padding: '14px 16px', borderBottom: i < usedIn.length - 1 ? `1px solid ${C.border}` : 'none', fontSize: 15, fontWeight: 500 }}>
+                  {rname}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
 // APP
 // ================================================================
 function App() {
@@ -2131,12 +2434,17 @@ function App() {
       if (existing.length === 0) {
         await dbOp(db, 'routines', 'readwrite', s => s.put(DEFAULT_ROUTINE));
       }
+      // Onboarding check
+      const prof = await getProfile(db);
+      if (!prof || !prof.onboardingComplete) {
+        setScreen('onboarding');
+      }
       setReady(true);
     }).catch(() => setReady(true));
   }, []);
 
   const navigate = useCallback((s, p = {}) => { setScreen(s); setParams(p); }, []);
-  const showNav = !['timer', 'builder', 'finish'].includes(screen);
+  const showNav = !['timer', 'builder', 'finish', 'onboarding', 'exerciseDetail'].includes(screen);
 
   if (!ready) return (
     <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.font }}>
@@ -2146,13 +2454,15 @@ function App() {
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: C.font, color: C.text }}>
-      {screen === 'home'     && <HomeScreen dbRef={dbRef} onNavigate={navigate} />}
-      {screen === 'routines' && <RoutinesScreen dbRef={dbRef} onNavigate={navigate} />}
-      {screen === 'builder'  && <RoutineBuilderScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
-      {screen === 'timer'    && <TimerScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
-      {screen === 'finish'   && <FinishScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
-      {screen === 'history'  && <HistoryScreen dbRef={dbRef} />}
-      {screen === 'profile'  && <ProfileScreen dbRef={dbRef} onNavigate={navigate} />}
+      {screen === 'onboarding'     && <OnboardingScreen dbRef={dbRef} onComplete={() => navigate('home', {})} />}
+      {screen === 'home'           && <HomeScreen dbRef={dbRef} onNavigate={navigate} />}
+      {screen === 'routines'       && <RoutinesScreen dbRef={dbRef} onNavigate={navigate} />}
+      {screen === 'builder'        && <RoutineBuilderScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
+      {screen === 'timer'          && <TimerScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
+      {screen === 'finish'         && <FinishScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
+      {screen === 'history'        && <HistoryScreen dbRef={dbRef} />}
+      {screen === 'profile'        && <ProfileScreen dbRef={dbRef} onNavigate={navigate} />}
+      {screen === 'exerciseDetail' && <ExerciseDetailScreen exercise={params.exercise} onBack={() => navigate(params.backTo || 'home', params.backToParams || {})} dbRef={dbRef} />}
       {showNav && <BottomNav current={screen} onNavigate={navigate} />}
     </div>
   );
