@@ -66,7 +66,16 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 // Swap dbOp / dbGetAll for fetch() calls when going public
 // ================================================================
 const DB_NAME = 'trainr_v1';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
+const DEV_MODE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+const EVENT_SCHEMA = Object.freeze({
+  event: 'string',
+  ts: 'number',
+  userId: 'string',
+  sessionId: 'string?',
+  planId: 'string?',
+  meta: 'object',
+});
 
 const initDB = () => new Promise((resolve, reject) => {
   const req = indexedDB.open(DB_NAME, DB_VERSION);
@@ -85,6 +94,7 @@ const initDB = () => new Promise((resolve, reject) => {
     } else if (!db.objectStoreNames.contains('profile')) {
       db.createObjectStore('profile', { keyPath: 'key' });
     }
+    if (!db.objectStoreNames.contains('events')) db.createObjectStore('events', { keyPath: 'id' });
 
     // plans: dead code, bewust niet aanmaken voor nieuwe installaties
     // Toekomstige migraties: if (old < 5) { ... }
@@ -102,7 +112,16 @@ const getProfile = async db => {
 const setProfileField = (db, key, value) =>
   dbOp(db, 'profile', 'readwrite', s => s.put({ key, value }));
 const saveProfile = async (db, profile) => {
-  const FIELDS = ['name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal', 'level', 'onboardingComplete', 'createdAt'];
+  const FIELDS = [
+    'name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal',
+    'level',
+    'goal', 'trainingGoal',
+    'selectedPlanId', 'planConfirmed', 'starterPlanProfile', 'starterPlanSelection',
+    'availableDays',
+    'name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal', 'level',
+    'trainingGoal', 'availableDays', 'starterPlanProfile', 'starterPlanSelection',
+    'onboardingComplete', 'createdAt',
+  ];
   await Promise.all(
     FIELDS
       .filter(k => profile[k] !== undefined && profile[k] !== null)
@@ -110,6 +129,26 @@ const saveProfile = async (db, profile) => {
   );
   await setProfileField(db, 'updatedAt', Date.now());
 };
+
+const SAFE_STARTER_PROFILE = 'core_beginner_3d';
+function resolveStarterPlanProfile({ level, trainingGoal, availableDays }) {
+  const validDays = Number.isInteger(availableDays) && availableDays > 0;
+  if (!level || !trainingGoal || !validDays) {
+    return {
+      profileId: SAFE_STARTER_PROFILE,
+      fallbackReason: 'missing_or_inconsistent_onboarding_data',
+      routineId: DEFAULT_ROUTINE.id,
+    };
+  }
+
+  const daysBucket = availableDays >= 4 ? '4d' : '3d';
+  let goalKey = 'core';
+  if (trainingGoal === 'fatloss') goalKey = 'fatloss';
+  if (trainingGoal === 'muscle') goalKey = 'muscle';
+  const levelKey = level === 'beginner' ? 'beginner' : 'starter';
+  const profileId = `${goalKey}_${levelKey}_${daysBucket}`;
+  return { profileId, fallbackReason: null, routineId: DEFAULT_ROUTINE.id };
+}
 
 // MET-waarden per categorie (Compendium of Physical Activities)
 const MET_BY_CAT = { Core: 4.0, Push: 5.0, Pull: 5.0, Legs: 5.5, Cardio: 8.0 };
@@ -166,6 +205,81 @@ const dbGetAll = (db, store) => new Promise((resolve, reject) => {
   req.onsuccess = e => resolve(e.target.result || []);
   req.onerror = e => reject(e.target.error);
 });
+
+function getUserId(profile) {
+  return profile?.createdAt ? `u-${profile.createdAt}` : 'u-anon';
+}
+function getSessionId() {
+  if (!window.__trainrSessionId) window.__trainrSessionId = `sess-${Date.now()}`;
+  return window.__trainrSessionId;
+}
+async function storeEventRecord(db, record) {
+  await dbOp(db, 'events', 'readwrite', s => s.put(record));
+}
+function trackEventFactory(dbRef) {
+  return async (name, meta = {}, opts = {}) => {
+    const profile = dbRef.current ? await getProfile(dbRef.current) : null;
+    const evt = {
+      id: `evt-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      event: name,
+      ts: Date.now(),
+      userId: getUserId(profile),
+      sessionId: opts.sessionId || getSessionId(),
+      planId: opts.planId || null,
+      meta: typeof meta === 'object' && meta !== null ? meta : { value: meta },
+    };
+    try {
+      if (dbRef.current) await storeEventRecord(dbRef.current, evt);
+      else throw new Error('db_not_ready');
+    } catch (err) {
+      const key = 'trainr_events_fallback';
+      const prev = JSON.parse(localStorage.getItem(key) || '[]');
+      prev.push(evt);
+      localStorage.setItem(key, JSON.stringify(prev));
+      console.warn('[analytics] IndexedDB write failed, used localStorage fallback.', err?.message || err);
+    }
+    return evt;
+  };
+}
+async function loadAllEvents(db) {
+  const idbEvents = db ? await dbGetAll(db, 'events') : [];
+  const fallback = JSON.parse(localStorage.getItem('trainr_events_fallback') || '[]');
+  return [...idbEvents, ...fallback].sort((a, b) => a.ts - b.ts);
+}
+function computeKpis(events) {
+  const byUser = new Map();
+  events.forEach(e => {
+    if (!byUser.has(e.userId)) byUser.set(e.userId, []);
+    byUser.get(e.userId).push(e);
+  });
+  let onboarded = 0, activated = 0, d7Users = 0, activeUsers = 0, weekWorkouts = 0;
+  for (const [, ue] of byUser) {
+    const ob = ue.find(e => e.event === 'onboarding_completed');
+    const wc = ue.filter(e => e.event === 'workout_completed');
+    if (ob) {
+      onboarded += 1;
+      if (wc.some(w => w.ts >= ob.ts && w.ts <= ob.ts + 24 * 3600 * 1000)) activated += 1;
+      const d7s = new Date(ob.ts + 7 * 24 * 3600 * 1000).toDateString();
+      if (ue.some(e => new Date(e.ts).toDateString() === d7s)) d7Users += 1;
+    }
+    const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
+    const hasWeekActivity = ue.some(e => e.ts >= weekAgo);
+    if (hasWeekActivity) activeUsers += 1;
+    weekWorkouts += wc.filter(w => w.ts >= weekAgo).length;
+  }
+  return {
+    events7d: events.filter(e => e.ts >= Date.now() - 7 * 24 * 3600 * 1000).length,
+    activation24h: onboarded ? activated / onboarded : 0,
+    d7Retention: onboarded ? d7Users / onboarded : 0,
+    d7ByUser: Object.fromEntries([...byUser.keys()].map(userId => {
+      const ue = byUser.get(userId);
+      const ob = ue.find(e => e.event === 'onboarding_completed');
+      const d7 = ob ? ue.some(e => new Date(e.ts).toDateString() === new Date(ob.ts + 7 * 24 * 3600 * 1000).toDateString()) : false;
+      return [userId, d7];
+    })),
+    workoutsPerActiveUserWeek: activeUsers ? weekWorkouts / activeUsers : 0,
+  };
+}
 
 // ================================================================
 // EXERCISE LIBRARY
@@ -494,10 +608,64 @@ const DEFAULT_ROUTINE = {
 // ================================================================
 const BUILTIN_PLANS = [
   {
+    id: 'consistency-21',
+    title: 'Consistency Start',
+    subtitle: '21 DAGEN · BEGINNER CONSISTENCY',
+    goal: 'Consistency en routine opbouwen',
+    level: 'beginner',
+    focus: 'full-body',
+    color: '#69A6FF',
+    days: [
+      { day: 1, restDay: false, exercises: ['dead-bug','plank','glute-bridge','high-knees'] },
+      { day: 2, restDay: true },
+      { day: 3, restDay: false, exercises: ['squats','incline-pushup','scap-retract','bicycles'] },
+      { day: 4, restDay: true },
+      { day: 5, restDay: false, exercises: ['jumping-jacks','mountain-cl','dead-bug','plank'] },
+      { day: 6, restDay: true },
+      { day: 7, restDay: false, exercises: ['glute-bridge','squats','side-l','side-r'] },
+      { day: 8, restDay: true },
+      { day: 9, restDay: false, exercises: ['incline-pushup','bicycles','scap-retract','high-knees'] },
+      { day: 10, restDay: true },
+      { day: 11, restDay: false, exercises: ['dead-bug','plank','mountain-cl','glute-bridge'] },
+      { day: 12, restDay: true },
+      { day: 13, restDay: false, exercises: ['squats','jumping-jacks','incline-pushup','bicycles'] },
+      { day: 14, restDay: true },
+      { day: 15, restDay: false, exercises: ['scap-retract','side-l','side-r','plank'] },
+      { day: 16, restDay: true },
+      { day: 17, restDay: false, exercises: ['high-knees','squats','dead-bug','glute-bridge'] },
+      { day: 18, restDay: true },
+      { day: 19, restDay: false, exercises: ['incline-pushup','mountain-cl','bicycles','plank'] },
+      { day: 20, restDay: true },
+      { day: 21, restDay: false, exercises: ['dead-bug','plank','side-l','side-r','jumping-jacks'] },
+    ]
+  },
+  {
+    id: 'fit-28',
+    title: 'General Fitness',
+    subtitle: '28 DAGEN · ALGEMENE FITHEID',
+    goal: 'Conditie en kracht allround verbeteren',
+    level: 'intermediate',
+    focus: 'full-body',
+    color: '#6BE89B',
+    days: Array.from({ length: 28 }, (_, i) => {
+      const day = i + 1;
+      if ([4,8,12,16,20,24].includes(day)) return { day, restDay: true };
+      const pool = [
+        ['squats','pushup','plank','mountain-cl','bicycles'],
+        ['alt-lunges','diamond-pushup','glute-bridge','jumping-jacks','burpees'],
+        ['high-knees','incline-pushup','side-l','side-r','scap-retract'],
+      ];
+      return { day, restDay: false, exercises: pool[i % pool.length] };
+    })
+  },
+  {
     id: 'core-30',
     title: 'Core Protocol',
     subtitle: '30 DAGEN · CORE FOCUS',
-    color: '#6BE89B',
+    goal: 'Core stabiliteit en houding versterken',
+    level: 'intermediate',
+    focus: 'core',
+    color: '#FFB454',
     days: [
       { day: 1,  restDay: false, exercises: ['dead-bug','plank','dead-bug','bicycles','glute-bridge'] },
       { day: 2,  restDay: false, exercises: ['plank','side-l','side-r','bicycles','mountain-cl'] },
@@ -508,30 +676,33 @@ const BUILTIN_PLANS = [
       { day: 7,  restDay: false, exercises: ['dead-bug','plank','mountain-cl','bicycles','glute-bridge','dead-bug'] },
       { day: 8,  restDay: false, exercises: ['plank','plank','side-l','side-r','bicycles','bicycles'] },
       { day: 9,  restDay: false, exercises: ['dead-bug','mountain-cl','mountain-cl','glute-bridge','dead-bug','plank'] },
-      { day: 10, restDay: true },
-      { day: 11, restDay: false, exercises: ['plank','side-l','side-r','bicycles','bicycles','mountain-cl'] },
-      { day: 12, restDay: false, exercises: ['plank','dead-bug','mountain-cl','glute-bridge','dead-bug','plank'] },
-      { day: 13, restDay: true },
+      { day: 10, restDay: true }, { day: 11, restDay: false, exercises: ['plank','side-l','side-r','bicycles','bicycles','mountain-cl'] },
+      { day: 12, restDay: false, exercises: ['plank','dead-bug','mountain-cl','glute-bridge','dead-bug','plank'] }, { day: 13, restDay: true },
       { day: 14, restDay: false, exercises: ['mountain-cl','plank','side-l','side-r','bicycles','mountain-cl','bicycles'] },
       { day: 15, restDay: false, exercises: ['plank','plank','bicycles','mountain-cl','mountain-cl','glute-bridge'] },
-      { day: 16, restDay: false, exercises: ['dead-bug','side-l','side-r','burpees','bicycles','dead-bug'] },
-      { day: 17, restDay: true },
+      { day: 16, restDay: false, exercises: ['dead-bug','side-l','side-r','burpees','bicycles','dead-bug'] }, { day: 17, restDay: true },
       { day: 18, restDay: false, exercises: ['plank','plank','bicycles','mountain-cl','mountain-cl','burpees'] },
-      { day: 19, restDay: false, exercises: ['dead-bug','side-l','side-r','glute-bridge','bicycles','mountain-cl'] },
-      { day: 20, restDay: true },
+      { day: 19, restDay: false, exercises: ['dead-bug','side-l','side-r','glute-bridge','bicycles','mountain-cl'] }, { day: 20, restDay: true },
       { day: 21, restDay: false, exercises: ['plank','plank','burpees','bicycles','mountain-cl','side-l','side-r'] },
       { day: 22, restDay: false, exercises: ['dead-bug','plank','plank','bicycles','mountain-cl','mountain-cl','glute-bridge'] },
-      { day: 23, restDay: false, exercises: ['side-l','side-r','burpees','bicycles','dead-bug','plank','plank'] },
-      { day: 24, restDay: true },
+      { day: 23, restDay: false, exercises: ['side-l','side-r','burpees','bicycles','dead-bug','plank','plank'] }, { day: 24, restDay: true },
       { day: 25, restDay: false, exercises: ['mountain-cl','plank','bicycles','mountain-cl','dead-bug','side-l','side-r'] },
-      { day: 26, restDay: false, exercises: ['plank','burpees','glute-bridge','bicycles','dead-bug','mountain-cl','plank'] },
-      { day: 27, restDay: true },
+      { day: 26, restDay: false, exercises: ['plank','burpees','glute-bridge','bicycles','dead-bug','mountain-cl','plank'] }, { day: 27, restDay: true },
       { day: 28, restDay: false, exercises: ['dead-bug','plank','plank','side-l','side-r','bicycles','mountain-cl','burpees'] },
       { day: 29, restDay: false, exercises: ['mountain-cl','glute-bridge','bicycles','dead-bug','plank','plank','bicycles','burpees'] },
       { day: 30, restDay: false, exercises: ['dead-bug','plank','plank','side-l','side-r','bicycles','mountain-cl','mountain-cl','burpees'] },
     ]
   }
 ];
+
+function selectDefaultPlan(profile) {
+  if (!profile) return BUILTIN_PLANS[0].id;
+  const goal = profile.goal || ((profile.weightGoal && profile.weight && profile.weightGoal < profile.weight) ? 'fat_loss' : 'fitness');
+  if (goal === 'core_strength') return 'core-30';
+  if (profile.level === 'beginner') return 'consistency-21';
+  if (goal === 'fitness') return 'fit-28';
+  return 'fit-28';
+}
 
 function isPlanDayUnlocked(plan, dayNumber, sessions) {
   if (dayNumber === 1) return true;
@@ -700,7 +871,7 @@ const Icon = {
 // ================================================================
 // HOME SCREEN
 // ================================================================
-function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNavigate }) {
+function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNavigate, starterCTA }) {
   return (
     <>
       <div style={{ padding: '0 20px 20px' }}>
@@ -728,6 +899,21 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNaviga
       </div>
 
       {/* Quick start */}
+      {starterCTA?.show && (
+        <section style={{ padding: '0 20px 20px' }}>
+          <div style={{ border: `1px solid ${starterCTA.fallback ? C.statusWarn : C.accent}`, borderRadius: 12, background: C.surface, padding: 16 }}>
+            <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.1em', color: starterCTA.fallback ? C.statusWarn : C.accent, marginBottom: 8 }}>
+              STARTER PLAN
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Start je eerste training</div>
+            <div style={{ color: C.secondary, fontSize: 14, marginBottom: 14 }}>
+              Voorstel: {starterCTA.profileId.replaceAll('_', ' ').toUpperCase()}
+              {starterCTA.fallback ? ' · veilige standaard gekozen wegens onvolledige onboardingdata.' : ''}
+            </div>
+            <Btn onClick={() => onNavigate('timer', { routineId: starterCTA.routineId })}>START EERSTE TRAINING</Btn>
+          </div>
+        </section>
+      )}
       {quickRoutines.length > 0 ? (
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px 12px' }}>
@@ -770,8 +956,12 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNaviga
   );
 }
 
-function PlanTab({ sessions, onNavigate }) {
-  const plan = BUILTIN_PLANS[0];
+function PlanTab({ sessions, profile, onProfileUpdate, onNavigate }) {
+  const defaultPlanId = selectDefaultPlan(profile);
+  const selectedPlanId = profile?.selectedPlanId || defaultPlanId;
+  const plan = BUILTIN_PLANS.find(p => p.id === selectedPlanId) || BUILTIN_PLANS[0];
+  const hasPlanSession = sessions.some(s => s.planId);
+  const needsPlanConfirmation = !profile?.planConfirmed && !hasPlanSession;
   const workDays = plan.days.filter(d => !d.restDay);
   const completedCount = workDays.filter(d => isPlanDayCompleted(plan, d.day, sessions)).length;
   const currentDay = workDays.find(d =>
@@ -817,6 +1007,23 @@ function PlanTab({ sessions, onNavigate }) {
         <div style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', color: C.secondary }}>
           {plan.subtitle}
         </div>
+      </div>
+
+      {needsPlanConfirmation && (
+        <div style={{ padding: '0 20px 14px' }}>
+          <div style={{ border: `1px solid ${C.borderMd}`, borderRadius: 10, padding: 12, background: C.surface }}>
+            <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted, marginBottom: 10 }}>KIES JE STARTPLAN</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {BUILTIN_PLANS.map(p => (
+                <button key={p.id} onClick={() => onProfileUpdate({ selectedPlanId: p.id })} style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${selectedPlanId === p.id ? p.color : C.borderMd}`, background: selectedPlanId === p.id ? 'rgba(232,254,60,0.08)' : 'transparent', color: selectedPlanId === p.id ? C.text : C.muted, fontFamily: C.mono, fontSize: 11 }}>{p.title}</button>
+              ))}
+            </div>
+            <button onClick={() => onProfileUpdate({ selectedPlanId, planConfirmed: true })} style={{ marginTop: 10, width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${C.accent}`, background: C.accent, color: C.accentFg, fontFamily: C.mono, fontSize: 12 }}>BEVESTIG PLAN</button>
+          </div>
+        </div>
+      )}
+      <div style={{ padding: '0 20px 14px', fontFamily: C.mono, fontSize: 12, letterSpacing: '0.06em', color: C.muted }}>
+        Dit plan is gekozen op basis van jouw doel + niveau.
       </div>
 
       {/* Progress bar */}
@@ -866,7 +1073,7 @@ function PlanTab({ sessions, onNavigate }) {
               </div>
 
               {/* Action right */}
-              {!day.restDay && !completed && unlocked && (
+              {!day.restDay && !completed && unlocked && !needsPlanConfirmation && (
                 <button onClick={() => startPlanDay(day)} style={{
                   fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', fontWeight: 600,
                   background: isCurrent ? C.accent : 'transparent',
@@ -885,12 +1092,13 @@ function PlanTab({ sessions, onNavigate }) {
   );
 }
 
-function HomeScreen({ dbRef, onNavigate }) {
+function HomeScreen({ dbRef, onNavigate, analytics }) {
   const [activeTab, setActiveTab] = useState('home');
   const [sessions, setSessions] = useState([]);
   const [routines, setRoutines] = useState([]);
   const [profile, setProfile] = useState(null);
   const [ready, setReady] = useState(false);
+  const [starterCTA, setStarterCTA] = useState(null);
 
   useEffect(() => {
     if (!dbRef.current) return;
@@ -902,6 +1110,12 @@ function HomeScreen({ dbRef, onNavigate }) {
       setSessions(s.sort((a, b) => b.completedAt - a.completedAt));
       setRoutines(r);
       setProfile(prof);
+      setStarterCTA({
+        show: !s.length,
+        profileId: prof?.starterPlanProfile || SAFE_STARTER_PROFILE,
+        routineId: prof?.starterPlanSelection?.auto?.routineId || DEFAULT_ROUTINE.id,
+        fallback: !!prof?.starterPlanSelection?.fallbackReason,
+      });
       setReady(true);
     });
   }, []);
@@ -942,11 +1156,22 @@ function HomeScreen({ dbRef, onNavigate }) {
           todayDone={todayDone}
           quickRoutines={quickRoutines}
           onNavigate={onNavigate}
+          starterCTA={starterCTA}
         />
       )}
       {activeTab === 'plan' && (
         <PlanTab
           sessions={sessions}
+          profile={profile}
+          onProfileUpdate={async (patch) => {
+            if (!dbRef.current) return;
+            const previous = profile || {};
+            await Promise.all(Object.entries(patch).map(([k,v]) => setProfileField(dbRef.current, k, v)));
+            setProfile(prev => ({ ...(prev || {}), ...patch }));
+            if (patch.planConfirmed && !previous.planConfirmed) {
+              analytics.trackEvent('plan_assigned', { mode: 'manual', selectedPlanId: patch.selectedPlanId || previous.selectedPlanId || selectDefaultPlan(previous) }, { planId: patch.selectedPlanId || previous.selectedPlanId });
+            }
+          }}
           onNavigate={onNavigate}
         />
       )}
@@ -1248,7 +1473,7 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
 // ================================================================
 // TIMER SCREEN
 // ================================================================
-function TimerScreen({ dbRef, onNavigate, params }) {
+function TimerScreen({ dbRef, onNavigate, params, analytics }) {
   const [routine, setRoutine] = useState(null);
   const [levelIdx, setLevelIdx] = useState(1);
   const [disabled, setDisabled] = useState(new Set());
@@ -1346,6 +1571,7 @@ function TimerScreen({ dbRef, onNavigate, params }) {
     if (params?.planId)  sessionData.planId  = params.planId;
     if (params?.planDay) sessionData.planDay = params.planDay;
     await dbOp(dbRef.current, 'sessions', 'readwrite', s => s.put(sessionData));
+    await analytics.trackEvent('workout_completed', { routineId: routine.id, duration: dur, exerciseCount: activeEx.length }, { sessionId, planId: params?.planId || null });
     relWake();
     onNavigate('finish', { sessionId, routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx, calories });
   };
@@ -1354,11 +1580,18 @@ function TimerScreen({ dbRef, onNavigate, params }) {
     if (!sequence.length) return;
     initAudio(); reqWake();
     setStartTs(Date.now()); setCountdown(3); setPhase('countdown');
+    analytics.trackEvent('workout_started', { routineId: routine.id, mode: 'time' }, { planId: params?.planId || null });
+    analytics.trackEvent('workout_mode_used', { mode: 'time' }, { planId: params?.planId || null });
   };
 
   const reset = () => {
     clearInterval(intervalRef.current); relWake();
     setPhase('idle'); setStepIdx(0); setTimeLeft(0); setCountdown(3);
+  };
+  const abandonIfNeeded = () => {
+    if (phase === 'running' || phase === 'paused' || phase === 'countdown') {
+      analytics.trackEvent('workout_abandoned', { routineId: routine?.id, phase }, { planId: params?.planId || null });
+    }
   };
 
   const skip = () => {
@@ -1386,7 +1619,7 @@ function TimerScreen({ dbRef, onNavigate, params }) {
 
       {/* Fixed header */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${C.border}`, zIndex: 10 }}>
-        <button onClick={() => { reset(); onNavigate(params?.backTo || 'routines', {}); }} style={{
+        <button onClick={() => { abandonIfNeeded(); reset(); onNavigate(params?.backTo || 'routines', {}); }} style={{
           width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.muted, background: 'none',
         }}>{Icon.back(18)}</button>
@@ -1696,11 +1929,12 @@ function FinishScreen({ dbRef, onNavigate, params }) {
 // ================================================================
 // PROFILE SCREEN
 // ================================================================
-function ProfileScreen({ dbRef, onNavigate }) {
+function ProfileScreen({ dbRef, onNavigate, analytics }) {
   const [profile, setProfile] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [editing, setEditing] = useState(false);
   const [ready, setReady] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
 
   const loadAll = async () => {
     if (!dbRef.current) return;
@@ -1725,6 +1959,7 @@ function ProfileScreen({ dbRef, onNavigate }) {
 
   const streak   = useMemo(() => calcStreak(sessions), [sessions]);
   const totalKcal = useMemo(() => sessions.reduce((sum, s) => sum + (s.calories ?? s.kcal ?? 0), 0), [sessions]);
+  const debugKpis = useMemo(() => computeKpis(analytics.events || []), [analytics.events]);
 
   if (!ready) return <Loader />;
 
@@ -1868,7 +2103,30 @@ function ProfileScreen({ dbRef, onNavigate }) {
             <PersonalRow label="LENGTE"   value={profile?.height ? `${profile.height} cm` : '—'} />
             <PersonalRow label="GEWICHT"  value={profile?.weight ? `${profile.weight} kg` : '—'} last />
           </div>
+          <button onClick={handleResetOnboarding} style={{
+            marginTop: 12, width: '100%', padding: '12px 14px',
+            background: 'transparent', color: C.secondary,
+            border: `1px dashed ${C.borderMd}`, borderRadius: 10,
+            fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em',
+            cursor: 'pointer',
+          }}>ONBOARDING OPNIEUW STARTEN</button>
         </section>
+      {DEV_MODE && (
+        <section style={{ padding: '24px 20px 0' }}>
+          <button onClick={() => setShowDebug(v => !v)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${C.borderMd}`, background: 'transparent', color: C.muted, fontFamily: C.mono, fontSize: 12 }}>
+            {showDebug ? 'HIDE' : 'SHOW'} DEBUG KPI
+          </button>
+          {showDebug && (
+            <div style={{ marginTop: 10, border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, padding: 12, fontFamily: C.mono, fontSize: 12, color: C.secondary }}>
+              <div>events_7d: {debugKpis.events7d}</div>
+              <div>activatie24u: {(debugKpis.activation24h * 100).toFixed(1)}%</div>
+              <div>d7_retentie: {(debugKpis.d7Retention * 100).toFixed(1)}%</div>
+              <div>workouts_per_active_user_week: {debugKpis.workoutsPerActiveUserWeek.toFixed(2)}</div>
+              <div>d7_by_user: {JSON.stringify(debugKpis.d7ByUser)}</div>
+            </div>
+          )}
+        </section>
+      )}
 
       {editing && <ProfileEditModal profile={profile} onSave={async p => {
         await saveProfile(dbRef.current, { ...(profile || {}), ...p, createdAt: profile?.createdAt || Date.now() });
@@ -2174,12 +2432,17 @@ function OnboardingScreen({ dbRef, onComplete }) {
   const [weight, setWeight] = useState('');
   const [weightGoal, setWeightGoal] = useState('');
   const [level, setLevel] = useState(null);
+  const [goal, setGoal] = useState(null);
+  const [trainingGoal, setTrainingGoal] = useState(null);
+  const [availableDays, setAvailableDays] = useState(null);
+  useEffect(() => { window.__trackEvent?.('onboarding_started', { step: 1 }); }, []);
 
   const goNext = () => setStep(s => s + 1);
   const goBack = () => setStep(s => s - 1);
 
   const finish = async () => {
     const goalW = weightGoal ? parseFloat(weightGoal) : parseFloat(weight);
+    const starter = resolveStarterPlanProfile({ level, trainingGoal, availableDays: availableDays ? parseInt(availableDays) : null });
     await saveProfile(dbRef.current, {
       name: name.trim(),
       gender,
@@ -2189,10 +2452,23 @@ function OnboardingScreen({ dbRef, onComplete }) {
       weightStart: parseFloat(weight),
       weightGoal: goalW,
       level,
+      goal,
+      selectedPlanId: selectDefaultPlan({ level, goal, weight: parseFloat(weight), weightGoal: goalW }),
+      planConfirmed: false,
+      trainingGoal,
+      availableDays: availableDays ? parseInt(availableDays) : null,
+      starterPlanProfile: starter.profileId,
+      starterPlanSelection: {
+        auto: { profileId: starter.profileId, routineId: starter.routineId, createdAt: Date.now() },
+        manuallyAdjusted: false,
+        fallbackReason: starter.fallbackReason,
+      },
       onboardingComplete: true,
       createdAt: Date.now(),
     });
-    onComplete();
+    window.__trackEvent?.('onboarding_completed', { level, goal, trainingGoal, availableDays: availableDays ? parseInt(availableDays) : null });
+    window.__trackEvent?.('plan_assigned', { mode: 'auto', selectedPlanId: selectDefaultPlan({ level, goal, weight: parseFloat(weight), weightGoal: goalW }) });
+    onComplete(starter);
   };
 
   const inputStyle = {
@@ -2230,12 +2506,12 @@ function OnboardingScreen({ dbRef, onComplete }) {
             {Icon.back(16)} TERUG
           </button>
         ) : <div />}
-        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.22em', color: C.muted }}>STAP {step} / 8</div>
+        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.22em', color: C.muted }}>STAP {step} / 10</div>
       </div>
 
       {/* Progress bar */}
       <div style={{ display: 'flex', gap: 4, padding: '0 20px', marginBottom: 40 }}>
-        {[1,2,3,4,5,6,7,8].map(s => (
+        {[1,2,3,4,5,6,7,8,9,10].map(s => (
           <div key={s} style={{ flex: 1, height: 3, borderRadius: 2, background: s <= step ? C.accent : C.border }} />
         ))}
       </div>
@@ -2314,12 +2590,44 @@ function OnboardingScreen({ dbRef, onComplete }) {
               <input style={{ ...inputStyle, paddingRight: 60 }} type="number" step="0.1" value={weightGoal} onChange={e => setWeightGoal(e.target.value)} placeholder={weight || '75'} />
               <span style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', fontFamily: C.mono, color: C.muted, fontSize: 16 }}>kg</span>
             </div>
+            <div style={{ height: 18 }} />
+            <div style={{ display: 'grid', gap: 8 }}>
+              {[{ key: 'fitness', label: 'ALGEMENE FITHEID' }, { key: 'core_strength', label: 'CORE FOCUS' }, { key: 'fat_loss', label: 'CONSISTENTIE / VETVERLIES' }].map(g => (
+                <button key={g.key} onClick={() => setGoal(g.key)} style={{ padding: '11px 10px', borderRadius: 10, border: `1px solid ${goal === g.key ? C.accent : C.borderMd}`, background: goal === g.key ? 'rgba(232,254,60,0.08)' : C.surface, color: goal === g.key ? C.accent : C.secondary, fontFamily: C.mono, fontSize: 12 }}>{g.label}</button>
+              ))}
+            </div>
             <div style={{ flex: 1 }} />
-            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext)}</div>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !goal)}</div>
           </>
         )}
 
         {step === 8 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Wat is je trainingsdoel?</h1>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {[
+                { key: 'core', label: 'CORE' },
+                { key: 'fatloss', label: 'AFVALLEN' },
+                { key: 'muscle', label: 'SPIEROPBOUW' },
+              ].map(({ key, label }) => tileBtn(trainingGoal === key, () => setTrainingGoal(key), label))}
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !trainingGoal)}</div>
+          </>
+        )}
+
+        {step === 9 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Hoeveel dagen per week heb je?</h1>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {['3', '4', '5'].map(days => tileBtn(availableDays === days, () => setAvailableDays(days), `${days} DAGEN`))}
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !availableDays)}</div>
+          </>
+        )}
+
+        {step === 10 && (
           <>
             <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Wat is je trainingsniveau?</h1>
             <div style={{ display: 'flex', gap: 10 }}>
@@ -2442,6 +2750,31 @@ function App() {
   const [params, setParams] = useState({});
   const [ready, setReady] = useState(false);
   const dbRef = useRef(null);
+  const [events, setEvents] = useState([]);
+  const baseTrackEvent = useMemo(() => trackEventFactory(dbRef), []);
+  const trackEvent = useCallback(async (name, meta = {}, opts = {}) => {
+    const evt = await baseTrackEvent(name, meta, opts);
+    setEvents(prev => [...prev, evt].sort((a, b) => a.ts - b.ts));
+    return evt;
+  }, [baseTrackEvent]);
+  window.__trackEvent = trackEvent;
+
+  const ensureStarterFallback = async (db, prof) => {
+    const starter = resolveStarterPlanProfile({
+      level: prof?.level,
+      trainingGoal: prof?.trainingGoal,
+      availableDays: Number.isInteger(prof?.availableDays) ? prof.availableDays : parseInt(prof?.availableDays),
+    });
+    if (prof?.starterPlanProfile && prof?.starterPlanSelection?.auto?.routineId && !starter.fallbackReason) return;
+    await saveProfile(db, {
+      starterPlanProfile: starter.profileId,
+      starterPlanSelection: {
+        auto: { profileId: starter.profileId, routineId: starter.routineId, createdAt: Date.now() },
+        manuallyAdjusted: !!prof?.starterPlanSelection?.manuallyAdjusted,
+        fallbackReason: starter.fallbackReason,
+      },
+    });
+  };
 
   useEffect(() => {
     initDB().then(async db => {
@@ -2455,7 +2788,16 @@ function App() {
       const prof = await getProfile(db);
       if (!prof || !prof.onboardingComplete) {
         setScreen('onboarding');
+      } else {
+        await ensureStarterFallback(db, prof);
       }
+      const evts = await loadAllEvents(db);
+      setEvents(evts);
+      const hasOnboarding = evts.some(e => e.event === 'onboarding_completed');
+      const hasStarted = evts.some(e => e.event === 'workout_started');
+      const hasCompleted = evts.some(e => e.event === 'workout_completed');
+      if (hasOnboarding && !hasStarted) console.warn('[data-quality] ontbrekend event: workout_started na onboarding_completed.');
+      if (hasStarted && !hasCompleted) console.warn('[data-quality] workout gestart zonder completion/abandon event.');
       setReady(true);
     }).catch(() => setReady(true));
   }, []);
@@ -2472,13 +2814,13 @@ function App() {
   return (
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: C.font, color: C.text }}>
       {screen === 'onboarding'     && <OnboardingScreen dbRef={dbRef} onComplete={() => navigate('home', {})} />}
-      {screen === 'home'           && <HomeScreen dbRef={dbRef} onNavigate={navigate} />}
+      {screen === 'home'           && <HomeScreen dbRef={dbRef} onNavigate={navigate} analytics={{ trackEvent, events }} />}
       {screen === 'routines'       && <RoutinesScreen dbRef={dbRef} onNavigate={navigate} />}
       {screen === 'builder'        && <RoutineBuilderScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
-      {screen === 'timer'          && <TimerScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
+      {screen === 'timer'          && <TimerScreen dbRef={dbRef} onNavigate={navigate} params={params} analytics={{ trackEvent, events }} />}
       {screen === 'finish'         && <FinishScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
       {screen === 'history'        && <HistoryScreen dbRef={dbRef} />}
-      {screen === 'profile'        && <ProfileScreen dbRef={dbRef} onNavigate={navigate} />}
+      {screen === 'profile'        && <ProfileScreen dbRef={dbRef} onNavigate={navigate} analytics={{ trackEvent, events }} />}
       {screen === 'exerciseDetail' && <ExerciseDetailScreen exercise={params.exercise} onBack={() => navigate(params.backTo || 'home', params.backToParams || {})} dbRef={dbRef} />}
       {showNav && <BottomNav current={screen} onNavigate={navigate} />}
     </div>
