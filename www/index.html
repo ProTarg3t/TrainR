@@ -102,7 +102,7 @@ const getProfile = async db => {
 const setProfileField = (db, key, value) =>
   dbOp(db, 'profile', 'readwrite', s => s.put({ key, value }));
 const saveProfile = async (db, profile) => {
-  const FIELDS = ['name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal', 'level', 'onboardingComplete', 'createdAt'];
+  const FIELDS = ['name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal', 'goal', 'level', 'selectedPlanId', 'planConfirmed', 'onboardingComplete', 'createdAt'];
   await Promise.all(
     FIELDS
       .filter(k => profile[k] !== undefined && profile[k] !== null)
@@ -494,10 +494,64 @@ const DEFAULT_ROUTINE = {
 // ================================================================
 const BUILTIN_PLANS = [
   {
+    id: 'consistency-21',
+    title: 'Consistency Start',
+    subtitle: '21 DAGEN · BEGINNER CONSISTENCY',
+    goal: 'Consistency en routine opbouwen',
+    level: 'beginner',
+    focus: 'full-body',
+    color: '#69A6FF',
+    days: [
+      { day: 1, restDay: false, exercises: ['dead-bug','plank','glute-bridge','march-high'] },
+      { day: 2, restDay: true },
+      { day: 3, restDay: false, exercises: ['squat-air','pushup-knee','bird-dog','bicycles'] },
+      { day: 4, restDay: true },
+      { day: 5, restDay: false, exercises: ['step-jacks','mountain-cl','dead-bug','plank'] },
+      { day: 6, restDay: true },
+      { day: 7, restDay: false, exercises: ['glute-bridge','squat-air','side-l','side-r'] },
+      { day: 8, restDay: true },
+      { day: 9, restDay: false, exercises: ['pushup-knee','bicycles','bird-dog','march-high'] },
+      { day: 10, restDay: true },
+      { day: 11, restDay: false, exercises: ['dead-bug','plank','mountain-cl','glute-bridge'] },
+      { day: 12, restDay: true },
+      { day: 13, restDay: false, exercises: ['squat-air','step-jacks','pushup-knee','bicycles'] },
+      { day: 14, restDay: true },
+      { day: 15, restDay: false, exercises: ['bird-dog','side-l','side-r','plank'] },
+      { day: 16, restDay: true },
+      { day: 17, restDay: false, exercises: ['march-high','squat-air','dead-bug','glute-bridge'] },
+      { day: 18, restDay: true },
+      { day: 19, restDay: false, exercises: ['pushup-knee','mountain-cl','bicycles','plank'] },
+      { day: 20, restDay: true },
+      { day: 21, restDay: false, exercises: ['dead-bug','plank','side-l','side-r','step-jacks'] },
+    ]
+  },
+  {
+    id: 'fit-28',
+    title: 'General Fitness',
+    subtitle: '28 DAGEN · ALGEMENE FITHEID',
+    goal: 'Conditie en kracht allround verbeteren',
+    level: 'intermediate',
+    focus: 'full-body',
+    color: '#6BE89B',
+    days: Array.from({ length: 28 }, (_, i) => {
+      const day = i + 1;
+      if ([4,8,12,16,20,24].includes(day)) return { day, restDay: true };
+      const pool = [
+        ['squat-air','pushup','plank','mountain-cl','bicycles'],
+        ['lunges','diamond-pushup','glute-bridge','step-jacks','burpees'],
+        ['march-high','pushup-knee','side-l','side-r','bird-dog'],
+      ];
+      return { day, restDay: false, exercises: pool[i % pool.length] };
+    })
+  },
+  {
     id: 'core-30',
     title: 'Core Protocol',
     subtitle: '30 DAGEN · CORE FOCUS',
-    color: '#6BE89B',
+    goal: 'Core stabiliteit en houding versterken',
+    level: 'intermediate',
+    focus: 'core',
+    color: '#FFB454',
     days: [
       { day: 1,  restDay: false, exercises: ['dead-bug','plank','dead-bug','bicycles','glute-bridge'] },
       { day: 2,  restDay: false, exercises: ['plank','side-l','side-r','bicycles','mountain-cl'] },
@@ -508,30 +562,33 @@ const BUILTIN_PLANS = [
       { day: 7,  restDay: false, exercises: ['dead-bug','plank','mountain-cl','bicycles','glute-bridge','dead-bug'] },
       { day: 8,  restDay: false, exercises: ['plank','plank','side-l','side-r','bicycles','bicycles'] },
       { day: 9,  restDay: false, exercises: ['dead-bug','mountain-cl','mountain-cl','glute-bridge','dead-bug','plank'] },
-      { day: 10, restDay: true },
-      { day: 11, restDay: false, exercises: ['plank','side-l','side-r','bicycles','bicycles','mountain-cl'] },
-      { day: 12, restDay: false, exercises: ['plank','dead-bug','mountain-cl','glute-bridge','dead-bug','plank'] },
-      { day: 13, restDay: true },
+      { day: 10, restDay: true }, { day: 11, restDay: false, exercises: ['plank','side-l','side-r','bicycles','bicycles','mountain-cl'] },
+      { day: 12, restDay: false, exercises: ['plank','dead-bug','mountain-cl','glute-bridge','dead-bug','plank'] }, { day: 13, restDay: true },
       { day: 14, restDay: false, exercises: ['mountain-cl','plank','side-l','side-r','bicycles','mountain-cl','bicycles'] },
       { day: 15, restDay: false, exercises: ['plank','plank','bicycles','mountain-cl','mountain-cl','glute-bridge'] },
-      { day: 16, restDay: false, exercises: ['dead-bug','side-l','side-r','burpees','bicycles','dead-bug'] },
-      { day: 17, restDay: true },
+      { day: 16, restDay: false, exercises: ['dead-bug','side-l','side-r','burpees','bicycles','dead-bug'] }, { day: 17, restDay: true },
       { day: 18, restDay: false, exercises: ['plank','plank','bicycles','mountain-cl','mountain-cl','burpees'] },
-      { day: 19, restDay: false, exercises: ['dead-bug','side-l','side-r','glute-bridge','bicycles','mountain-cl'] },
-      { day: 20, restDay: true },
+      { day: 19, restDay: false, exercises: ['dead-bug','side-l','side-r','glute-bridge','bicycles','mountain-cl'] }, { day: 20, restDay: true },
       { day: 21, restDay: false, exercises: ['plank','plank','burpees','bicycles','mountain-cl','side-l','side-r'] },
       { day: 22, restDay: false, exercises: ['dead-bug','plank','plank','bicycles','mountain-cl','mountain-cl','glute-bridge'] },
-      { day: 23, restDay: false, exercises: ['side-l','side-r','burpees','bicycles','dead-bug','plank','plank'] },
-      { day: 24, restDay: true },
+      { day: 23, restDay: false, exercises: ['side-l','side-r','burpees','bicycles','dead-bug','plank','plank'] }, { day: 24, restDay: true },
       { day: 25, restDay: false, exercises: ['mountain-cl','plank','bicycles','mountain-cl','dead-bug','side-l','side-r'] },
-      { day: 26, restDay: false, exercises: ['plank','burpees','glute-bridge','bicycles','dead-bug','mountain-cl','plank'] },
-      { day: 27, restDay: true },
+      { day: 26, restDay: false, exercises: ['plank','burpees','glute-bridge','bicycles','dead-bug','mountain-cl','plank'] }, { day: 27, restDay: true },
       { day: 28, restDay: false, exercises: ['dead-bug','plank','plank','side-l','side-r','bicycles','mountain-cl','burpees'] },
       { day: 29, restDay: false, exercises: ['mountain-cl','glute-bridge','bicycles','dead-bug','plank','plank','bicycles','burpees'] },
       { day: 30, restDay: false, exercises: ['dead-bug','plank','plank','side-l','side-r','bicycles','mountain-cl','mountain-cl','burpees'] },
     ]
   }
 ];
+
+function selectDefaultPlan(profile) {
+  if (!profile) return BUILTIN_PLANS[0].id;
+  const goal = profile.goal || ((profile.weightGoal && profile.weight && profile.weightGoal < profile.weight) ? 'fat_loss' : 'fitness');
+  if (goal === 'core_strength') return 'core-30';
+  if (profile.level === 'beginner') return 'consistency-21';
+  if (goal === 'fitness') return 'fit-28';
+  return 'fit-28';
+}
 
 function isPlanDayUnlocked(plan, dayNumber, sessions) {
   if (dayNumber === 1) return true;
@@ -770,8 +827,12 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNaviga
   );
 }
 
-function PlanTab({ sessions, onNavigate }) {
-  const plan = BUILTIN_PLANS[0];
+function PlanTab({ sessions, profile, onProfileUpdate, onNavigate }) {
+  const defaultPlanId = selectDefaultPlan(profile);
+  const selectedPlanId = profile?.selectedPlanId || defaultPlanId;
+  const plan = BUILTIN_PLANS.find(p => p.id === selectedPlanId) || BUILTIN_PLANS[0];
+  const hasPlanSession = sessions.some(s => s.planId);
+  const needsPlanConfirmation = !profile?.planConfirmed && !hasPlanSession;
   const workDays = plan.days.filter(d => !d.restDay);
   const completedCount = workDays.filter(d => isPlanDayCompleted(plan, d.day, sessions)).length;
   const currentDay = workDays.find(d =>
@@ -817,6 +878,23 @@ function PlanTab({ sessions, onNavigate }) {
         <div style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', color: C.secondary }}>
           {plan.subtitle}
         </div>
+      </div>
+
+      {needsPlanConfirmation && (
+        <div style={{ padding: '0 20px 14px' }}>
+          <div style={{ border: `1px solid ${C.borderMd}`, borderRadius: 10, padding: 12, background: C.surface }}>
+            <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted, marginBottom: 10 }}>KIES JE STARTPLAN</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {BUILTIN_PLANS.map(p => (
+                <button key={p.id} onClick={() => onProfileUpdate({ selectedPlanId: p.id })} style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${selectedPlanId === p.id ? p.color : C.borderMd}`, background: selectedPlanId === p.id ? 'rgba(232,254,60,0.08)' : 'transparent', color: selectedPlanId === p.id ? C.text : C.muted, fontFamily: C.mono, fontSize: 11 }}>{p.title}</button>
+              ))}
+            </div>
+            <button onClick={() => onProfileUpdate({ selectedPlanId, planConfirmed: true })} style={{ marginTop: 10, width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${C.accent}`, background: C.accent, color: C.accentFg, fontFamily: C.mono, fontSize: 12 }}>BEVESTIG PLAN</button>
+          </div>
+        </div>
+      )}
+      <div style={{ padding: '0 20px 14px', fontFamily: C.mono, fontSize: 12, letterSpacing: '0.06em', color: C.muted }}>
+        Dit plan is gekozen op basis van jouw doel + niveau.
       </div>
 
       {/* Progress bar */}
@@ -866,7 +944,7 @@ function PlanTab({ sessions, onNavigate }) {
               </div>
 
               {/* Action right */}
-              {!day.restDay && !completed && unlocked && (
+              {!day.restDay && !completed && unlocked && !needsPlanConfirmation && (
                 <button onClick={() => startPlanDay(day)} style={{
                   fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', fontWeight: 600,
                   background: isCurrent ? C.accent : 'transparent',
@@ -947,6 +1025,12 @@ function HomeScreen({ dbRef, onNavigate }) {
       {activeTab === 'plan' && (
         <PlanTab
           sessions={sessions}
+          profile={profile}
+          onProfileUpdate={async (patch) => {
+            if (!dbRef.current) return;
+            await Promise.all(Object.entries(patch).map(([k,v]) => setProfileField(dbRef.current, k, v)));
+            setProfile(prev => ({ ...(prev || {}), ...patch }));
+          }}
           onNavigate={onNavigate}
         />
       )}
@@ -2157,6 +2241,7 @@ function OnboardingScreen({ dbRef, onComplete }) {
   const [weight, setWeight] = useState('');
   const [weightGoal, setWeightGoal] = useState('');
   const [level, setLevel] = useState(null);
+  const [goal, setGoal] = useState(null);
 
   const goNext = () => setStep(s => s + 1);
   const goBack = () => setStep(s => s - 1);
@@ -2172,6 +2257,9 @@ function OnboardingScreen({ dbRef, onComplete }) {
       weightStart: parseFloat(weight),
       weightGoal: goalW,
       level,
+      goal,
+      selectedPlanId: selectDefaultPlan({ level, goal, weight: parseFloat(weight), weightGoal: goalW }),
+      planConfirmed: false,
       onboardingComplete: true,
       createdAt: Date.now(),
     });
@@ -2297,8 +2385,14 @@ function OnboardingScreen({ dbRef, onComplete }) {
               <input style={{ ...inputStyle, paddingRight: 60 }} type="number" step="0.1" value={weightGoal} onChange={e => setWeightGoal(e.target.value)} placeholder={weight || '75'} />
               <span style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', fontFamily: C.mono, color: C.muted, fontSize: 16 }}>kg</span>
             </div>
+            <div style={{ height: 18 }} />
+            <div style={{ display: 'grid', gap: 8 }}>
+              {[{ key: 'fitness', label: 'ALGEMENE FITHEID' }, { key: 'core_strength', label: 'CORE FOCUS' }, { key: 'fat_loss', label: 'CONSISTENTIE / VETVERLIES' }].map(g => (
+                <button key={g.key} onClick={() => setGoal(g.key)} style={{ padding: '11px 10px', borderRadius: 10, border: `1px solid ${goal === g.key ? C.accent : C.borderMd}`, background: goal === g.key ? 'rgba(232,254,60,0.08)' : C.surface, color: goal === g.key ? C.accent : C.secondary, fontFamily: C.mono, fontSize: 12 }}>{g.label}</button>
+              ))}
+            </div>
             <div style={{ flex: 1 }} />
-            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext)}</div>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !goal)}</div>
           </>
         )}
 
