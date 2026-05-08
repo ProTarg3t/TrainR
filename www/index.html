@@ -66,29 +66,50 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 // Swap dbOp / dbGetAll for fetch() calls when going public
 // ================================================================
 const DB_NAME = 'trainr_v1';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 const initDB = () => new Promise((resolve, reject) => {
   const req = indexedDB.open(DB_NAME, DB_VERSION);
   req.onupgradeneeded = e => {
     const db = e.target.result;
+    const old = e.oldVersion;
+
     if (!db.objectStoreNames.contains('routines')) db.createObjectStore('routines', { keyPath: 'id' });
     if (!db.objectStoreNames.contains('sessions')) db.createObjectStore('sessions', { keyPath: 'id' });
-    if (!db.objectStoreNames.contains('profile'))  db.createObjectStore('profile',  { keyPath: 'id' });
-    if (!db.objectStoreNames.contains('plans'))    db.createObjectStore('plans',    { keyPath: 'id' });
+
+    // v4: profile store herbouwd met keyPath 'key' (KV-schema)
+    // Verwijder oude store (keyPath: 'id') en maak nieuwe aan
+    if (old < 4) {
+      if (db.objectStoreNames.contains('profile')) db.deleteObjectStore('profile');
+      db.createObjectStore('profile', { keyPath: 'key' });
+    } else if (!db.objectStoreNames.contains('profile')) {
+      db.createObjectStore('profile', { keyPath: 'key' });
+    }
+
+    // plans: dead code, bewust niet aanmaken voor nieuwe installaties
+    // Toekomstige migraties: if (old < 5) { ... }
   };
   req.onsuccess = e => resolve(e.target.result);
   req.onerror = e => reject(e.target.error);
 });
 
-// Profile helpers
+// Profile helpers — KV store: { key, value } per record
 const getProfile = async db => {
-  const all = await dbGetAll(db, 'profile');
-  return all.find(p => p.id === 'profile' || p.id === 'me') || null;
+  const entries = await dbGetAll(db, 'profile');
+  if (!entries.length) return null;
+  return Object.fromEntries(entries.map(e => [e.key, e.value]));
 };
-const saveProfile = (db, profile) => dbOp(db, 'profile', 'readwrite', s => s.put({
-  ...profile, id: 'profile', updatedAt: Date.now(),
-}));
+const setProfileField = (db, key, value) =>
+  dbOp(db, 'profile', 'readwrite', s => s.put({ key, value }));
+const saveProfile = async (db, profile) => {
+  const FIELDS = ['name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal', 'level', 'createdAt'];
+  await Promise.all(
+    FIELDS
+      .filter(k => profile[k] !== undefined && profile[k] !== null)
+      .map(k => setProfileField(db, k, profile[k]))
+  );
+  await setProfileField(db, 'updatedAt', Date.now());
+};
 
 // MET-waarden per categorie (Compendium of Physical Activities)
 const MET_BY_CAT = { Core: 4.0, Push: 5.0, Pull: 5.0, Legs: 5.5, Cardio: 8.0 };
@@ -1305,17 +1326,18 @@ function TimerScreen({ dbRef, onNavigate, params }) {
   const saveSession = async dur => {
     if (!dbRef.current || !routine) return;
     const prof = await getProfile(dbRef.current);
-    const kcal = calcSessionKcal(activeEx, dur, prof?.weightKg);
+    const calories = calcSessionKcal(activeEx, dur, prof?.weight);
+    const sessionId = `s-${Date.now()}`;
     const sessionData = {
-      id: `s-${Date.now()}`, routineId: routine.id, routineName: routine.name,
+      id: sessionId, routineId: routine.id, routineName: routine.name,
       levelIdx, duration: dur, exercises: activeEx.map(e => e.name), completedAt: Date.now(),
-      kcal,
+      calories,
     };
     if (params?.planId)  sessionData.planId  = params.planId;
     if (params?.planDay) sessionData.planDay = params.planDay;
     await dbOp(dbRef.current, 'sessions', 'readwrite', s => s.put(sessionData));
     relWake();
-    onNavigate('finish', { routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx });
+    onNavigate('finish', { sessionId, routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx });
   };
 
   const startWorkout = () => {
@@ -1536,7 +1558,7 @@ function TimerScreen({ dbRef, onNavigate, params }) {
 // FINISH SCREEN
 // ================================================================
 function FinishScreen({ dbRef, onNavigate, params }) {
-  const { routineName = '', levelIdx = 1, duration = 0, exerciseCount = 0, exercises = [] } = params || {};
+  const { sessionId, routineName = '', levelIdx = 1, duration = 0, exerciseCount = 0, exercises = [] } = params || {};
   const [rpe, setRpe] = useState(7);
   const [sessions, setSessions] = useState([]);
 
@@ -1647,7 +1669,13 @@ function FinishScreen({ dbRef, onNavigate, params }) {
       {/* CTA */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 8, padding: '24px 20px 0' }}>
         <button onClick={() => onNavigate('history', {})} style={{ padding: '16px 0', background: C.surface, color: C.text, border: `1px solid ${C.border}`, borderRadius: 12, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.14em' }}>DETAILS</button>
-        <button onClick={() => onNavigate('home', {})} style={{ padding: '16px 0', background: C.accent, color: C.accentFg, border: 'none', borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600 }}>KLAAR →</button>
+        <button onClick={async () => {
+          if (sessionId && dbRef.current) {
+            const s = await dbOp(dbRef.current, 'sessions', 'readonly', st => st.get(sessionId));
+            if (s) await dbOp(dbRef.current, 'sessions', 'readwrite', st => st.put({ ...s, rpe }));
+          }
+          onNavigate('home', {});
+        }} style={{ padding: '16px 0', background: C.accent, color: C.accentFg, border: 'none', borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600 }}>KLAAR →</button>
       </div>
     </div>
   );
@@ -1676,25 +1704,25 @@ function ProfileScreen({ dbRef, onNavigate }) {
   useEffect(() => { loadAll(); }, []);
 
   const streak   = useMemo(() => calcStreak(sessions), [sessions]);
-  const totalKcal = useMemo(() => sessions.reduce((sum, s) => sum + (s.kcal || 0), 0), [sessions]);
+  const totalKcal = useMemo(() => sessions.reduce((sum, s) => sum + (s.calories ?? s.kcal ?? 0), 0), [sessions]);
 
   if (!ready) return <Loader />;
 
   const hasName = !!(profile?.name);
-  const hasBMI  = !!(profile?.heightCm && profile?.weightKg);
-  const hasGoal = !!(profile?.startWeightKg && profile?.goalWeightKg);
+  const hasBMI  = !!(profile?.height && profile?.weight);
+  const hasGoal = !!(profile?.weightStart && profile?.weightGoal);
 
-  const bmi    = hasBMI ? calcBMI(profile.weightKg, profile.heightCm) : 0;
+  const bmi    = hasBMI ? calcBMI(profile.weight, profile.height) : 0;
   const bmiCat = hasBMI ? bmiCategory(bmi) : null;
 
   let goalPct = 0, goalReached = false;
   if (hasGoal) {
-    const { startWeightKg, goalWeightKg, weightKg } = profile;
-    if (weightKg <= goalWeightKg) {
+    const { weightStart, weightGoal, weight } = profile;
+    if (weight <= weightGoal) {
       goalReached = true; goalPct = 100;
     } else {
       goalPct = Math.min(100, Math.max(0, Math.round(
-        (startWeightKg - weightKg) / (startWeightKg - goalWeightKg) * 100
+        (weightStart - weight) / (weightStart - weightGoal) * 100
       )));
     }
   }
@@ -1782,9 +1810,9 @@ function ProfileScreen({ dbRef, onNavigate }) {
           </div>
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, background: C.surface }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 18 }}>
-              <GoalCol label="START" value={`${profile.startWeightKg}kg`} />
-              <GoalCol label="NU"    value={`${profile.weightKg}kg`} highlight />
-              <GoalCol label="DOEL"  value={`${profile.goalWeightKg}kg`} align="right" />
+              <GoalCol label="START" value={`${profile.weightStart}kg`} />
+              <GoalCol label="NU"    value={`${profile.weight}kg`} highlight />
+              <GoalCol label="DOEL"  value={`${profile.weightGoal}kg`} align="right" />
             </div>
             <div style={{ position: 'relative', height: 6, background: C.elev3, borderRadius: 3, marginBottom: 12 }}>
               <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${goalPct}%`, background: C.accent, borderRadius: 3 }} />
@@ -1792,10 +1820,10 @@ function ProfileScreen({ dbRef, onNavigate }) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.06em' }}>
               <span style={{ color: C.statusGo }}>
-                -{(profile.startWeightKg - profile.weightKg).toFixed(1)} kg afgevallen
+                -{(profile.weightStart - profile.weight).toFixed(1)} kg afgevallen
               </span>
               <span style={{ color: C.muted }}>
-                {Math.max(0, profile.weightKg - profile.goalWeightKg).toFixed(1)} kg te gaan
+                {Math.max(0, profile.weight - profile.weightGoal).toFixed(1)} kg te gaan
               </span>
             </div>
           </div>
@@ -1808,8 +1836,8 @@ function ProfileScreen({ dbRef, onNavigate }) {
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden' }}>
             <PersonalRow label="LEEFTIJD" value={profile?.age    ? `${profile.age} jaar`      : '—'} />
             <PersonalRow label="GESLACHT" value={profile?.gender ? profile.gender.toUpperCase() : '—'} />
-            <PersonalRow label="LENGTE"   value={profile?.heightCm ? `${profile.heightCm} cm` : '—'} />
-            <PersonalRow label="GEWICHT"  value={profile?.weightKg ? `${profile.weightKg} kg` : '—'} last />
+            <PersonalRow label="LENGTE"   value={profile?.height ? `${profile.height} cm` : '—'} />
+            <PersonalRow label="GEWICHT"  value={profile?.weight ? `${profile.weight} kg` : '—'} last />
           </div>
         </section>
 
@@ -1865,10 +1893,10 @@ function ProfileEditModal({ profile, onSave, onClose }) {
   const [name,         setName]         = useState(profile?.name         || '');
   const [age,          setAge]          = useState(profile?.age          || '');
   const [gender,       setGender]       = useState(profile?.gender       || 'man');
-  const [height,       setHeight]       = useState(profile?.heightCm     || '');
-  const [weight,       setWeight]       = useState(profile?.weightKg     || '');
-  const [startWeight,  setStartWeight]  = useState(profile?.startWeightKg || '');
-  const [targetWeight, setTargetWeight] = useState(profile?.goalWeightKg  || '');
+  const [height,       setHeight]       = useState(profile?.height      || '');
+  const [weight,       setWeight]       = useState(profile?.weight      || '');
+  const [startWeight,  setStartWeight]  = useState(profile?.weightStart || '');
+  const [targetWeight, setTargetWeight] = useState(profile?.weightGoal  || '');
   const [error,        setError]        = useState('');
 
   const handleSave = () => {
@@ -1881,10 +1909,10 @@ function ProfileEditModal({ profile, onSave, onClose }) {
       name: name.trim(),
       age: parseInt(age),
       gender,
-      heightCm:      parseInt(height),
-      weightKg:      parseFloat(weight),
-      startWeightKg: startWeight  ? parseFloat(startWeight)  : null,
-      goalWeightKg:  targetWeight ? parseFloat(targetWeight) : null,
+      height:      parseInt(height),
+      weight:      parseFloat(weight),
+      weightStart: startWeight  ? parseFloat(startWeight)  : null,
+      weightGoal:  targetWeight ? parseFloat(targetWeight) : null,
     });
   };
 
