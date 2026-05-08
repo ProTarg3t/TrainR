@@ -133,11 +133,52 @@ Naast smoke-test ook:
 
 ---
 
+## Regressiescenario's — Stats/Home logica
+
+Gebruik deze mini-scenario's na elke wijziging in `calcStreak`, `HomeTab`, of de HistoryScreen.
+
+### Scenario A — Lege staat (geen sessies)
+
+**Voorbereiding:** Wis IndexedDB via DevTools → Application → IndexedDB → delete database → reload.
+
+Verwacht:
+- Streak toont `0d`, niet `00d` of leeg
+- Stats-scherm toont `0` sessies, `0d` streak, `0m` totaal
+- Geen `undefined` of `NaN` zichtbaar op enig scherm
+- App crasht niet
+
+### Scenario B — Streak op opeenvolgende dagen
+
+**Voorbereiding:** Maak via DevTools console drie nep-sessies aan:
+
+```js
+// open console op de app-pagina
+const db = await new Promise(r => { const req = indexedDB.open('trainr'); req.onsuccess = e => r(e.target.result); });
+const tx = db.transaction('sessions', 'readwrite');
+const store = tx.objectStore('sessions');
+const now = Date.now();
+const day = 86400000;
+store.add({ id: 'test-1', routineName: 'Test', levelIdx: 0, duration: 600, exercises: [], completedAt: now - 2 * day });
+store.add({ id: 'test-2', routineName: 'Test', levelIdx: 0, duration: 600, exercises: [], completedAt: now - 1 * day });
+store.add({ id: 'test-3', routineName: 'Test', levelIdx: 0, duration: 600, exercises: [], completedAt: now });
+```
+
+Refresh app. Verwacht:
+- Streak toont `3d`
+- Stats-scherm toont `3` sessies
+- History toont alle 3 sessies in aflopende volgorde
+
+### Scenario C — Streak gebroken (gisteren overgeslagen)
+
+Gebruik zelfde methode als B maar voeg alleen `now - 2 * day` en `now` toe (niet gisteren).
+
+Verwacht:
+- Streak toont `1d` (alleen vandaag telt)
+
+---
+
 ## Bekende issues (actief)
 
 <!-- Korte lijst van bugs die je kent maar nog niet hebt opgelost. Houd kort. -->
-
-- [ ] Home scherm toont `undefined` onder weekdagen Do/Vr/Za/Zo (zie screenshot 2026-05-06)
-- [ ] Streak toont `00d` ondanks geen sessies (cosmetisch, niet kritiek)
 
 <!-- Vink af wanneer opgelost en verplaats naar git history. -->

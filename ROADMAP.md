@@ -1,6 +1,6 @@
 # TrainR Roadmap: v1 → Google Play Store Release
 
-**Startpunt**: `trainapp.html` (werkende v1)  
+**Startpunt**: `www/index.html` (werkende v1)  
 **Eindpunt**: Google Play Store release  
 **Horizon**: 3-4 maanden iteratief werken
 
@@ -13,7 +13,7 @@
 - 32 oefeningen in bibliotheek (Core, Push, Pull, Legs)
 - Routines zelf samenstellen
 - Timer met levels (Beginner/Intermediate/Expert)
-- Trainingsgeschiedenis + streak in localStorage
+- Trainingsgeschiedenis + streak in IndexedDB
 - DB module (geïsoleerd, lokaal opslag)
 
 **Huidige tekortkomingen:**
@@ -36,7 +36,7 @@
   - SW: cache-first strategy, offline fallback
   - Add to home screen testen op Android
 - **Doel**: App installeerbaar, offline bruikbaar
-- **Output**: `trainapp.html` + `manifest.json` + `sw.js`
+- **Output**: `www/index.html` + `manifest.json` + `sw.js`
 
 ### 1.2 Browser Permissions
 - **Wat**: Wake lock (scherm blijft aan), notification rechten
@@ -72,7 +72,7 @@
   - Typography: Inter (body), Geist Mono (labels)
   - Alle schermen refactor naar CSS variables
 - **Doel**: Eindhuis = designprototype visueel
-- **Output**: `trainapp.html` met nieuwe kleurenset
+- **Output**: `www/index.html` met nieuwe kleurenset
 - **Opmerking**: *Dit is een facelift, geen functionaliteit*
 
 ### 2.2 Typography & Spacing Audit
@@ -205,7 +205,7 @@
 - **Wat**: PWA → Android APK/AAB voor Play Store
 - **Hoe**:
   - Capacitor installeren + init project
-  - `trainapp.html` als web asset
+  - `www/index.html` als web asset
   - Capacitor plugins: LocalNotifications, WakeLock, etc.
   - Build: `capacitor build android`
   - Output: `.apk` (testing) + `.aab` (Play Store)

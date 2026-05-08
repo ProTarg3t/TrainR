@@ -15,7 +15,7 @@ Bouw eigen routines, train met een automatische timer en volg je voortgang.
 - Calorieverbranding per sessie (MET-gebaseerd, op basis van profiel)
 - Spiergroepvisualisatie (heatmap voor + achter) per oefening en na sessie
 - RPE-score na afloop (hoe voelde het, 1–10)
-- Exercise detail scherm per oefening (instructies, spieren, duraties per niveau)
+- Exercise detail scherm per oefening (instructies, spieren, tijden per niveau)
 - Profiel met BMI, gewichtsdoel en voortgangstrack
 - Streak en sessiegeschiedenis
 - Stats-scherm: totaal sessies, streak, trainingstijd
