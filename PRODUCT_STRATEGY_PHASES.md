@@ -105,3 +105,7 @@ Om dit eenvoudig terug te halen zonder losse mappen:
 
 ### Update log
 - 2026-05-08: Eerste vastlegging van visie + fase 1/2/3 + outcome-kaders.
+- 2026-05-08: KPI-formules geconcretiseerd voor lokale event-analytics:
+  - Activatie24u = users met `workout_completed` binnen 24u na `onboarding_completed` / users met `onboarding_completed`.
+  - D7 Retentie = users met activiteit op dag 7 / cohort dag 0.
+  - Workouts per actieve user per week = aantal `workout_completed` in laatste 7 dagen / actieve users in laatste 7 dagen.
