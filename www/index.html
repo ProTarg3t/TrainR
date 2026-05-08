@@ -502,27 +502,27 @@ const BUILTIN_PLANS = [
     focus: 'full-body',
     color: '#69A6FF',
     days: [
-      { day: 1, restDay: false, exercises: ['dead-bug','plank','glute-bridge','march-high'] },
+      { day: 1, restDay: false, exercises: ['dead-bug','plank','glute-bridge','high-knees'] },
       { day: 2, restDay: true },
-      { day: 3, restDay: false, exercises: ['squat-air','pushup-knee','bird-dog','bicycles'] },
+      { day: 3, restDay: false, exercises: ['squats','incline-pushup','scap-retract','bicycles'] },
       { day: 4, restDay: true },
-      { day: 5, restDay: false, exercises: ['step-jacks','mountain-cl','dead-bug','plank'] },
+      { day: 5, restDay: false, exercises: ['jumping-jacks','mountain-cl','dead-bug','plank'] },
       { day: 6, restDay: true },
-      { day: 7, restDay: false, exercises: ['glute-bridge','squat-air','side-l','side-r'] },
+      { day: 7, restDay: false, exercises: ['glute-bridge','squats','side-l','side-r'] },
       { day: 8, restDay: true },
-      { day: 9, restDay: false, exercises: ['pushup-knee','bicycles','bird-dog','march-high'] },
+      { day: 9, restDay: false, exercises: ['incline-pushup','bicycles','scap-retract','high-knees'] },
       { day: 10, restDay: true },
       { day: 11, restDay: false, exercises: ['dead-bug','plank','mountain-cl','glute-bridge'] },
       { day: 12, restDay: true },
-      { day: 13, restDay: false, exercises: ['squat-air','step-jacks','pushup-knee','bicycles'] },
+      { day: 13, restDay: false, exercises: ['squats','jumping-jacks','incline-pushup','bicycles'] },
       { day: 14, restDay: true },
-      { day: 15, restDay: false, exercises: ['bird-dog','side-l','side-r','plank'] },
+      { day: 15, restDay: false, exercises: ['scap-retract','side-l','side-r','plank'] },
       { day: 16, restDay: true },
-      { day: 17, restDay: false, exercises: ['march-high','squat-air','dead-bug','glute-bridge'] },
+      { day: 17, restDay: false, exercises: ['high-knees','squats','dead-bug','glute-bridge'] },
       { day: 18, restDay: true },
-      { day: 19, restDay: false, exercises: ['pushup-knee','mountain-cl','bicycles','plank'] },
+      { day: 19, restDay: false, exercises: ['incline-pushup','mountain-cl','bicycles','plank'] },
       { day: 20, restDay: true },
-      { day: 21, restDay: false, exercises: ['dead-bug','plank','side-l','side-r','step-jacks'] },
+      { day: 21, restDay: false, exercises: ['dead-bug','plank','side-l','side-r','jumping-jacks'] },
     ]
   },
   {
@@ -537,9 +537,9 @@ const BUILTIN_PLANS = [
       const day = i + 1;
       if ([4,8,12,16,20,24].includes(day)) return { day, restDay: true };
       const pool = [
-        ['squat-air','pushup','plank','mountain-cl','bicycles'],
-        ['lunges','diamond-pushup','glute-bridge','step-jacks','burpees'],
-        ['march-high','pushup-knee','side-l','side-r','bird-dog'],
+        ['squats','pushup','plank','mountain-cl','bicycles'],
+        ['alt-lunges','diamond-pushup','glute-bridge','jumping-jacks','burpees'],
+        ['high-knees','incline-pushup','side-l','side-r','scap-retract'],
       ];
       return { day, restDay: false, exercises: pool[i % pool.length] };
     })
