@@ -121,6 +121,7 @@ const saveProfile = async (db, profile) => {
     'name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal', 'level',
     'trainingGoal', 'availableDays', 'starterPlanProfile', 'starterPlanSelection',
     'onboardingComplete', 'createdAt',
+    'notificationsEnabled', 'notificationDays', 'notificationTime', 'notificationPermissionState', 'lastReminderAt', 'lastFollowupAt',
   ];
   await Promise.all(
     FIELDS
@@ -564,6 +565,12 @@ const EXERCISES = [
   { id: 'mt-cl-fast',      cat: 'Cardio', name: 'Mountain climbers snel',   desc: 'Mountain climbers op zo hoog mogelijk tempo uitvoeren.\nKern strak houden, heupen laag houden ook bij hoog tempo.',                          times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
   { id: 'squat-jump-rep',  cat: 'Cardio', name: 'Jump squats HIIT',         desc: 'Non-stop jump squats uitvoeren op maximaal tempo.\nZacht landen met gebogen knieën, direct doorzoeken, explosief blijven.',                    times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
 ];
+const REP_PRESETS = [8, 10, 12, 15];
+const REP_EXERCISE_IDS = new Set(['pushup', 'incline-pushup', 'diamond-pushup', 'pike-pushup', 'dips', 'decline-pushup', 'slow-pushup', 'squats', 'jump-squat', 'alt-lunges']);
+const EXERCISES_WITH_MODE = EXERCISES.map(ex => {
+  const isReps = REP_EXERCISE_IDS.has(ex.id);
+  return { ...ex, mode: isReps ? 'reps' : 'time', reps: isReps ? REP_PRESETS : undefined };
+});
 
 const CATS = ['Core', 'Push', 'Legs', 'Pull', 'Cardio'];
 const LEVELS = ['BEGINNER', 'INTERMEDIATE', 'EXPERT'];
@@ -574,7 +581,7 @@ function getRoutineCategories(exerciseIds) {
   const seen = new Set();
   const cats = [];
   exerciseIds.forEach(id => {
-    const ex = EXERCISES.find(e => e.id === id);
+    const ex = EXERCISES_WITH_MODE.find(e => e.id === id);
     if (ex && !seen.has(ex.cat)) { seen.add(ex.cat); cats.push(ex.cat); }
   });
   return cats;
@@ -759,7 +766,14 @@ function buildSequence(exercises, levelIdx) {
   const seq = [];
   const midIdx = Math.floor(exercises.length / 2) - 1;
   exercises.forEach((ex, i) => {
-    seq.push({ ...ex, duration: ex.times[levelIdx], isRest: false });
+    const mode = ex.mode || 'time';
+    seq.push({
+      ...ex,
+      mode,
+      targetReps: mode === 'reps' ? (ex.reps?.[levelIdx] || ex.reps?.[0] || 10) : null,
+      duration: mode === 'time' ? ex.times[levelIdx] : 0,
+      isRest: false
+    });
     if (i < exercises.length - 1) {
       const isMid = i === midIdx;
       seq.push({
@@ -1412,7 +1426,7 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
           <div style={{ marginBottom: 28 }}>
             <Label>VOLGORDE ({selected.length})</Label>
             {selected.map((id, i) => {
-              const ex = EXERCISES.find(e => e.id === id);
+              const ex = EXERCISES_WITH_MODE.find(e => e.id === id);
               return (
                 <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: `1px solid ${C.dim}` }}>
                   <span style={{ color: C.muted, fontSize: 13, width: 18 }}>{i+1}</span>
@@ -1428,7 +1442,7 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
 
         {/* Spiervisualisatie cumulatief */}
         {selected.length > 0 && (() => {
-          const exObjs = selected.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
+          const exObjs = selected.map(id => EXERCISES_WITH_MODE.find(e => e.id === id)).filter(Boolean);
           const combined = mergeRoutineMuscles(exObjs);
           const hasMuscles = combined.muscles.primary.length > 0 || combined.muscles.secondary.length > 0;
           if (!hasMuscles) return null;
@@ -1481,6 +1495,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
   const [countdown, setCountdown] = useState(3);
   const [stepIdx, setStepIdx] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [completedReps, setCompletedReps] = useState({});
   const [soundOn, setSoundOn] = useState(true);
   const [startTs, setStartTs] = useState(null);
   const intervalRef = useRef(null);
@@ -1495,7 +1510,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
 
   const exercises = useMemo(() => {
     if (!routine) return [];
-    return routine.exercises.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
+    return routine.exercises.map(id => EXERCISES_WITH_MODE.find(e => e.id === id)).filter(Boolean);
   }, [routine]);
 
   const activeEx = useMemo(() => exercises.filter((_, i) => !disabled.has(i)), [exercises, disabled]);
@@ -1540,6 +1555,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
     if (phase !== 'running') return;
     intervalRef.current = setInterval(() => {
       setTimeLeft(t => {
+        if (step && !step.isRest && step.mode === 'reps') return 0;
         if (t <= 1) {
           const next = stepIdx + 1;
           if (next >= sequence.length) {
@@ -1549,7 +1565,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
             return 0;
           }
           setStepIdx(next);
-          return sequence[next].duration;
+          return sequence[next].duration || 0;
         }
         if (t - 1 <= 3 && t - 1 > 0 && soundOn && !step?.isRest) beep(audioCtxRef.current, 'warn');
         return t - 1;
@@ -1566,14 +1582,17 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
     const sessionData = {
       id: sessionId, routineId: routine.id, routineName: routine.name,
       levelIdx, duration: dur, exercises: activeEx.map(e => e.name), completedAt: Date.now(),
+      mode: activeEx.every(e => e.mode === 'reps') ? 'reps' : (activeEx.every(e => e.mode === 'time') ? 'time' : 'mixed'),
+      completedReps,
+      setCount: activeEx.length,
       calories,
     };
     if (params?.planId)  sessionData.planId  = params.planId;
     if (params?.planDay) sessionData.planDay = params.planDay;
     await dbOp(dbRef.current, 'sessions', 'readwrite', s => s.put(sessionData));
-    await analytics.trackEvent('workout_completed', { routineId: routine.id, duration: dur, exerciseCount: activeEx.length }, { sessionId, planId: params?.planId || null });
+    await analytics.trackEvent('workout_completed', { routineId: routine.id, duration: dur, exerciseCount: activeEx.length, completedReps }, { sessionId, planId: params?.planId || null });
     relWake();
-    onNavigate('finish', { sessionId, routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx, calories });
+    onNavigate('finish', { sessionId, routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx, calories, mode: sessionData.mode, completedReps });
   };
 
   const startWorkout = () => {
@@ -1581,7 +1600,8 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
     initAudio(); reqWake();
     setStartTs(Date.now()); setCountdown(3); setPhase('countdown');
     analytics.trackEvent('workout_started', { routineId: routine.id, mode: 'time' }, { planId: params?.planId || null });
-    analytics.trackEvent('workout_mode_used', { mode: 'time' }, { planId: params?.planId || null });
+    const workoutMode = activeEx.every(e => e.mode === 'reps') ? 'reps' : (activeEx.every(e => e.mode === 'time') ? 'time' : 'mixed');
+    analytics.trackEvent('workout_mode_used', { mode: workoutMode }, { planId: params?.planId || null });
   };
 
   const reset = () => {
@@ -1602,6 +1622,17 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
       saveSession(dur); return;
     }
     setStepIdx(next); setTimeLeft(sequence[next].duration);
+  };
+  const completeRepStep = () => {
+    if (!step || step.isRest || step.mode !== 'reps') return;
+    setCompletedReps(prev => ({ ...prev, [step.id]: step.targetReps || 0 }));
+    const next = stepIdx + 1;
+    if (next >= sequence.length) {
+      const dur = Math.floor((Date.now() - startTs) / 1000);
+      saveSession(dur); return;
+    }
+    setStepIdx(next);
+    setTimeLeft(sequence[next].duration || 0);
   };
 
   const totalMin = Math.floor(totalDur / 60), totalSec = totalDur % 60;
@@ -1663,7 +1694,9 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
                 <div key={ex.id} style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: i < exercises.length - 1 ? `1px solid ${C.border}` : 'none', opacity: active ? 1 : 0.35 }}>
                   <span onClick={toggle} style={{ color: active ? (CAT_COLORS[ex.cat] || C.accent) : C.dim, marginRight: 12, fontSize: 12, cursor: 'pointer', userSelect: 'none' }}>●</span>
                   <span onClick={toggle} style={{ flex: 1, color: C.text, fontSize: 17, fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>{ex.name}</span>
-                  <span style={{ fontFamily: C.mono, color: active ? C.muted : C.dim, fontSize: 14, marginRight: 8 }}>{ex.times[levelIdx]}s</span>
+                  <span style={{ fontFamily: C.mono, color: active ? C.muted : C.dim, fontSize: 14, marginRight: 8 }}>
+                    {ex.mode === 'reps' ? `${ex.reps?.[levelIdx] || ex.reps?.[0] || 10} reps` : `${ex.times[levelIdx]}s`}
+                  </span>
                   <button onClick={() => onNavigate('exerciseDetail', { exercise: ex, backTo: 'timer', backToParams: params })}
                     style={{ background: 'none', border: 'none', color: C.muted, fontSize: 18, padding: '2px 4px', cursor: 'pointer', lineHeight: 1 }}>ⓘ</button>
                 </div>
@@ -1728,7 +1761,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
               border: `1px solid ${step.isRest ? 'rgba(105,166,255,0.4)' : 'rgba(232,254,60,0.4)'}`,
             }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
-              {step.isRest ? 'RUST' : 'EXECUTE'}
+              {step.isRest ? 'RUST' : (step.mode === 'reps' ? 'REPS' : 'EXECUTE')}
             </span>
           </div>
 
@@ -1745,9 +1778,11 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
             </svg>
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ fontFamily: C.mono, fontSize: 80, fontWeight: 600, lineHeight: 1, letterSpacing: '-0.06em', color: step.isRest ? ringColor : C.text }}>
-                {String(timeLeft).padStart(2,'0')}
+                {step.mode === 'reps' && !step.isRest ? `${step.targetReps}` : String(timeLeft).padStart(2,'0')}
               </div>
-              <div style={{ fontFamily: C.mono, fontSize: 13, color: C.muted, letterSpacing: '0.14em', marginTop: 4 }}>SECONDEN</div>
+              <div style={{ fontFamily: C.mono, fontSize: 13, color: C.muted, letterSpacing: '0.14em', marginTop: 4 }}>
+                {step.mode === 'reps' && !step.isRest ? 'REPS' : 'SECONDEN'}
+              </div>
             </div>
           </div>
 
@@ -1757,7 +1792,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
               {step.isRest ? 'RECOVERY' : step.name.toUpperCase()}
             </div>
             <p style={{ fontSize: 15, color: C.secondary, lineHeight: 1.5, margin: '0 auto', maxWidth: 300 }}>
-              {step.isRest ? 'Adem diep. Volgende oefening start automatisch.' : step.desc.split('\n')[0]}
+              {step.isRest ? 'Adem diep. Volgende oefening start automatisch.' : (step.mode === 'reps' ? `Doe ${step.targetReps} herhalingen en tik op klaar.` : step.desc.split('\n')[0])}
             </p>
           </div>
 
@@ -1790,7 +1825,9 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
                 ? <button onClick={() => setPhase('paused')} style={{ padding: '14px 0', border: `1px solid ${C.borderMd}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600, color: C.text, background: C.surface }}>❚❚  PAUZE</button>
                 : <button onClick={() => setPhase('running')} style={{ padding: '14px 0', border: `1px solid ${lvColor}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600, color: lvColor, background: 'transparent' }}>▶  VERDER</button>
               }
-              <button onClick={skip} style={{ padding: '14px 0', background: C.accent, color: C.accentFg, border: `1px solid ${C.accent}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600 }}>SLA OVER →</button>
+              <button onClick={step.mode === 'reps' && !step.isRest ? completeRepStep : skip} style={{ padding: '14px 0', background: C.accent, color: C.accentFg, border: `1px solid ${C.accent}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600 }}>
+                {step.mode === 'reps' && !step.isRest ? 'KLAAR ✓' : 'SLA OVER →'}
+              </button>
             </div>
           </div>
         </div>
@@ -1803,7 +1840,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
 // FINISH SCREEN
 // ================================================================
 function FinishScreen({ dbRef, onNavigate, params }) {
-  const { sessionId, routineName = '', levelIdx = 1, duration = 0, exerciseCount = 0, exercises = [], calories = 0 } = params || {};
+  const { sessionId, routineName = '', levelIdx = 1, duration = 0, exerciseCount = 0, exercises = [], calories = 0, mode = 'time', completedReps = {} } = params || {};
   const [rpe, setRpe] = useState(7);
   const [sessions, setSessions] = useState([]);
 
@@ -1849,7 +1886,7 @@ function FinishScreen({ dbRef, onNavigate, params }) {
       {/* KPI grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: '20px 20px 0' }}>
         {[
-          { num: fmt(duration), label: 'DUUR', hi: false },
+          { num: mode === 'reps' ? `${Object.keys(completedReps || {}).length}` : fmt(duration), label: mode === 'reps' ? 'SETS' : 'DUUR', hi: false },
           { num: calories > 0 ? `${calories}` : '—', label: 'CALORIEËN', hi: true },
           { num: `${exerciseCount}`, label: 'VOLTOOID', hi: false },
         ].map(({ num, label, hi }) => (
@@ -2185,6 +2222,9 @@ function ProfileEditModal({ profile, onSave, onClose }) {
   const [startWeight,  setStartWeight]  = useState(profile?.weightStart || '');
   const [targetWeight, setTargetWeight] = useState(profile?.weightGoal  || '');
   const [level,        setLevel]        = useState(profile?.level       || 'intermediate');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(!!profile?.notificationsEnabled);
+  const [notificationTime, setNotificationTime] = useState(profile?.notificationTime || '19:00');
+  const [notificationDays, setNotificationDays] = useState(profile?.notificationDays || ['mon', 'wed', 'fri']);
   const [error,        setError]        = useState('');
 
   const handleSave = () => {
@@ -2202,6 +2242,9 @@ function ProfileEditModal({ profile, onSave, onClose }) {
       weightStart: startWeight  ? parseFloat(startWeight)  : null,
       weightGoal:  targetWeight ? parseFloat(targetWeight) : null,
       level,
+      notificationsEnabled,
+      notificationTime,
+      notificationDays,
     });
   };
 
@@ -2279,6 +2322,24 @@ function ProfileEditModal({ profile, onSave, onClose }) {
             </div>
           </div>
 
+          <div style={{ height: 1, background: C.border, margin: '4px 0' }} />
+          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted }}>REMINDERS</div>
+          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={labelStyle}>AAN</span>
+            <input type="checkbox" checked={notificationsEnabled} onChange={e => setNotificationsEnabled(e.target.checked)} />
+          </label>
+          <div>
+            <label style={labelStyle}>TIJD (HH:MM)</label>
+            <input style={inputStyle} type="time" value={notificationTime} onChange={e => setNotificationTime(e.target.value)} />
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {['mon','tue','wed','thu','fri','sat','sun'].map(d => (
+              <button key={d} onClick={() => setNotificationDays(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])} style={{
+                padding: '7px 10px', borderRadius: 999, border: `1px solid ${notificationDays.includes(d) ? C.accent : C.borderMd}`,
+                background: notificationDays.includes(d) ? 'rgba(232,254,60,0.10)' : 'transparent', color: notificationDays.includes(d) ? C.accent : C.secondary
+              }}>{d.toUpperCase()}</button>
+            ))}
+          </div>
           <div style={{ height: 1, background: C.border, margin: '4px 0' }} />
           <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted }}>TRAININGSNIVEAU</div>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -2363,7 +2424,7 @@ function HistoryScreen({ dbRef }) {
             <div>
               <div style={{ fontSize: 17, fontWeight: 500, marginBottom: 4 }}>{s.routineName}</div>
               <div style={{ fontFamily: C.mono, color: C.secondary, fontSize: 14, letterSpacing: '0.06em' }}>
-                {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} OEF · {Math.floor(s.duration/60)}:{String(s.duration%60).padStart(2,'0')} MIN
+                {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} OEF · {s.mode === 'reps' ? `${Object.keys(s.completedReps || {}).length} sets` : `${Math.floor(s.duration/60)}:${String(s.duration%60).padStart(2,'0')} MIN`} · {(s.mode || 'time').toUpperCase()}
               </div>
             </div>
             <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 12, textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
@@ -2463,6 +2524,9 @@ function OnboardingScreen({ dbRef, onComplete }) {
         manuallyAdjusted: false,
         fallbackReason: starter.fallbackReason,
       },
+      notificationsEnabled: false,
+      notificationTime: '19:00',
+      notificationDays: ['mon', 'wed', 'fri'],
       onboardingComplete: true,
       createdAt: Date.now(),
     });
@@ -2801,6 +2865,32 @@ function App() {
       setReady(true);
     }).catch(() => setReady(true));
   }, []);
+
+  useEffect(() => {
+    if (!ready || !dbRef.current) return;
+    (async () => {
+      const prof = await getProfile(dbRef.current);
+      if (!prof?.notificationsEnabled) return;
+      const permission = ('Notification' in window) ? Notification.permission : 'unsupported';
+      await trackEvent('reminder_permission_state', { state: permission });
+      if (permission === 'default' && 'Notification' in window) {
+        const req = await Notification.requestPermission();
+        await setProfileField(dbRef.current, 'notificationPermissionState', req);
+        await trackEvent('reminder_permission_state', { state: req });
+        if (req === 'denied') alert('Notificaties zijn geweigerd. Zet permissie aan in je browserinstellingen.');
+      } else if (permission === 'denied') {
+        alert('Notificaties zijn geweigerd. Zet permissie aan in je browserinstellingen.');
+        return;
+      }
+      if (Notification.permission !== 'granted') return;
+      new Notification('TRAINR reminder', { body: `Training gepland om ${prof.notificationTime || '19:00'}.` });
+      await trackEvent('reminder_scheduled', { time: prof.notificationTime || '19:00', days: prof.notificationDays || [] });
+      setTimeout(async () => {
+        new Notification('Sessie gemist?', { body: 'Doe alsnog een korte sessie vandaag.' });
+        await trackEvent('reminder_opened', { type: 'followup_missed_session' });
+      }, 4000);
+    })();
+  }, [ready]);
 
   const navigate = useCallback((s, p = {}) => { setScreen(s); setParams(p); }, []);
   const showNav = !['timer', 'builder', 'finish', 'onboarding', 'exerciseDetail'].includes(screen);
