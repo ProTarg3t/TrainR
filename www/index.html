@@ -108,6 +108,8 @@ const saveProfile = async (db, profile) => {
     'goal', 'trainingGoal',
     'selectedPlanId', 'planConfirmed', 'starterPlanProfile', 'starterPlanSelection',
     'availableDays',
+    'name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal', 'level',
+    'trainingGoal', 'availableDays', 'starterPlanProfile', 'starterPlanSelection',
     'onboardingComplete', 'createdAt',
   ];
   await Promise.all(
@@ -117,6 +119,26 @@ const saveProfile = async (db, profile) => {
   );
   await setProfileField(db, 'updatedAt', Date.now());
 };
+
+const SAFE_STARTER_PROFILE = 'core_beginner_3d';
+function resolveStarterPlanProfile({ level, trainingGoal, availableDays }) {
+  const validDays = Number.isInteger(availableDays) && availableDays > 0;
+  if (!level || !trainingGoal || !validDays) {
+    return {
+      profileId: SAFE_STARTER_PROFILE,
+      fallbackReason: 'missing_or_inconsistent_onboarding_data',
+      routineId: DEFAULT_ROUTINE.id,
+    };
+  }
+
+  const daysBucket = availableDays >= 4 ? '4d' : '3d';
+  let goalKey = 'core';
+  if (trainingGoal === 'fatloss') goalKey = 'fatloss';
+  if (trainingGoal === 'muscle') goalKey = 'muscle';
+  const levelKey = level === 'beginner' ? 'beginner' : 'starter';
+  const profileId = `${goalKey}_${levelKey}_${daysBucket}`;
+  return { profileId, fallbackReason: null, routineId: DEFAULT_ROUTINE.id };
+}
 
 // MET-waarden per categorie (Compendium of Physical Activities)
 const MET_BY_CAT = { Core: 4.0, Push: 5.0, Pull: 5.0, Legs: 5.5, Cardio: 8.0 };
@@ -764,7 +786,7 @@ const Icon = {
 // ================================================================
 // HOME SCREEN
 // ================================================================
-function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNavigate }) {
+function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNavigate, starterCTA }) {
   return (
     <>
       <div style={{ padding: '0 20px 20px' }}>
@@ -792,6 +814,21 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNaviga
       </div>
 
       {/* Quick start */}
+      {starterCTA?.show && (
+        <section style={{ padding: '0 20px 20px' }}>
+          <div style={{ border: `1px solid ${starterCTA.fallback ? C.statusWarn : C.accent}`, borderRadius: 12, background: C.surface, padding: 16 }}>
+            <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.1em', color: starterCTA.fallback ? C.statusWarn : C.accent, marginBottom: 8 }}>
+              STARTER PLAN
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Start je eerste training</div>
+            <div style={{ color: C.secondary, fontSize: 14, marginBottom: 14 }}>
+              Voorstel: {starterCTA.profileId.replaceAll('_', ' ').toUpperCase()}
+              {starterCTA.fallback ? ' · veilige standaard gekozen wegens onvolledige onboardingdata.' : ''}
+            </div>
+            <Btn onClick={() => onNavigate('timer', { routineId: starterCTA.routineId })}>START EERSTE TRAINING</Btn>
+          </div>
+        </section>
+      )}
       {quickRoutines.length > 0 ? (
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px 12px' }}>
@@ -976,6 +1013,7 @@ function HomeScreen({ dbRef, onNavigate }) {
   const [routines, setRoutines] = useState([]);
   const [profile, setProfile] = useState(null);
   const [ready, setReady] = useState(false);
+  const [starterCTA, setStarterCTA] = useState(null);
 
   useEffect(() => {
     if (!dbRef.current) return;
@@ -987,6 +1025,12 @@ function HomeScreen({ dbRef, onNavigate }) {
       setSessions(s.sort((a, b) => b.completedAt - a.completedAt));
       setRoutines(r);
       setProfile(prof);
+      setStarterCTA({
+        show: !s.length,
+        profileId: prof?.starterPlanProfile || SAFE_STARTER_PROFILE,
+        routineId: prof?.starterPlanSelection?.auto?.routineId || DEFAULT_ROUTINE.id,
+        fallback: !!prof?.starterPlanSelection?.fallbackReason,
+      });
       setReady(true);
     });
   }, []);
@@ -1027,6 +1071,7 @@ function HomeScreen({ dbRef, onNavigate }) {
           todayDone={todayDone}
           quickRoutines={quickRoutines}
           onNavigate={onNavigate}
+          starterCTA={starterCTA}
         />
       )}
       {activeTab === 'plan' && (
@@ -2249,12 +2294,15 @@ function OnboardingScreen({ dbRef, onComplete }) {
   const [weightGoal, setWeightGoal] = useState('');
   const [level, setLevel] = useState(null);
   const [goal, setGoal] = useState(null);
+  const [trainingGoal, setTrainingGoal] = useState(null);
+  const [availableDays, setAvailableDays] = useState(null);
 
   const goNext = () => setStep(s => s + 1);
   const goBack = () => setStep(s => s - 1);
 
   const finish = async () => {
     const goalW = weightGoal ? parseFloat(weightGoal) : parseFloat(weight);
+    const starter = resolveStarterPlanProfile({ level, trainingGoal, availableDays: availableDays ? parseInt(availableDays) : null });
     await saveProfile(dbRef.current, {
       name: name.trim(),
       gender,
@@ -2267,10 +2315,18 @@ function OnboardingScreen({ dbRef, onComplete }) {
       goal,
       selectedPlanId: selectDefaultPlan({ level, goal, weight: parseFloat(weight), weightGoal: goalW }),
       planConfirmed: false,
+      trainingGoal,
+      availableDays: availableDays ? parseInt(availableDays) : null,
+      starterPlanProfile: starter.profileId,
+      starterPlanSelection: {
+        auto: { profileId: starter.profileId, routineId: starter.routineId, createdAt: Date.now() },
+        manuallyAdjusted: false,
+        fallbackReason: starter.fallbackReason,
+      },
       onboardingComplete: true,
       createdAt: Date.now(),
     });
-    onComplete();
+    onComplete(starter);
   };
 
   const inputStyle = {
@@ -2308,12 +2364,12 @@ function OnboardingScreen({ dbRef, onComplete }) {
             {Icon.back(16)} TERUG
           </button>
         ) : <div />}
-        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.22em', color: C.muted }}>STAP {step} / 8</div>
+        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.22em', color: C.muted }}>STAP {step} / 10</div>
       </div>
 
       {/* Progress bar */}
       <div style={{ display: 'flex', gap: 4, padding: '0 20px', marginBottom: 40 }}>
-        {[1,2,3,4,5,6,7,8].map(s => (
+        {[1,2,3,4,5,6,7,8,9,10].map(s => (
           <div key={s} style={{ flex: 1, height: 3, borderRadius: 2, background: s <= step ? C.accent : C.border }} />
         ))}
       </div>
@@ -2404,6 +2460,32 @@ function OnboardingScreen({ dbRef, onComplete }) {
         )}
 
         {step === 8 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Wat is je trainingsdoel?</h1>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {[
+                { key: 'core', label: 'CORE' },
+                { key: 'fatloss', label: 'AFVALLEN' },
+                { key: 'muscle', label: 'SPIEROPBOUW' },
+              ].map(({ key, label }) => tileBtn(trainingGoal === key, () => setTrainingGoal(key), label))}
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !trainingGoal)}</div>
+          </>
+        )}
+
+        {step === 9 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Hoeveel dagen per week heb je?</h1>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {['3', '4', '5'].map(days => tileBtn(availableDays === days, () => setAvailableDays(days), `${days} DAGEN`))}
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !availableDays)}</div>
+          </>
+        )}
+
+        {step === 10 && (
           <>
             <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Wat is je trainingsniveau?</h1>
             <div style={{ display: 'flex', gap: 10 }}>
@@ -2527,6 +2609,23 @@ function App() {
   const [ready, setReady] = useState(false);
   const dbRef = useRef(null);
 
+  const ensureStarterFallback = async (db, prof) => {
+    const starter = resolveStarterPlanProfile({
+      level: prof?.level,
+      trainingGoal: prof?.trainingGoal,
+      availableDays: Number.isInteger(prof?.availableDays) ? prof.availableDays : parseInt(prof?.availableDays),
+    });
+    if (prof?.starterPlanProfile && prof?.starterPlanSelection?.auto?.routineId && !starter.fallbackReason) return;
+    await saveProfile(db, {
+      starterPlanProfile: starter.profileId,
+      starterPlanSelection: {
+        auto: { profileId: starter.profileId, routineId: starter.routineId, createdAt: Date.now() },
+        manuallyAdjusted: !!prof?.starterPlanSelection?.manuallyAdjusted,
+        fallbackReason: starter.fallbackReason,
+      },
+    });
+  };
+
   useEffect(() => {
     initDB().then(async db => {
       dbRef.current = db;
@@ -2539,6 +2638,8 @@ function App() {
       const prof = await getProfile(db);
       if (!prof || !prof.onboardingComplete) {
         setScreen('onboarding');
+      } else {
+        await ensureStarterFallback(db, prof);
       }
       setReady(true);
     }).catch(() => setReady(true));
