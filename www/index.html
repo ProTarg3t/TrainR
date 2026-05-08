@@ -1715,6 +1715,14 @@ function ProfileScreen({ dbRef, onNavigate }) {
 
   useEffect(() => { loadAll(); }, []);
 
+  const handleResetOnboarding = async () => {
+    if (!dbRef.current) return;
+    const ok = window.confirm('Onboarding opnieuw starten? Je profiel blijft bewaard.');
+    if (!ok) return;
+    await setProfileField(dbRef.current, 'onboardingComplete', false);
+    onNavigate('onboarding', {});
+  };
+
   const streak   = useMemo(() => calcStreak(sessions), [sessions]);
   const totalKcal = useMemo(() => sessions.reduce((sum, s) => sum + (s.calories ?? s.kcal ?? 0), 0), [sessions]);
 
@@ -1758,6 +1766,15 @@ function ProfileScreen({ dbRef, onNavigate }) {
           {Icon.edit(14)}
           <span>BEWERK</span>
         </button>
+      </div>
+      <div style={{ padding: '10px 20px 0' }}>
+        <button onClick={handleResetOnboarding} style={{
+          width: '100%', padding: '12px 14px',
+          background: 'rgba(232,254,60,0.10)', color: C.accent,
+          border: `1px solid ${C.accent}`, borderRadius: 10,
+          fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em',
+          fontWeight: 600, cursor: 'pointer',
+        }}>ONBOARDING OPNIEUW STARTEN</button>
       </div>
 
       {/* Stat tiles — altijd zichtbaar */}
