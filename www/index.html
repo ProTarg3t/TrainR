@@ -565,11 +565,27 @@ const EXERCISES = [
   { id: 'mt-cl-fast',      cat: 'Cardio', name: 'Mountain climbers snel',   desc: 'Mountain climbers op zo hoog mogelijk tempo uitvoeren.\nKern strak houden, heupen laag houden ook bij hoog tempo.',                          times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
   { id: 'squat-jump-rep',  cat: 'Cardio', name: 'Jump squats HIIT',         desc: 'Non-stop jump squats uitvoeren op maximaal tempo.\nZacht landen met gebogen knieën, direct doorzoeken, explosief blijven.',                    times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
 ];
-const REP_PRESETS = [8, 10, 12, 15];
-const REP_EXERCISE_IDS = new Set(['pushup', 'incline-pushup', 'diamond-pushup', 'pike-pushup', 'dips', 'decline-pushup', 'slow-pushup', 'squats', 'jump-squat', 'alt-lunges']);
+const DEFAULT_TARGETS_BY_MODE = {
+  time: { beginner: 20, intermediate: 40, expert: 60 },
+  reps: { beginner: 8, intermediate: 12, expert: 16 },
+};
+const EXERCISE_CONFIGS = {
+  plank: { mode: 'time', targets: { beginner: 30, intermediate: 60, expert: 90 } },
+  'side-l': { mode: 'time', targets: { beginner: 20, intermediate: 40, expert: 60 } },
+  'side-r': { mode: 'time', targets: { beginner: 20, intermediate: 40, expert: 60 } },
+  pushup: { mode: 'reps', targets: { beginner: 8, intermediate: 15, expert: 25 } },
+  squats: { mode: 'reps', targets: { beginner: 12, intermediate: 20, expert: 35 } },
+  'alt-lunges': { mode: 'reps', targets: { beginner: 8, intermediate: 12, expert: 20 } },
+  dips: { mode: 'reps', targets: { beginner: 6, intermediate: 12, expert: 20 } },
+  burpees: { mode: 'hybrid', targets: { beginner: 8, intermediate: 12, expert: 18 } },
+  'mountain-cl': { mode: 'time', targets: { beginner: 20, intermediate: 35, expert: 50 } },
+  'mt-cl-fast': { mode: 'time', targets: { beginner: 20, intermediate: 35, expert: 50 } },
+};
 const EXERCISES_WITH_MODE = EXERCISES.map(ex => {
-  const isReps = REP_EXERCISE_IDS.has(ex.id);
-  return { ...ex, mode: isReps ? 'reps' : 'time', reps: isReps ? REP_PRESETS : undefined };
+  const cfg = EXERCISE_CONFIGS[ex.id] || {};
+  const mode = cfg.mode || 'time';
+  const t = cfg.targets || (mode === 'reps' ? DEFAULT_TARGETS_BY_MODE.reps : DEFAULT_TARGETS_BY_MODE.time);
+  return { ...ex, mode, targets: t, times: ex.times || [t.beginner, t.intermediate, t.expert] };
 });
 
 const CATS = ['Core', 'Push', 'Legs', 'Pull', 'Cardio'];
@@ -770,8 +786,9 @@ function buildSequence(exercises, levelIdx) {
     seq.push({
       ...ex,
       mode,
-      targetReps: mode === 'reps' ? (ex.reps?.[levelIdx] || ex.reps?.[0] || 10) : null,
-      duration: mode === 'time' ? ex.times[levelIdx] : 0,
+      target: ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || ex.times?.[levelIdx] || 0,
+      targetReps: (mode === 'reps' || mode === 'hybrid') ? (ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || 10) : null,
+      duration: mode === 'time' ? (ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || ex.times[levelIdx]) : 0,
       isRest: false
     });
     if (i < exercises.length - 1) {
@@ -1495,7 +1512,8 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
   const [countdown, setCountdown] = useState(3);
   const [stepIdx, setStepIdx] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
-  const [completedReps, setCompletedReps] = useState({});
+  const [stepResults, setStepResults] = useState({});
+  const [actualInput, setActualInput] = useState('');
   const [soundOn, setSoundOn] = useState(true);
   const [startTs, setStartTs] = useState(null);
   const intervalRef = useRef(null);
@@ -1555,7 +1573,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
     if (phase !== 'running') return;
     intervalRef.current = setInterval(() => {
       setTimeLeft(t => {
-        if (step && !step.isRest && step.mode === 'reps') return 0;
+        if (step && !step.isRest && (step.mode === 'reps' || step.mode === 'hybrid')) return 0;
         if (t <= 1) {
           const next = stepIdx + 1;
           if (next >= sequence.length) {
@@ -1583,16 +1601,16 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
       id: sessionId, routineId: routine.id, routineName: routine.name,
       levelIdx, duration: dur, exercises: activeEx.map(e => e.name), completedAt: Date.now(),
       mode: activeEx.every(e => e.mode === 'reps') ? 'reps' : (activeEx.every(e => e.mode === 'time') ? 'time' : 'mixed'),
-      completedReps,
+      stepResults,
       setCount: activeEx.length,
       calories,
     };
     if (params?.planId)  sessionData.planId  = params.planId;
     if (params?.planDay) sessionData.planDay = params.planDay;
     await dbOp(dbRef.current, 'sessions', 'readwrite', s => s.put(sessionData));
-    await analytics.trackEvent('workout_completed', { routineId: routine.id, duration: dur, exerciseCount: activeEx.length, completedReps }, { sessionId, planId: params?.planId || null });
+    await analytics.trackEvent('workout_completed', { routineId: routine.id, duration: dur, exerciseCount: activeEx.length, stepResults }, { sessionId, planId: params?.planId || null });
     relWake();
-    onNavigate('finish', { sessionId, routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx, calories, mode: sessionData.mode, completedReps });
+    onNavigate('finish', { sessionId, routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx, calories, mode: sessionData.mode, stepResults });
   };
 
   const startWorkout = () => {
@@ -1624,8 +1642,10 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
     setStepIdx(next); setTimeLeft(sequence[next].duration);
   };
   const completeRepStep = () => {
-    if (!step || step.isRest || step.mode !== 'reps') return;
-    setCompletedReps(prev => ({ ...prev, [step.id]: step.targetReps || 0 }));
+    if (!step || step.isRest || (step.mode !== 'reps' && step.mode !== 'hybrid')) return;
+    const actual = Number(actualInput || step.targetReps || 0);
+    setStepResults(prev => ({ ...prev, [step.id]: { mode: step.mode, target: step.targetReps || step.duration, actual, completed: actual > 0 } }));
+    setActualInput('');
     const next = stepIdx + 1;
     if (next >= sequence.length) {
       const dur = Math.floor((Date.now() - startTs) / 1000);
@@ -1695,7 +1715,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
                   <span onClick={toggle} style={{ color: active ? (CAT_COLORS[ex.cat] || C.accent) : C.dim, marginRight: 12, fontSize: 12, cursor: 'pointer', userSelect: 'none' }}>●</span>
                   <span onClick={toggle} style={{ flex: 1, color: C.text, fontSize: 17, fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>{ex.name}</span>
                   <span style={{ fontFamily: C.mono, color: active ? C.muted : C.dim, fontSize: 14, marginRight: 8 }}>
-                    {ex.mode === 'reps' ? `${ex.reps?.[levelIdx] || ex.reps?.[0] || 10} reps` : `${ex.times[levelIdx]}s`}
+                    {(ex.mode === 'reps' || ex.mode === 'hybrid') ? `${ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || 10} reps` : `${ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || ex.times[levelIdx]}s`}
                   </span>
                   <button onClick={() => onNavigate('exerciseDetail', { exercise: ex, backTo: 'timer', backToParams: params })}
                     style={{ background: 'none', border: 'none', color: C.muted, fontSize: 18, padding: '2px 4px', cursor: 'pointer', lineHeight: 1 }}>ⓘ</button>
@@ -1778,10 +1798,10 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
             </svg>
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ fontFamily: C.mono, fontSize: 80, fontWeight: 600, lineHeight: 1, letterSpacing: '-0.06em', color: step.isRest ? ringColor : C.text }}>
-                {step.mode === 'reps' && !step.isRest ? `${step.targetReps}` : String(timeLeft).padStart(2,'0')}
+                {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? `${step.targetReps}` : String(timeLeft).padStart(2,'0')}
               </div>
               <div style={{ fontFamily: C.mono, fontSize: 13, color: C.muted, letterSpacing: '0.14em', marginTop: 4 }}>
-                {step.mode === 'reps' && !step.isRest ? 'REPS' : 'SECONDEN'}
+                {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? 'REPS' : 'SECONDEN'}
               </div>
             </div>
           </div>
@@ -1792,8 +1812,13 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
               {step.isRest ? 'RECOVERY' : step.name.toUpperCase()}
             </div>
             <p style={{ fontSize: 15, color: C.secondary, lineHeight: 1.5, margin: '0 auto', maxWidth: 300 }}>
-              {step.isRest ? 'Adem diep. Volgende oefening start automatisch.' : (step.mode === 'reps' ? `Doe ${step.targetReps} herhalingen en tik op klaar.` : step.desc.split('\n')[0])}
+              {step.isRest ? 'Adem diep. Volgende oefening start automatisch.' : ((step.mode === 'reps' || step.mode === 'hybrid') ? `Doe ${step.targetReps} herhalingen en tik op klaar.` : step.desc.split('\n')[0])}
             </p>
+            {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest && (
+              <input value={actualInput} onChange={e => setActualInput(e.target.value.replace(/[^0-9]/g,''))} placeholder="Behaald (optioneel)"
+                style={{ width: '100%', marginTop: 12, padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.borderMd}`, background: C.surface, color: C.text, fontFamily: C.mono }} />
+            )}
+
           </div>
 
           {/* Next up */}
@@ -1825,8 +1850,8 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
                 ? <button onClick={() => setPhase('paused')} style={{ padding: '14px 0', border: `1px solid ${C.borderMd}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600, color: C.text, background: C.surface }}>❚❚  PAUZE</button>
                 : <button onClick={() => setPhase('running')} style={{ padding: '14px 0', border: `1px solid ${lvColor}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600, color: lvColor, background: 'transparent' }}>▶  VERDER</button>
               }
-              <button onClick={step.mode === 'reps' && !step.isRest ? completeRepStep : skip} style={{ padding: '14px 0', background: C.accent, color: C.accentFg, border: `1px solid ${C.accent}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600 }}>
-                {step.mode === 'reps' && !step.isRest ? 'KLAAR ✓' : 'SLA OVER →'}
+              <button onClick={(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? completeRepStep : skip} style={{ padding: '14px 0', background: C.accent, color: C.accentFg, border: `1px solid ${C.accent}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600 }}>
+                {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? 'KLAAR ✓' : 'SLA OVER →'}
               </button>
             </div>
           </div>
@@ -1840,7 +1865,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
 // FINISH SCREEN
 // ================================================================
 function FinishScreen({ dbRef, onNavigate, params }) {
-  const { sessionId, routineName = '', levelIdx = 1, duration = 0, exerciseCount = 0, exercises = [], calories = 0, mode = 'time', completedReps = {} } = params || {};
+  const { sessionId, routineName = '', levelIdx = 1, duration = 0, exerciseCount = 0, exercises = [], calories = 0, mode = 'time', stepResults = {}, completedReps = {} } = params || {};
   const [rpe, setRpe] = useState(7);
   const [sessions, setSessions] = useState([]);
 
@@ -1886,7 +1911,7 @@ function FinishScreen({ dbRef, onNavigate, params }) {
       {/* KPI grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: '20px 20px 0' }}>
         {[
-          { num: mode === 'reps' ? `${Object.keys(completedReps || {}).length}` : fmt(duration), label: mode === 'reps' ? 'SETS' : 'DUUR', hi: false },
+          { num: mode === 'reps' ? `${Object.keys(stepResults || completedReps || {}).length}` : fmt(duration), label: mode === 'reps' ? 'SETS' : 'DUUR', hi: false },
           { num: calories > 0 ? `${calories}` : '—', label: 'CALORIEËN', hi: true },
           { num: `${exerciseCount}`, label: 'VOLTOOID', hi: false },
         ].map(({ num, label, hi }) => (
@@ -2424,7 +2449,7 @@ function HistoryScreen({ dbRef }) {
             <div>
               <div style={{ fontSize: 17, fontWeight: 500, marginBottom: 4 }}>{s.routineName}</div>
               <div style={{ fontFamily: C.mono, color: C.secondary, fontSize: 14, letterSpacing: '0.06em' }}>
-                {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} OEF · {s.mode === 'reps' ? `${Object.keys(s.completedReps || {}).length} sets` : `${Math.floor(s.duration/60)}:${String(s.duration%60).padStart(2,'0')} MIN`} · {(s.mode || 'time').toUpperCase()}
+                {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} OEF · {s.mode === 'reps' ? `${Object.keys(s.stepResults || s.completedReps || {}).length} sets` : `${Math.floor(s.duration/60)}:${String(s.duration%60).padStart(2,'0')} MIN`} · {(s.mode || 'time').toUpperCase()}
               </div>
             </div>
             <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 12, textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
@@ -2776,7 +2801,7 @@ function ExerciseDetailScreen({ exercise, onBack, dbRef }) {
             {LEVELS.map((lv, i) => (
               <div key={lv} style={{ padding: '16px 10px', border: `1px solid ${C.border}`, borderRadius: 12, textAlign: 'center', background: C.surface }}>
                 <div style={{ fontFamily: C.mono, fontSize: 26, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1, color: LEVEL_COLORS[i], marginBottom: 6 }}>
-                  {exercise.times[i]}s
+                  {(exercise.mode === 'reps' || exercise.mode === 'hybrid') ? `${exercise.targets?.[lv.toLowerCase()] || 0} reps` : `${exercise.targets?.[lv.toLowerCase()] || exercise.times[i]}s`}
                 </div>
                 <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>{lv}</div>
               </div>
