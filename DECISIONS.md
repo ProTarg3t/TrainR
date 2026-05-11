@@ -65,6 +65,24 @@ Doel: over 3 maanden weten waarom iets is zoals het is — voor jezelf én voor 
 **Alternatief:** Gewoon beginnen met PWA-setup. Afgewezen: ik bouw dan op zand zonder rollback-mogelijkheid.
 **Impact:** Werkwijze per wijziging vanaf nu.
 
+## 2026-05-11 — Profile en Stats samenvoegd, HistoryScreen verwijderd
+**Wat:** HistoryScreen bestaat niet meer als aparte tab. Sessie-overzicht (laatste 5) is geïntegreerd in ProfileScreen.
+**Waarom:** Stats-tab had te weinig content om een eigen tab te rechtvaardigen. Gebruiker heeft context (wie ben ik + wat heb ik gedaan) beter op één plek. Vrijmaakt tab-slot voor Settings.
+**Alternatief:** Stats als aparte tab uitbreiden (grafieken, heatmap). Afgewezen: te vroeg voor Phase 3.5, valt in Phase 4 roadmap.
+**Impact:** BottomNav, App(), ProfileScreen, HistoryScreen (nog aanwezig in code als dode route, niet verwijderd voor veiligheid).
+
+## 2026-05-11 — Settings als aparte tab (vervangt Stats-tab)
+**Wat:** Nieuw SettingsScreen bereikbaar via bottom-nav tab (INST.), vervangt de STATS-tab.
+**Waarom:** Instellingen waren verspreid over ProfileEditModal (notificaties, niveau) en TimerScreen (geluid). Vindbaarheid slecht. Eén centrale plek voor alles wat je maar één keer instelt.
+**Alternatief:** Settings als modal via tandwiel-knop in Profile-header. Afgewezen: moeilijker te vinden, inconsistent met andere schermen.
+**Impact:** SettingsScreen (nieuw), BottomNav, ProfileEditModal (level + notif verwijderd), TimerScreen (soundOn nu persistent in profile-store).
+
+## 2026-05-11 — Home-scherm uitgebreid met engagement-content
+**Wat:** HomeTab heeft nu: hero-card "Maak eigen routine", 3 vaste quick-workouts (15/30/45M), lichaamsdeel-rij, eigen routines.
+**Waarom:** Origineel home-scherm had te weinig directe actie-opties. Doel: altijd iets te doen zien zonder te hoeven navigeren.
+**Alternatief:** Alle content achter Routines-tab laten. Afgewezen: te veel clicks voor dagelijkse gebruiker.
+**Impact:** HomeTab, QUICK_WORKOUTS constante (nieuw), RoutinesScreen (filterCat via nav-param).
+
 ---
 
 <!-- Volgende entries komen hieronder. Nieuwste bovenaan onder deze comment, of chronologisch onderaan — kies één en houd vol. -->

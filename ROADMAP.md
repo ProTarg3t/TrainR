@@ -144,12 +144,59 @@
 - **Effort**: 1 dag (UI + linking)
 
 **GO/NO-GO:** Voelen de routines aanpasbaar en variatief?  
-✓ GO → Phase 4  
+✓ GO → Phase 3.5  
 ✗ NO-GO → Feature snoeien of meer tijd, retry
 
 ---
 
-## Phase 4: Refinement & User Testing (Week 8–9)
+## Phase 3.5: Engagement & UX Polish (Week 7–8)
+
+### 3.5.1 Home-scherm uitbreiding
+- **Wat**: Home scrollbaar gemaakt met meer engagement-content
+- **Hoe**:
+  - Hero-card "Maak je eigen routine" direct op home (→ builder)
+  - 3 vaste snel-starters: Quick Core (15M), Full Body (30M), Kracht & Conditie (45M)
+  - Horizontale lichaamsdeel-rij (Core/Push/Legs/Pull/Cardio) → filter in Routines-scherm
+  - Eigen routines zichtbaar onder MIJN ROUTINES
+- **Doel**: Altijd iets te doen op het home-scherm, meer engagement
+- **Output**: Uitgebreid HomeTab component, QUICK_WORKOUTS constante
+
+### 3.5.2 Profile + Stats samenvoegen
+- **Wat**: HistoryScreen verwijderd als aparte tab, content geïntegreerd in ProfileScreen
+- **Hoe**:
+  - Recente sessies (laatste 5) zichtbaar in ProfileScreen
+  - Stats-tab vervangen door Settings-tab in bottom nav
+- **Doel**: Minder tabs, meer context in profiel
+- **Output**: Bijgewerkt ProfileScreen, BottomNav
+
+### 3.5.3 Settings-scherm
+- **Wat**: Nieuw scherm voor alle app-instellingen (was verspreid)
+- **Hoe**:
+  - Trainingsniveau, geluid, wake lock
+  - Notificaties (aan/uit, tijd, dagen)
+  - Data-export (JSON) en wis-alle-data
+  - Onboarding opnieuw starten
+- **Doel**: Één centrale plek voor instellingen
+- **Output**: SettingsScreen component
+
+### 3.5.4 Timer — volgende oefening tijdens rust
+- **Wat**: Rust-scherm toont nu de volgende oefening prominent
+- **Hoe**: `sequence[stepIdx+1]` uitgelezen, prominent getoond met cat-kleur, naam, duur
+- **Doel**: Minder verrassing, betere voorbereiding op volgende beweging
+- **Output**: Bijgewerkt TimerScreen
+
+### 3.5.5 UX Polish
+- Duplicaat onboarding-reset-knop verwijderd uit Profile
+- ProfileEditModal vereenvoudigd (alleen persoonlijke data)
+- Geluid-voorkeur wordt opgeslagen in profile-store (persistent)
+
+**GO/NO-GO:** Voelt home als startpunt waar altijd iets te doen is? Settings vindbaar? Rust-scherm informatief?  
+✓ GO → Phase 4  
+✗ NO-GO → Engagement-fixes, retry
+
+---
+
+## Phase 4: Refinement & User Testing (Week 9–10)
 
 ### 4.1 User Testing (Praktisch)
 - **Wie**: Jezelf + eventueel vrienden/familie (niet-devs)
