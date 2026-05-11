@@ -626,6 +626,21 @@ const DEFAULT_ROUTINE = {
   createdAt: Date.now(),
 };
 
+const QUICK_WORKOUTS = [
+  {
+    id: 'quick-15', name: 'Quick Core', durationLabel: '15M',
+    exercises: ['dead-bug', 'plank', 'glute-bridge', 'bicycles', 'mountain-cl', 'side-l', 'side-r', 'high-knees'],
+  },
+  {
+    id: 'quick-30', name: 'Full Body', durationLabel: '30M',
+    exercises: ['jumping-jacks', 'pushup', 'squats', 'dead-bug', 'plank', 'alt-lunges', 'glute-bridge', 'mountain-cl', 'incline-pushup', 'bicycles', 'high-knees', 'scap-retract', 'wall-sit', 'butt-kicks'],
+  },
+  {
+    id: 'quick-45', name: 'Kracht & Conditie', durationLabel: '45M',
+    exercises: ['jumping-jacks', 'pushup', 'squats', 'dead-bug', 'plank', 'alt-lunges', 'glute-bridge', 'mountain-cl', 'incline-pushup', 'bicycles', 'high-knees', 'scap-retract', 'wall-sit', 'butt-kicks', 'diamond-pushup', 'jump-squat', 'side-l', 'side-r', 'burpees', 'inv-row'],
+  },
+];
+
 // ================================================================
 // BUILTIN PLANS
 // ================================================================
@@ -795,7 +810,7 @@ function buildSequence(exercises, levelIdx) {
       const isMid = i === midIdx;
       seq.push({
         id: `rest-${i}`, name: isMid ? 'Halverwege · rust' : 'Rust',
-        desc: isMid ? 'Goed bezig!' : `Volgende: ${exercises[i+1].name}`,
+        desc: isMid ? 'Goed bezig! Bijna klaar.' : 'Pak even adem.',
         duration: isMid ? 10 : 5, isRest: true, isMid,
       });
     }
@@ -897,20 +912,46 @@ const Icon = {
   user: (s = 22) => (
     <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
   ),
+  settings: (s = 22) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  ),
 };
 
 // ================================================================
 // HOME SCREEN
 // ================================================================
 function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNavigate, starterCTA }) {
+  const routineCard = (key, name, exerciseIds, label, onClick) => (
+    <button key={key} onClick={onClick} style={{
+      textAlign: 'left', background: C.surface, cursor: 'pointer',
+      border: `1px solid ${C.border}`, borderRadius: 12,
+      padding: 16, display: 'grid',
+      gridTemplateColumns: '1fr auto', gridTemplateRows: 'auto auto',
+      gap: '6px 16px', alignItems: 'center', width: '100%',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <CatTags exerciseIds={exerciseIds} />
+        <span style={{ fontFamily: C.mono, fontSize: 12, color: C.secondary, letterSpacing: '0.06em' }}>{exerciseIds.length} OEF</span>
+      </div>
+      <div style={{
+        gridRow: '1 / span 2', display: 'flex', alignItems: 'center', gap: 6,
+        fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', fontWeight: 600,
+        color: C.accentFg, background: C.accent,
+        borderRadius: 999, padding: '10px 14px', alignSelf: 'center', whiteSpace: 'nowrap',
+      }}>
+        {label} {Icon.play(10)}
+      </div>
+      <div style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.01em', color: C.text }}>{name}</div>
+    </button>
+  );
+
   return (
     <>
+      {/* Greeting */}
       <div style={{ padding: '0 20px 20px' }}>
         <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.22em', color: C.muted, marginBottom: 8 }}>TRAINR</div>
         <div style={{ fontFamily: C.mono, fontSize: 14, letterSpacing: '0.08em', color: C.secondary, marginBottom: 6, textTransform: 'lowercase' }}>{greeting}</div>
-        {profile?.name ? (
-          <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1 }}>{profile.name}</div>
-        ) : null}
+        {profile?.name && <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1 }}>{profile.name}</div>}
       </div>
 
       {/* Stats strip */}
@@ -929,60 +970,87 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNaviga
         </div>
       </div>
 
-      {/* Quick start */}
+      {/* Starter CTA (eerste keer) */}
       {starterCTA?.show && (
         <section style={{ padding: '0 20px 20px' }}>
           <div style={{ border: `1px solid ${starterCTA.fallback ? C.statusWarn : C.accent}`, borderRadius: 12, background: C.surface, padding: 16 }}>
-            <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.1em', color: starterCTA.fallback ? C.statusWarn : C.accent, marginBottom: 8 }}>
-              STARTER PLAN
-            </div>
+            <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.1em', color: starterCTA.fallback ? C.statusWarn : C.accent, marginBottom: 8 }}>STARTER PLAN</div>
             <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Start je eerste training</div>
             <div style={{ color: C.secondary, fontSize: 14, marginBottom: 14 }}>
               Voorstel: {starterCTA.profileId.replaceAll('_', ' ').toUpperCase()}
-              {starterCTA.fallback ? ' · veilige standaard gekozen wegens onvolledige onboardingdata.' : ''}
+              {starterCTA.fallback ? ' · veilige standaard gekozen.' : ''}
             </div>
             <Btn onClick={() => onNavigate('timer', { routineId: starterCTA.routineId })}>START EERSTE TRAINING</Btn>
           </div>
         </section>
       )}
-      {quickRoutines.length > 0 ? (
-        <section>
+
+      {/* Hero — maak eigen routine */}
+      <section style={{ padding: '0 20px 20px' }}>
+        <button onClick={() => onNavigate('builder', {})} style={{
+          width: '100%', textAlign: 'left', cursor: 'pointer',
+          background: C.surface, border: `1px solid ${C.accent}`,
+          borderRadius: 12, padding: '16px 20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div>
+            <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em', color: C.accent, marginBottom: 4 }}>AANGEPAST</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.text }}>Maak je eigen routine</div>
+          </div>
+          <div style={{ background: C.accent, color: C.accentFg, borderRadius: 999, padding: '10px 16px', fontFamily: C.mono, fontSize: 11, fontWeight: 600, letterSpacing: '0.10em', whiteSpace: 'nowrap' }}>+ NIEUW</div>
+        </button>
+      </section>
+
+      {/* Snel starten — vaste workouts 15/30/45 min */}
+      <section style={{ paddingBottom: 20 }}>
+        <div style={{ padding: '0 20px 12px' }}>
+          <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>SNEL STARTEN</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '0 20px' }}>
+          {QUICK_WORKOUTS.map(qw => routineCard(
+            qw.id, qw.name, qw.exercises, qw.durationLabel,
+            () => onNavigate('timer', { routine: qw, backTo: 'home' })
+          ))}
+        </div>
+      </section>
+
+      {/* Mijn routines */}
+      {quickRoutines.length > 0 && (
+        <section style={{ paddingBottom: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px 12px' }}>
-            <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>SNEL STARTEN</span>
-            <span style={{ fontFamily: C.mono, fontSize: 12, color: C.muted }}>{quickRoutines.length} ROUTINES</span>
+            <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>MIJN ROUTINES</span>
+            <span style={{ fontFamily: C.mono, fontSize: 12, color: C.muted }}>{quickRoutines.length}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '0 20px' }}>
-            {quickRoutines.map(r => (
-              <button key={r.id} onClick={() => onNavigate('timer', { routineId: r.id })} style={{
-                textAlign: 'left', background: C.surface,
-                border: `1px solid ${C.border}`, borderRadius: 12,
-                padding: 16, display: 'grid',
-                gridTemplateColumns: '1fr auto', gridTemplateRows: 'auto auto',
-                gap: '6px 16px', alignItems: 'center',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <CatTags exerciseIds={r.exercises} />
-                  <span style={{ fontFamily: C.mono, fontSize: 13, color: C.secondary, letterSpacing: '0.06em' }}>{r.exercises.length} OEF</span>
-                </div>
-                <div style={{
-                  gridRow: '1 / span 2', display: 'flex', alignItems: 'center', gap: 7,
-                  fontFamily: C.mono, fontSize: 12, letterSpacing: '0.10em', fontWeight: 600,
-                  color: C.accentFg, background: C.accent,
-                  borderRadius: 999, padding: '10px 14px', alignSelf: 'center', whiteSpace: 'nowrap',
-                }}>
-                  EXECUTE {Icon.play(12)}
-                </div>
-                <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.01em', color: C.text }}>{r.name}</div>
-              </button>
+            {quickRoutines.map(r => routineCard(
+              r.id, r.name, r.exercises, 'START',
+              () => onNavigate('timer', { routineId: r.id })
             ))}
           </div>
         </section>
-      ) : (
-        <div style={{ textAlign: 'center', padding: '60px 20px 0' }}>
-          <div style={{ color: C.muted, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.1em', marginBottom: 20 }}>Nog geen routines.</div>
-          <Btn onClick={() => onNavigate('builder', {})}>MAAK EERSTE ROUTINE</Btn>
-        </div>
       )}
+
+      {/* Lichaamsdeel — categorie-rij */}
+      <section style={{ paddingBottom: 32 }}>
+        <div style={{ padding: '0 20px 12px' }}>
+          <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>LICHAAMSDEEL</span>
+        </div>
+        <div style={{ display: 'flex', gap: 10, padding: '0 20px', overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+          {CATS.map(cat => (
+            <button key={cat} onClick={() => onNavigate('routines', { filterCat: cat })} style={{
+              flexShrink: 0, cursor: 'pointer',
+              background: C.surface,
+              border: `1px solid ${C.border}`,
+              borderLeft: `3px solid ${CAT_COLORS[cat]}`,
+              borderRadius: 10, padding: '12px 16px',
+              display: 'flex', flexDirection: 'column', gap: 6, minWidth: 82,
+            }}>
+              <span style={{ color: CAT_COLORS[cat], fontFamily: C.mono, fontSize: 11, fontWeight: 700 }}>■</span>
+              <span style={{ color: C.text, fontFamily: C.mono, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em' }}>{cat.toUpperCase()}</span>
+            </button>
+          ))}
+        </div>
+      </section>
     </>
   );
 }
@@ -1157,7 +1225,7 @@ function HomeScreen({ dbRef, onNavigate, analytics }) {
   const hours = today.getHours();
   const greeting = hours < 6 ? 'GOEDE NACHT' : hours < 12 ? 'GOEDEMORGEN' : hours < 18 ? 'GOEDEMIDDAG' : 'GOEDENAVOND';
 
-  const quickRoutines = routines.filter(r => r.quickStart !== false).slice(0, 4);
+  const quickRoutines = routines.filter(r => r.quickStart !== false);
 
   const tabBtn = (tab) => ({
     flex: 1, padding: '10px 0',
@@ -1213,7 +1281,7 @@ function HomeScreen({ dbRef, onNavigate, analytics }) {
 // ================================================================
 // ROUTINES SCREEN
 // ================================================================
-function RoutinesScreen({ dbRef, onNavigate }) {
+function RoutinesScreen({ dbRef, onNavigate, params }) {
   const [routines, setRoutines] = useState([]);
   const [ready, setReady] = useState(false);
 
@@ -1234,7 +1302,7 @@ function RoutinesScreen({ dbRef, onNavigate }) {
     load();
   };
 
-  const [filterCatR, setFilterCatR] = useState('ALLE');
+  const [filterCatR, setFilterCatR] = useState((params?.filterCat || 'ALLE').toUpperCase());
 
   if (!ready) return <Loader />;
 
@@ -1516,6 +1584,11 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
   const [actualInput, setActualInput] = useState('');
   const [soundOn, setSoundOn] = useState(true);
   const [startTs, setStartTs] = useState(null);
+
+  useEffect(() => {
+    if (!dbRef.current) return;
+    getProfile(dbRef.current).then(p => { if (p?.sound === false) setSoundOn(false); });
+  }, []);
   const intervalRef = useRef(null);
   const audioCtxRef = useRef(null);
   const wakeLockRef = useRef(null);
@@ -1682,7 +1755,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
             </div>
           }
         </div>
-        <button onClick={() => setSoundOn(v => !v)} style={{
+        <button onClick={() => { const next = !soundOn; setSoundOn(next); if (dbRef.current) setProfileField(dbRef.current, 'sound', next); }} style={{
           width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: C.muted, opacity: soundOn ? 1 : 0.35, background: 'none',
@@ -1821,20 +1894,40 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
 
           </div>
 
-          {/* Next up */}
-          {sequence[stepIdx + 1] && !step.isRest && (
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              margin: '0 0 12px', padding: '12px 14px',
-              border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface,
-            }}>
-              <div>
-                <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted, marginBottom: 4 }}>VOLGENDE</div>
-                <div style={{ fontSize: 16, fontWeight: 500 }}>{sequence[stepIdx+1].name}</div>
+          {/* Next up — compact tijdens oefening, prominent tijdens rust */}
+          {(() => {
+            const next = sequence[stepIdx + 1];
+            if (!next || next.isRest) return null;
+            if (!step.isRest) return (
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                margin: '0 0 12px', padding: '12px 14px',
+                border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface,
+              }}>
+                <div>
+                  <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted, marginBottom: 4 }}>VOLGENDE</div>
+                  <div style={{ fontSize: 16, fontWeight: 500 }}>{next.name}</div>
+                </div>
+                <div style={{ fontFamily: C.mono, fontSize: 15, fontWeight: 500, color: C.accent }}>{next.duration}s</div>
               </div>
-              <div style={{ fontFamily: C.mono, fontSize: 15, fontWeight: 500, color: C.accent }}>{sequence[stepIdx+1].duration}s</div>
-            </div>
-          )}
+            );
+            return (
+              <div style={{
+                margin: '0 0 12px', padding: '16px',
+                border: `1px solid ${CAT_COLORS[next.cat] || C.border}`,
+                borderRadius: 12, background: C.surface,
+              }}>
+                <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em', color: C.muted, marginBottom: 8 }}>VOLGENDE OEFENING</div>
+                <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 10 }}>{next.name}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: CAT_COLORS[next.cat] || C.muted, fontSize: 12, letterSpacing: '0.12em', fontFamily: C.mono }}>■ {(next.cat || '').toUpperCase()}</span>
+                  <span style={{ fontFamily: C.mono, fontSize: 15, fontWeight: 600, color: C.accent }}>
+                    {(next.mode === 'reps' || next.mode === 'hybrid') ? `${next.targetReps} reps` : `${next.target || next.duration}s`}
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Footer */}
           <div style={{ marginTop: 'auto', paddingBottom: 24 }}>
@@ -2064,15 +2157,6 @@ function ProfileScreen({ dbRef, onNavigate, analytics }) {
           <span>BEWERK</span>
         </button>
       </div>
-      <div style={{ padding: '10px 20px 0' }}>
-        <button onClick={handleResetOnboarding} style={{
-          width: '100%', padding: '12px 14px',
-          background: 'rgba(232,254,60,0.10)', color: C.accent,
-          border: `1px solid ${C.accent}`, borderRadius: 10,
-          fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em',
-          fontWeight: 600, cursor: 'pointer',
-        }}>ONBOARDING OPNIEUW STARTEN</button>
-      </div>
 
       {/* Stat tiles — altijd zichtbaar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: '24px 20px 0' }}>
@@ -2165,30 +2249,33 @@ function ProfileScreen({ dbRef, onNavigate, analytics }) {
             <PersonalRow label="LENGTE"   value={profile?.height ? `${profile.height} cm` : '—'} />
             <PersonalRow label="GEWICHT"  value={profile?.weight ? `${profile.weight} kg` : '—'} last />
           </div>
-          <button onClick={handleResetOnboarding} style={{
-            marginTop: 12, width: '100%', padding: '12px 14px',
-            background: 'transparent', color: C.secondary,
-            border: `1px dashed ${C.borderMd}`, borderRadius: 10,
-            fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em',
-            cursor: 'pointer',
-          }}>ONBOARDING OPNIEUW STARTEN</button>
         </section>
-      {DEV_MODE && (
-        <section style={{ padding: '24px 20px 0' }}>
-          <button onClick={() => setShowDebug(v => !v)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${C.borderMd}`, background: 'transparent', color: C.muted, fontFamily: C.mono, fontSize: 12 }}>
-            {showDebug ? 'HIDE' : 'SHOW'} DEBUG KPI
-          </button>
-          {showDebug && (
-            <div style={{ marginTop: 10, border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, padding: 12, fontFamily: C.mono, fontSize: 12, color: C.secondary }}>
-              <div>events_7d: {debugKpis.events7d}</div>
-              <div>activatie24u: {(debugKpis.activation24h * 100).toFixed(1)}%</div>
-              <div>d7_retentie: {(debugKpis.d7Retention * 100).toFixed(1)}%</div>
-              <div>workouts_per_active_user_week: {debugKpis.workoutsPerActiveUserWeek.toFixed(2)}</div>
-              <div>d7_by_user: {JSON.stringify(debugKpis.d7ByUser)}</div>
-            </div>
-          )}
-        </section>
-      )}
+      {/* Sessiegeschiedenis */}
+      <section style={{ padding: '32px 20px 0' }}>
+        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 12 }}>RECENTE SESSIES</div>
+        {sessions.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '24px 0', fontFamily: C.mono, color: C.muted, fontSize: 12, letterSpacing: '0.1em' }}>Nog geen sessies afgerond.</div>
+        ) : (
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden' }}>
+            {sessions
+              .sort((a, b) => b.completedAt - a.completedAt)
+              .slice(0, 5)
+              .map((s, i, arr) => (
+              <div key={s.id} style={{ padding: '14px 16px', borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 500, marginBottom: 3 }}>{s.routineName}</div>
+                  <div style={{ fontFamily: C.mono, color: C.secondary, fontSize: 12, letterSpacing: '0.06em' }}>
+                    {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} OEF · {Math.floor(s.duration / 60)}:{String(s.duration % 60).padStart(2, '0')} MIN
+                  </div>
+                </div>
+                <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 11, textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
+                  {new Date(s.completedAt).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {editing && <ProfileEditModal profile={profile} onSave={async p => {
         await saveProfile(dbRef.current, { ...(profile || {}), ...p, createdAt: profile?.createdAt || Date.now() });
@@ -2246,10 +2333,6 @@ function ProfileEditModal({ profile, onSave, onClose }) {
   const [weight,       setWeight]       = useState(profile?.weight      || '');
   const [startWeight,  setStartWeight]  = useState(profile?.weightStart || '');
   const [targetWeight, setTargetWeight] = useState(profile?.weightGoal  || '');
-  const [level,        setLevel]        = useState(profile?.level       || 'intermediate');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(!!profile?.notificationsEnabled);
-  const [notificationTime, setNotificationTime] = useState(profile?.notificationTime || '19:00');
-  const [notificationDays, setNotificationDays] = useState(profile?.notificationDays || ['mon', 'wed', 'fri']);
   const [error,        setError]        = useState('');
 
   const handleSave = () => {
@@ -2266,10 +2349,6 @@ function ProfileEditModal({ profile, onSave, onClose }) {
       weight:      parseFloat(weight),
       weightStart: startWeight  ? parseFloat(startWeight)  : null,
       weightGoal:  targetWeight ? parseFloat(targetWeight) : null,
-      level,
-      notificationsEnabled,
-      notificationTime,
-      notificationDays,
     });
   };
 
@@ -2345,41 +2424,6 @@ function ProfileEditModal({ profile, onSave, onClose }) {
               <label style={labelStyle}>DOELGEWICHT</label>
               <input style={inputStyle} type="number" step="0.1" value={targetWeight} onChange={e => setTargetWeight(e.target.value)} placeholder="95" />
             </div>
-          </div>
-
-          <div style={{ height: 1, background: C.border, margin: '4px 0' }} />
-          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted }}>REMINDERS</div>
-          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={labelStyle}>AAN</span>
-            <input type="checkbox" checked={notificationsEnabled} onChange={e => setNotificationsEnabled(e.target.checked)} />
-          </label>
-          <div>
-            <label style={labelStyle}>TIJD (HH:MM)</label>
-            <input style={inputStyle} type="time" value={notificationTime} onChange={e => setNotificationTime(e.target.value)} />
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {['mon','tue','wed','thu','fri','sat','sun'].map(d => (
-              <button key={d} onClick={() => setNotificationDays(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])} style={{
-                padding: '7px 10px', borderRadius: 999, border: `1px solid ${notificationDays.includes(d) ? C.accent : C.borderMd}`,
-                background: notificationDays.includes(d) ? 'rgba(232,254,60,0.10)' : 'transparent', color: notificationDays.includes(d) ? C.accent : C.secondary
-              }}>{d.toUpperCase()}</button>
-            ))}
-          </div>
-          <div style={{ height: 1, background: C.border, margin: '4px 0' }} />
-          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted }}>TRAININGSNIVEAU</div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {[
-              { key: 'beginner',     label: 'BEGINNER' },
-              { key: 'intermediate', label: 'INTERMEDIATE' },
-              { key: 'expert',       label: 'EXPERT' },
-            ].map(({ key, label }) => (
-              <button key={key} onClick={() => setLevel(key)} style={{
-                flex: 1, padding: '10px 6px', border: `1px solid ${level === key ? C.accent : C.borderMd}`,
-                borderRadius: 8, background: level === key ? 'rgba(232,254,60,0.08)' : 'transparent',
-                fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', fontWeight: 600,
-                color: level === key ? C.accent : C.secondary, cursor: 'pointer',
-              }}>{label}</button>
-            ))}
           </div>
 
           {error && <div style={{ color: C.statusCrit, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', marginTop: 4 }}>{error}</div>}
@@ -2473,12 +2517,185 @@ function Loader() {
   );
 }
 
+// ================================================================
+// SETTINGS SCREEN
+// ================================================================
+function SettingsScreen({ dbRef, onNavigate }) {
+  const [profile, setProfile] = useState(null);
+  const [ready, setReady] = useState(false);
+
+  const load = async () => {
+    if (!dbRef.current) return;
+    const p = await getProfile(dbRef.current);
+    setProfile(p || {});
+    setReady(true);
+  };
+  useEffect(() => { load(); }, []);
+
+  const save = async (fields) => {
+    if (!dbRef.current) return;
+    await saveProfile(dbRef.current, { ...(profile || {}), ...fields });
+    setProfile(p => ({ ...(p || {}), ...fields }));
+  };
+
+  if (!ready) return <Loader />;
+
+  const notifEnabled = !!profile?.notificationsEnabled;
+  const notifTime    = profile?.notificationTime  || '19:00';
+  const notifDays    = profile?.notificationDays  || ['mon', 'wed', 'fri'];
+  const level        = profile?.level             || 'intermediate';
+  const soundOn      = profile?.sound !== false;
+  const wakeLock     = profile?.wakelock !== false;
+
+  const handleResetOnboarding = async () => {
+    if (!window.confirm('Onboarding opnieuw starten? Je profiel blijft bewaard.')) return;
+    await setProfileField(dbRef.current, 'onboardingComplete', false);
+    onNavigate('onboarding', {});
+  };
+
+  const handleExportData = async () => {
+    const [sessions, routines] = await Promise.all([
+      dbGetAll(dbRef.current, 'sessions'),
+      dbGetAll(dbRef.current, 'routines'),
+    ]);
+    const blob = new Blob([JSON.stringify({ sessions, routines, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `trainr-export-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleClearData = async () => {
+    if (!window.confirm('Alle data verwijderen? Dit kan NIET ongedaan worden gemaakt.')) return;
+    if (!window.confirm('Laatste waarschuwing: alle sessies, routines en profiel worden gewist.')) return;
+    const db = dbRef.current;
+    for (const store of ['routines', 'sessions', 'profile', 'events']) {
+      await new Promise((res, rej) => {
+        const tx = db.transaction(store, 'readwrite');
+        const req = tx.objectStore(store).clear();
+        req.onsuccess = res; req.onerror = rej;
+      });
+    }
+    window.location.reload();
+  };
+
+  const DAYS_NL = { mon: 'MA', tue: 'DI', wed: 'WO', thu: 'DO', fri: 'VR', sat: 'ZA', sun: 'ZO' };
+
+  const sectionLabel = (txt) => (
+    <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 10 }}>{txt}</div>
+  );
+
+  const card = (children) => (
+    <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden', marginBottom: 24 }}>
+      {children}
+    </div>
+  );
+
+  const row = (label, control, last = false) => (
+    <div style={{ padding: '14px 16px', borderBottom: last ? 'none' : `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <span style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.08em', color: C.text }}>{label}</span>
+      {control}
+    </div>
+  );
+
+  const toggle = (on, onToggle) => (
+    <button onClick={onToggle} style={{
+      padding: '6px 14px', borderRadius: 999,
+      border: `1px solid ${on ? C.accent : C.borderMd}`,
+      background: on ? 'rgba(232,254,60,0.10)' : 'transparent',
+      fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em', fontWeight: 600,
+      color: on ? C.accent : C.secondary, cursor: 'pointer', minWidth: 46,
+    }}>{on ? 'AAN' : 'UIT'}</button>
+  );
+
+  return (
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', paddingBottom: 'calc(var(--tab-h) + 24px)', fontFamily: C.font }}>
+      <header style={{ padding: '44px 20px 28px' }}>
+        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>APP</div>
+        <h1 style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 0.95 }}>INSTELLINGEN</h1>
+      </header>
+
+      <div style={{ padding: '0 20px' }}>
+
+        {sectionLabel('TRAINING')}
+        {card(<>
+          {row('TRAININGSNIVEAU', (
+            <div style={{ display: 'flex', gap: 6 }}>
+              {[['beginner','BEG'], ['intermediate','MID'], ['expert','EXP']].map(([key, short]) => (
+                <button key={key} onClick={() => save({ level: key })} style={{
+                  padding: '6px 10px', borderRadius: 6,
+                  border: `1px solid ${level === key ? C.accent : C.borderMd}`,
+                  background: level === key ? 'rgba(232,254,60,0.10)' : 'transparent',
+                  fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', fontWeight: 600,
+                  color: level === key ? C.accent : C.secondary, cursor: 'pointer',
+                }}>{short}</button>
+              ))}
+            </div>
+          ))}
+          {row('GELUID', toggle(soundOn, () => save({ sound: !soundOn })))}
+          {row('SCHERM AAN HOUDEN', toggle(wakeLock, () => save({ wakelock: !wakeLock })), true)}
+        </>)}
+
+        {sectionLabel('NOTIFICATIES')}
+        {card(<>
+          {row('HERINNERINGEN', toggle(notifEnabled, () => save({ notificationsEnabled: !notifEnabled })), !notifEnabled)}
+          {notifEnabled && row('TIJD', (
+            <input type="time" value={notifTime} onChange={e => save({ notificationTime: e.target.value })} style={{
+              background: C.elev2, border: `1px solid ${C.border}`, color: C.text,
+              padding: '6px 10px', borderRadius: 6, fontFamily: C.mono, fontSize: 13,
+            }} />
+          ))}
+          {notifEnabled && row('DAGEN', (
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              {Object.entries(DAYS_NL).map(([d, label]) => (
+                <button key={d} onClick={() => {
+                  const days = notifDays.includes(d) ? notifDays.filter(x => x !== d) : [...notifDays, d];
+                  save({ notificationDays: days });
+                }} style={{
+                  width: 30, height: 30, borderRadius: 6,
+                  border: `1px solid ${notifDays.includes(d) ? C.accent : C.borderMd}`,
+                  background: notifDays.includes(d) ? 'rgba(232,254,60,0.10)' : 'transparent',
+                  fontFamily: C.mono, fontSize: 10, color: notifDays.includes(d) ? C.accent : C.secondary,
+                  cursor: 'pointer',
+                }}>{label}</button>
+              ))}
+            </div>
+          ), true)}
+        </>)}
+
+        {sectionLabel('DATA')}
+        {card(<>
+          {row('EXPORTEER SESSIES', (
+            <button onClick={handleExportData} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.borderMd}`, background: 'transparent', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.text, cursor: 'pointer' }}>DOWNLOAD</button>
+          ))}
+          {row('WIS ALLE DATA', (
+            <button onClick={handleClearData} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.statusCrit}`, background: 'transparent', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.statusCrit, cursor: 'pointer' }}>VERWIJDER</button>
+          ), true)}
+        </>)}
+
+        {sectionLabel('ACCOUNT')}
+        {card(<>
+          {row('ONBOARDING OPNIEUW', (
+            <button onClick={handleResetOnboarding} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.borderMd}`, background: 'transparent', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.secondary, cursor: 'pointer' }}>START</button>
+          ), !DEV_MODE)}
+          {DEV_MODE && row('DEBUG MODE', (
+            <span style={{ fontFamily: C.mono, fontSize: 11, color: C.accent }}>ACTIEF</span>
+          ), true)}
+        </>)}
+
+      </div>
+    </div>
+  );
+}
+
 function BottomNav({ current, onNavigate }) {
   const tabs = [
-    { id: 'home',     label: 'HOME',     icon: Icon.home  },
-    { id: 'routines', label: 'ROUTINES', icon: Icon.list  },
-    { id: 'history',  label: 'STATS',    icon: Icon.stats },
-    { id: 'profile',  label: 'PROFILE',  icon: Icon.user  },
+    { id: 'home',     label: 'HOME',     icon: Icon.home     },
+    { id: 'routines', label: 'ROUTINES', icon: Icon.list     },
+    { id: 'settings', label: 'INST.',    icon: Icon.settings },
+    { id: 'profile',  label: 'PROFIEL',  icon: Icon.user     },
   ];
   return (
     <div style={{
@@ -2918,7 +3135,7 @@ function App() {
   }, [ready]);
 
   const navigate = useCallback((s, p = {}) => { setScreen(s); setParams(p); }, []);
-  const showNav = !['timer', 'builder', 'finish', 'onboarding', 'exerciseDetail'].includes(screen);
+  const showNav = !['timer', 'builder', 'finish', 'onboarding', 'exerciseDetail', 'history'].includes(screen);
 
   if (!ready) return (
     <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.font }}>
@@ -2930,11 +3147,11 @@ function App() {
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: C.font, color: C.text }}>
       {screen === 'onboarding'     && <OnboardingScreen dbRef={dbRef} onComplete={() => navigate('home', {})} />}
       {screen === 'home'           && <HomeScreen dbRef={dbRef} onNavigate={navigate} analytics={{ trackEvent, events }} />}
-      {screen === 'routines'       && <RoutinesScreen dbRef={dbRef} onNavigate={navigate} />}
+      {screen === 'routines'       && <RoutinesScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
       {screen === 'builder'        && <RoutineBuilderScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
       {screen === 'timer'          && <TimerScreen dbRef={dbRef} onNavigate={navigate} params={params} analytics={{ trackEvent, events }} />}
       {screen === 'finish'         && <FinishScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
-      {screen === 'history'        && <HistoryScreen dbRef={dbRef} />}
+      {screen === 'settings'       && <SettingsScreen dbRef={dbRef} onNavigate={navigate} />}
       {screen === 'profile'        && <ProfileScreen dbRef={dbRef} onNavigate={navigate} analytics={{ trackEvent, events }} />}
       {screen === 'exerciseDetail' && <ExerciseDetailScreen exercise={params.exercise} onBack={() => navigate(params.backTo || 'home', params.backToParams || {})} dbRef={dbRef} />}
       {showNav && <BottomNav current={screen} onNavigate={navigate} />}

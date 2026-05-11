@@ -17,8 +17,10 @@ Bouw eigen routines, train met een automatische timer en volg je voortgang.
 - RPE-score na afloop (hoe voelde het, 1–10)
 - Exercise detail scherm per oefening (instructies, spieren, tijden per niveau)
 - Profiel met BMI, gewichtsdoel en voortgangstrack
-- Streak en sessiegeschiedenis
-- Stats-scherm: totaal sessies, streak, trainingstijd
+- Home-scherm met vaste snel-starters (15/30/45 min), lichaamsdeel-rij en eigen routines
+- Volgende oefening zichtbaar tijdens rustpauze in de timer
+- Stats en sessiegeschiedenis geïntegreerd in profielscherm
+- Settings-scherm voor niveau, geluid, notificaties en data-beheer
 - Werkt offline (PWA, cache-first)
 - Data lokaal opgeslagen via IndexedDB — geen account, geen cloud
 
@@ -107,6 +109,7 @@ Stijling via inline JS style-objecten met CSS-variabelen. Geen Tailwind, geen CS
 | Phase 1 — Stabilisatie & PWA | ✅ Afgerond |
 | Phase 2 — Design integratie | ✅ Afgerond |
 | Phase 3 — Feature expansion | ✅ Afgerond |
+| Phase 3.5 — Engagement & UX Polish | ✅ Afgerond |
 | Phase 4 — Refinement & testing | ← Huidig |
 | Phase 5 — Native build (Capacitor) | Gepland |
 | Phase 6 — Google Play Store | Gepland |
