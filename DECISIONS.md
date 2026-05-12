@@ -85,4 +85,16 @@ Doel: over 3 maanden weten waarom iets is zoals het is — voor jezelf én voor 
 
 ---
 
+## 2026-05-12 — Categorie-herindeling: Push+Pull→Armen, Cardio→Full Body
+**Wat:** 5 categorieën teruggebracht naar 4. Push en Pull samengevoegd tot Armen, Cardio hernoemd naar Full Body.
+**Waarom:** Push/Pull-onderscheid is technisch (bewegingsrichting), niet hoe een thuistrainer denkt. "Armen" is intuïtiever. "Full Body" is nauwkeuriger dan Cardio voor gemengde workouts met burpees en jumping jacks.
+**Alternatief:** Categorieën laten staan. Afgewezen: gebruiker verwacht de taal van een fitness-app, niet van een kinesioloog.
+**Impact:** CATS, CAT_COLORS, alle exercise-definities (cat-veld), PER SPIERGROEP sectie op Home.
+
+## 2026-05-12 — PER SPIERGROEP sectie op Home + BODY_PART_WORKOUTS
+**Wat:** LICHAAMSDEEL-rij vervangen door interactieve PER SPIERGROEP sectie met pill-filter en 3 vaste workouts per categorie (12 totaal).
+**Waarom:** Pure navigatie-knoppen naar RoutinesScreen hadden te weinig directe actiewaarde. Gebruiker wil altijd iets te doen zien op het homescherm zonder te hoeven navigeren.
+**Alternatief:** Modale sheet per categorie. Afgewezen: te veel taps, pill-filter is direct en compact.
+**Impact:** HomeTab, BodyPartSection (nieuw), BODY_PART_WORKOUTS constante (nieuw).
+
 <!-- Volgende entries komen hieronder. Nieuwste bovenaan onder deze comment, of chronologisch onderaan — kies één en houd vol. -->
