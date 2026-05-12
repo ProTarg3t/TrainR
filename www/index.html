@@ -63,19 +63,13 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
 // ================================================================
 // DB LAYER
-// Swap dbOp / dbGetAll for fetch() calls when going public
 // ================================================================
 const DB_NAME = 'trainr_v1';
 const DB_VERSION = 5;
 const DEV_MODE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-const EVENT_SCHEMA = Object.freeze({
-  event: 'string',
-  ts: 'number',
-  userId: 'string',
-  sessionId: 'string?',
-  planId: 'string?',
-  meta: 'object',
-});
+
+// UI-strings die op meerdere plekken voorkomen
+const MSG_RESET_ONBOARDING = 'Onboarding opnieuw starten? Je profiel blijft bewaard.';
 
 const initDB = () => new Promise((resolve, reject) => {
   const req = indexedDB.open(DB_NAME, DB_VERSION);
@@ -86,8 +80,7 @@ const initDB = () => new Promise((resolve, reject) => {
     if (!db.objectStoreNames.contains('routines')) db.createObjectStore('routines', { keyPath: 'id' });
     if (!db.objectStoreNames.contains('sessions')) db.createObjectStore('sessions', { keyPath: 'id' });
 
-    // v4: profile store herbouwd met keyPath 'key' (KV-schema)
-    // Verwijder oude store (keyPath: 'id') en maak nieuwe aan
+    // v4: profile store omgebouwd naar KV-schema { key, value }
     if (old < 4) {
       if (db.objectStoreNames.contains('profile')) db.deleteObjectStore('profile');
       db.createObjectStore('profile', { keyPath: 'key' });
@@ -95,9 +88,6 @@ const initDB = () => new Promise((resolve, reject) => {
       db.createObjectStore('profile', { keyPath: 'key' });
     }
     if (!db.objectStoreNames.contains('events')) db.createObjectStore('events', { keyPath: 'id' });
-
-    // plans: dead code, bewust niet aanmaken voor nieuwe installaties
-    // Toekomstige migraties: if (old < 5) { ... }
   };
   req.onsuccess = e => resolve(e.target.result);
   req.onerror = e => reject(e.target.error);
@@ -114,12 +104,8 @@ const setProfileField = (db, key, value) =>
 const saveProfile = async (db, profile) => {
   const FIELDS = [
     'name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal',
-    'level',
-    'goal', 'trainingGoal',
+    'level', 'goal', 'trainingGoal', 'availableDays',
     'selectedPlanId', 'planConfirmed', 'starterPlanProfile', 'starterPlanSelection',
-    'availableDays',
-    'name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal', 'level',
-    'trainingGoal', 'availableDays', 'starterPlanProfile', 'starterPlanSelection',
     'onboardingComplete', 'createdAt',
     'notificationsEnabled', 'notificationDays', 'notificationTime', 'notificationPermissionState', 'lastReminderAt', 'lastFollowupAt',
   ];
@@ -283,11 +269,8 @@ function computeKpis(events) {
 }
 
 // ================================================================
-// EXERCISE LIBRARY
-// ================================================================
-// ════════════════════════════════════════════════════════════════
 // SPIERVISUALISATIE — config, helpers, SVG, componenten
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 const MUSCLE_COLORS = {
   none:      { fill: '#1A1A1C', stroke: '#252528' },
@@ -526,6 +509,9 @@ function MuscleTags({ exercise }) {
   );
 }
 
+// ================================================================
+// EXERCISE LIBRARY
+// ================================================================
 const EXERCISES = [
   // CORE
   { id: 'dead-bug',        cat: 'Core',  name: 'Dead bug',                 desc: 'Op rug, afwisselend arm en tegenovergesteld been langzaam uitstrekken.\nOnderrug plat op vloer houden, langzaam en gecontroleerd bewegen.',           times: [20, 40, 60], muscles: { primary: ['abs'], secondary: ['hip_flexors'] } },
@@ -1392,7 +1378,7 @@ function RoutinesScreen({ dbRef, onNavigate, params }) {
 }
 
 // ================================================================
-// ROUTINES SCREEN — redesigned
+// ROUTINE BUILDER
 // ================================================================
 function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
   const isEdit = !!params?.routineId;
@@ -2110,8 +2096,7 @@ function ProfileScreen({ dbRef, onNavigate, analytics }) {
 
   const handleResetOnboarding = async () => {
     if (!dbRef.current) return;
-    const ok = window.confirm('Onboarding opnieuw starten? Je profiel blijft bewaard.');
-    if (!ok) return;
+    if (!window.confirm(MSG_RESET_ONBOARDING)) return;
     await setProfileField(dbRef.current, 'onboardingComplete', false);
     onNavigate('onboarding', {});
   };
@@ -2552,7 +2537,7 @@ function SettingsScreen({ dbRef, onNavigate }) {
   const wakeLock     = profile?.wakelock !== false;
 
   const handleResetOnboarding = async () => {
-    if (!window.confirm('Onboarding opnieuw starten? Je profiel blijft bewaard.')) return;
+    if (!window.confirm(MSG_RESET_ONBOARDING)) return;
     await setProfileField(dbRef.current, 'onboardingComplete', false);
     onNavigate('onboarding', {});
   };
@@ -3169,7 +3154,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .catch(err => console.log('SW registration failed:', err));
+      .catch(err => console.warn('SW registration failed:', err));
   });
 }
 </script>
