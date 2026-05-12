@@ -97,4 +97,18 @@ Doel: over 3 maanden weten waarom iets is zoals het is — voor jezelf én voor 
 **Alternatief:** Modale sheet per categorie. Afgewezen: te veel taps, pill-filter is direct en compact.
 **Impact:** HomeTab, BodyPartSection (nieuw), BODY_PART_WORKOUTS constante (nieuw).
 
+## 2026-05-12 — Coach-gepersonaliseerde 3 home-trainingen
+**Wat:** De 3 hardcoded SNEL STARTEN-workouts (`QUICK_WORKOUTS`) vervangen door een coach-selector die op basis van het profiel (trainingGoal, level, weight/weightGoal, age) deterministisch 3 trainingen produceert. Seed = `(goal | level | dag-van-jaar)`: refresh op dezelfde dag = zelfde 3, volgende dag = nieuwe selectie. Age ≥ 55 filtert 6 high-impact oefeningen; weightDelta > 5kg in fatloss boost de Full-Body-share. Een coach-intro-regel boven de cards legt het profiel uit. Sectie hernoemd van SNEL STARTEN naar AANBEVOLEN.
+**Waarom:** Onboarding vraagt 10 stappen aan persoonlijke data maar het home-scherm negeerde dat volledig. Generieke quick-starts voelen niet als een fitness-app maar als een sample-lijst. Een coach-selector hergebruikt bestaande data (geen extra UI-vragen) en levert direct merkbare personalisatie.
+**Alternatief 1:** Random selectie elke render. Afgewezen: voelt verwarrend, "waar was die training die ik net zag?".
+**Alternatief 2:** Selectie pas vernieuwen na voltooide sessie. Afgewezen: vereist nieuwe last-shown-state in profile-store; deterministische dag-seed is simpeler en geeft hetzelfde gevoel van "agenda".
+**Alternatief 3:** ML-/regel-engine op alle profielvelden (gender, BMI, weight-history). Afgewezen: overengineering; trainingGoal + level + leeftijds-filter + weight-delta dekken 90% van het effect.
+**Impact:** HomeScreen, HomeTab (nieuwe coachWorkouts/coachIntro props), nieuwe constanten (`COACH_TEMPLATES`, `HIGH_IMPACT_IDS`, `LEVEL_TIME_IDX`, `GOAL_LABEL`, `LEVEL_LABEL`), nieuwe helpers (`dayOfYear`, `hashStr`, `seededShuffle`, `buildCoachWorkouts`, `buildCoachIntro`). `QUICK_WORKOUTS` verwijderd. TimerScreen ongewijzigd (gebruikte al `params.routine` voor BUILTIN_PLANS).
+
+## 2026-05-12 — Onboarding: `goal` en `trainingGoal` samenvoegen tot één canonical key
+**Wat:** Onboarding-stap 7 vroeg eerst `goal` (fitness/core_strength/fat_loss) bij het doelgewicht. Stap 8 vroeg `trainingGoal` (core/fatloss/muscle). Twee overlappende vragen samengevoegd: stap 7 vraagt alleen nog doelgewicht; stap 8 heeft 4 tiles (AFVALLEN/SPIEROPBOUW/CORE/ALGEMENE FITHEID). `trainingGoal` is de canonical key; `goal` vervalt. Migratie via `migrateProfile()` in `getProfile()` mapt oude profielen: `fat_loss → fatloss`, `core_strength → core`, `fitness → fitness`. `selectDefaultPlan` leest `trainingGoal` met inline-fallback.
+**Waarom:** Twee vragen die deels hetzelfde meten zijn verwarrend voor de gebruiker (kies ik fat_loss bij doelgewicht én fatloss bij trainingsdoel?) en voor de code (`selectDefaultPlan` gebruikte `goal`, `resolveStarterPlanProfile` `trainingGoal` — twee paden voor één concept). Bovendien sluit `trainingGoal` taalkundig beter aan op fysieke training.
+**Alternatief:** DB_VERSION bump met store-migratie. Afgewezen: JS-laag migratie via `migrateProfile()` bij elke read is voldoende, geen schema-breaking change, makkelijker terug te draaien.
+**Impact:** OnboardingScreen (stap 7 + 8), `getProfile` (migratie-aanroep), `saveProfile` FIELDS (`goal` weg), `selectDefaultPlan` (leest trainingGoal), `finish()` (geen goal meer opgeslagen).
+
 <!-- Volgende entries komen hieronder. Nieuwste bovenaan onder deze comment, of chronologisch onderaan — kies één en houd vol. -->
