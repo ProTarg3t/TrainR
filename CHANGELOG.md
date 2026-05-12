@@ -7,6 +7,78 @@ Nieuwste bovenaan.
 
 ## 2026-05-12
 
+### 21:35 — Coach-gepersonaliseerde 3 home-trainingen
+**Bestanden:** `www/index.html`
+
+Vervangt de hardcoded SNEL STARTEN-workouts door 3 trainingen die door een coach-selector worden samengesteld op basis van het onboarding-profiel.
+
+**Coach-selector:**
+- 12 templates verdeeld over 4 trainingGoals (fatloss / muscle / core / fitness), elk met `primaryCat` ~70% en `secondaryCat` ~30%.
+- Duraties uit `times[level-index]` per oefening + 30s rust tussen oefeningen.
+- Deterministisch op seed `(goal | level | dag-van-jaar)`: refresh = zelfde 3 trainingen, nieuwe dag = nieuwe selectie.
+- Age ≥ 55: 6 high-impact oefeningen (burpees, jump-squat, lateral-jump, high-knees, butt-kicks, squat-jump-rep) eruit gefilterd.
+- WeightDelta > 5kg in fatloss: 1 extra Full-Body oefening i.p.v. core.
+- Coach-intro boven de cards: `Voor jouw doel: X. N× per week, Y.`
+
+**Onboarding gesaneerd:**
+- Stap 7: alleen doelgewicht-input (de overlappende DOEL-tiles verwijderd).
+- Stap 8: 4 tiles in 2×2 grid (AFVALLEN / SPIEROPBOUW / CORE / ALGEMENE FITHEID). `trainingGoal` is nu canonical; `goal`-veld vervalt.
+
+**Migratie bestaande profielen:**
+- `migrateProfile()` in `getProfile()` mapt oude `goal`-waarden naar `trainingGoal` bij elke read. `saveProfile` schrijft `goal` niet meer; `selectDefaultPlan` leest `trainingGoal` met inline-fallback voor profielen die nog niet zijn gemigreerd.
+
+**HomeTab:** SNEL STARTEN-sectie hernoemd naar AANBEVOLEN. Coach-workouts worden via `params.routine`-pad in TimerScreen gestart (geen DB-write voor dynamische routines).
+
+### 21:18 — CLAUDE.md uitgebreid met verificatie-checklist en sectie-structuur
+**Bestanden:** `CLAUDE.md`
+
+Naar aanleiding van het PR #29-incident (commit-bericht beweerde features die niet in de diff zaten):
+- Verplichte verificatie vóór commit: `git diff --cached`, grep op nieuwe symbolen, docs nooit voor code uit.
+- Verplichte verificatie vóór PR-merge: diff-stats matchen met PR-beschrijving.
+- Branch-housekeeping: geen losse commits naar al-gemergede branches.
+- Vaste sectie-structuur voor `www/index.html` (11 secties in volgorde).
+- Guidance per docs-bestand: wanneer DECISIONS / CHANGELOG / TESTING / ROADMAP bijwerken.
+
+### 21:15 — MET-tabellen bijwerken voor nieuwe categorieën
+**Bestanden:** `www/index.html`
+
+`MET_BY_CAT` en `MET_SESSION` gebruikten nog Push/Pull/Cardio als keys na de categorie-herindeling. Calorieberekening viel daardoor terug op de default (4.0) voor Armen/Full Body workouts. Bug zat in commit c06934e zelf.
+- Push (5.0) + Pull (5.0) → Armen (5.0)
+- Cardio (8.0) → Full Body (8.0)
+
+### 21:14 — Cleanup vibe code in index.html
+**Bestanden:** `www/index.html`
+
+8 low-risk leesbaarheids-fixes, geen gedragsverandering:
+- Misleidende section header `ROUTINES SCREEN — redesigned` → `ROUTINE BUILDER`.
+- Speculatieve comment over fetch()-migratie 'when going public' verwijderd.
+- Dead-code-comments rond niet-aangemaakte plans-store verwijderd.
+- Ongebruikte `EVENT_SCHEMA` constante verwijderd.
+- Dubbele entries in `saveProfile` FIELDS-array gededupt.
+- Ontbrekende `EXERCISE LIBRARY` banner toegevoegd boven `const EXERCISES`.
+- `MSG_RESET_ONBOARDING` constante toegevoegd (was 2× letterlijke string).
+- `console.log` → `console.warn` bij SW registration failure (consistent met andere warns).
+
+### 06:40 — Categorie-herindeling + PER SPIERGROEP + 12 nieuwe oefeningen (cherry-pick c06934e)
+**Bestanden:** `www/index.html`, `DECISIONS.md`
+
+Cherry-pick van commit die hangend op `claude/init-project-setup-100wc` stond zonder PR (oorzaak van PR #29-mismatch tussen docs en code).
+
+**Categorieën:**
+- Push + Pull samengevoegd tot Armen
+- Cardio hernoemd naar Full Body
+- 4 categorieën in plaats van 5: Core / Armen / Legs / Full Body
+
+**12 nieuwe oefeningen** (3 per categorie):
+- Core: hollow-body, leg-raise, russian-twist
+- Armen: wide-pushup, floor-dip, superman-pull
+- Legs: sumo-squat, step-up, calf-raise
+- Full Body: bear-crawl, inchworm, lateral-jump
+
+**PER SPIERGROEP sectie op home:**
+- `BodyPartSection` component met pill-filter (4 spiergroepen) + 3 directe workout-kaarten per categorie.
+- `BODY_PART_WORKOUTS` constante: 12 voorgedefinieerde workouts totaal.
+
 ### 05:35 — Bugfixes nav en wake-lock (review #28)
 **Bestanden:** `www/index.html`
 - P1 fix: DETAILS-knop op FinishScreen navigeerde naar verwijderd 'history'-scherm → nu naar 'profile'
