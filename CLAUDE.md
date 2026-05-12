@@ -72,6 +72,49 @@ Styling is done via inline JS style objects referencing CSS variables (no CSS-in
 - PR naar `main`, vanuit de feature branch.
 - PR-titel en -body in het Nederlands.
 
+### Verificatie vóór commit (verplicht)
+
+Vorige sessies hebben commit-berichten geschreven die features claimden die niet in de diff zaten (zie PR #29). Voorkom herhaling:
+
+1. **`git diff --cached`** voor je committed — wat zit er werkelijk in de stage?
+2. Als je commit-bericht een nieuwe constante, component of feature noemt: doe een `grep -n "<symbool>" www/index.html` en bevestig dat het in de huidige code staat. Niet alleen "ik heb het net geschreven" — verifieer.
+3. CHANGELOG.md en DECISIONS.md pas bijwerken **na** de code-wijziging in dezelfde commit. Nooit docs vooruit op de code laten lopen.
+4. Bij grote refactors: na de commit `git show --stat HEAD` checken — komt het aantal regels overeen met wat je verwacht?
+
+### Verificatie vóór PR merge
+
+- `git diff main...HEAD --stat` — komt de file-changelijst overeen met de PR-beschrijving?
+- Als de PR een feature claimt: `grep` op het hoofd-symbool van die feature in de PR-branch. Niet matcht = niet gemerged.
+
+### Branch-housekeeping
+
+- Push na PR-merge geen losse commits meer naar dezelfde feature branch — maak een nieuwe branch. Anders blijven commits "hangen" zonder PR (oorzaak van het PR #29 incident).
+
+## Sectie-structuur `www/index.html`
+
+Vaste volgorde — nieuwe code op de juiste plek plaatsen, niet onderaan plakken:
+
+1. **DB LAYER** — `initDB`, `dbOp`, `dbGetAll`, profile-helpers, MET-tabellen, kcal-helpers, analytics-factory.
+2. **SPIERVISUALISATIE** — `MUSCLE_COLORS`, body-region config, `BodyDiagram`, `MuscleTags`.
+3. **EXERCISE LIBRARY** — `EXERCISES` array, `CATS`, `CAT_COLORS`, `BODY_PART_WORKOUTS`.
+4. **BUILTIN PLANS** — `BUILTIN_PLANS`, plan-helpers, default-plan-selector.
+5. **AUDIO** — `beep` + Web Audio helpers.
+6. **TIMER HELPERS** — `buildSequence`, format helpers, streak/kcal-calc voor sessies.
+7. **DESIGN TOKENS** — `C` object (kleuren, fonts, spacing) — alleen verwijzen naar CSS-vars uit `<style>` blok.
+8. **ICONS** — inline SVG iconen onder `Icon = { ... }`.
+9. **SHARED COMPONENTS** — `Btn`, `Label`, `Loader`, `CatTags`, kleine herbruikbare componenten.
+10. **SCREENS** — één blok per scherm in nav-volgorde: Home → Routines → RoutineBuilder → Timer → Finish → Profile → History → Settings → Onboarding → ExerciseDetail.
+11. **APP** — root component, navigatie-state, service-worker registratie.
+
+Banner-comment-stijl: `// ===` (64×), hoofdsecties alleen. Sub-secties → één-regel comment, geen banner.
+
+## Wanneer welk docs-bestand updaten
+
+- **`DECISIONS.md`** — alleen bij architectuur- of productkeuzes met afweging (Wat / Waarom / Alternatief / Impact). Niet voor bugfixes of cosmetische changes.
+- **`CHANGELOG.md`** — bij elke user-visible feature of fix. Format: datum/tijd-blok, bestanden, bullets.
+- **`TESTING.md`** — bijwerken als er nieuwe flow is die niet in de checklist staat. Vóór een PR-merge: de relevante secties van TESTING.md doorlopen op een echt Android-toestel.
+- **`ROADMAP.md`** — raadplegen bij scope-vraag ("past dit in deze fase?"). Aanpassen alleen bij echte plan-wijziging.
+
 ## Key Conventions
 
 - **Language**: All UI text is Dutch.
