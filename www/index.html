@@ -1583,11 +1583,15 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
   const [stepResults, setStepResults] = useState({});
   const [actualInput, setActualInput] = useState('');
   const [soundOn, setSoundOn] = useState(true);
+  const [useWakeLock, setUseWakeLock] = useState(true);
   const [startTs, setStartTs] = useState(null);
 
   useEffect(() => {
     if (!dbRef.current) return;
-    getProfile(dbRef.current).then(p => { if (p?.sound === false) setSoundOn(false); });
+    getProfile(dbRef.current).then(p => {
+      if (p?.sound === false) setSoundOn(false);
+      if (p?.wakelock === false) setUseWakeLock(false);
+    });
   }, []);
   const intervalRef = useRef(null);
   const audioCtxRef = useRef(null);
@@ -1614,7 +1618,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
   const workIdx = sequence.slice(0, stepIdx + 1).filter(s => !s.isRest).length;
 
   const initAudio = () => { if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)(); };
-  const reqWake = async () => { try { if ('wakeLock' in navigator) wakeLockRef.current = await navigator.wakeLock.request('screen'); } catch(e) {} };
+  const reqWake = async () => { if (!useWakeLock) return; try { if ('wakeLock' in navigator) wakeLockRef.current = await navigator.wakeLock.request('screen'); } catch(e) {} };
   const relWake = () => { try { wakeLockRef.current?.release(); wakeLockRef.current = null; } catch(e) {} };
 
   useEffect(() => {
@@ -2068,7 +2072,7 @@ function FinishScreen({ dbRef, onNavigate, params }) {
 
       {/* CTA */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 8, padding: '24px 20px 0' }}>
-        <button onClick={() => onNavigate('history', {})} style={{ padding: '16px 0', background: C.surface, color: C.text, border: `1px solid ${C.border}`, borderRadius: 12, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.14em' }}>DETAILS</button>
+        <button onClick={() => onNavigate('profile', {})} style={{ padding: '16px 0', background: C.surface, color: C.text, border: `1px solid ${C.border}`, borderRadius: 12, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.14em' }}>DETAILS</button>
         <button onClick={async () => {
           if (sessionId && dbRef.current) {
             const s = await dbOp(dbRef.current, 'sessions', 'readonly', st => st.get(sessionId));
