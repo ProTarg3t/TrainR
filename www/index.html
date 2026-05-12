@@ -94,17 +94,27 @@ const initDB = () => new Promise((resolve, reject) => {
 });
 
 // Profile helpers — KV store: { key, value } per record
+// Normaliseert oude profielen: vroege builds hadden `goal` (fitness/core_strength/fat_loss)
+// naast `trainingGoal` (core/fatloss/muscle). trainingGoal is nu canonical.
+function migrateProfile(p) {
+  if (!p) return p;
+  if (!p.trainingGoal && p.goal) {
+    p.trainingGoal = { fat_loss: 'fatloss', core_strength: 'core', fitness: 'fitness' }[p.goal] || 'fitness';
+  }
+  return p;
+}
+
 const getProfile = async db => {
   const entries = await dbGetAll(db, 'profile');
   if (!entries.length) return null;
-  return Object.fromEntries(entries.map(e => [e.key, e.value]));
+  return migrateProfile(Object.fromEntries(entries.map(e => [e.key, e.value])));
 };
 const setProfileField = (db, key, value) =>
   dbOp(db, 'profile', 'readwrite', s => s.put({ key, value }));
 const saveProfile = async (db, profile) => {
   const FIELDS = [
     'name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal',
-    'level', 'goal', 'trainingGoal', 'availableDays',
+    'level', 'trainingGoal', 'availableDays',
     'selectedPlanId', 'planConfirmed', 'starterPlanProfile', 'starterPlanSelection',
     'onboardingComplete', 'createdAt',
     'notificationsEnabled', 'notificationDays', 'notificationTime', 'notificationPermissionState', 'lastReminderAt', 'lastFollowupAt',
@@ -623,20 +633,40 @@ const DEFAULT_ROUTINE = {
   createdAt: Date.now(),
 };
 
-const QUICK_WORKOUTS = [
-  {
-    id: 'quick-15', name: 'Quick Core', durationLabel: '15M',
-    exercises: ['dead-bug', 'plank', 'glute-bridge', 'bicycles', 'mountain-cl', 'side-l', 'side-r', 'high-knees'],
-  },
-  {
-    id: 'quick-30', name: 'Full Body', durationLabel: '30M',
-    exercises: ['jumping-jacks', 'pushup', 'squats', 'dead-bug', 'plank', 'alt-lunges', 'glute-bridge', 'mountain-cl', 'incline-pushup', 'bicycles', 'high-knees', 'scap-retract', 'wall-sit', 'butt-kicks'],
-  },
-  {
-    id: 'quick-45', name: 'Kracht & Conditie', durationLabel: '45M',
-    exercises: ['jumping-jacks', 'pushup', 'squats', 'dead-bug', 'plank', 'alt-lunges', 'glute-bridge', 'mountain-cl', 'incline-pushup', 'bicycles', 'high-knees', 'scap-retract', 'wall-sit', 'butt-kicks', 'diamond-pushup', 'jump-squat', 'side-l', 'side-r', 'burpees', 'inv-row'],
-  },
-];
+// Coach-templates per trainingGoal: recepten voor de 3 home-trainingen.
+// primaryCat levert ~70%, secondaryCat ~30% van de oefeningen.
+const COACH_TEMPLATES = {
+  fatloss: [
+    { id: 'fl_a', name: 'Vetverbrander',     primaryCat: 'Full Body', secondaryCat: 'Legs',      count: 8 },
+    { id: 'fl_b', name: 'Benen & Conditie',  primaryCat: 'Legs',      secondaryCat: 'Full Body', count: 7 },
+    { id: 'fl_c', name: 'Totaal Lichaam',    primaryCat: 'Full Body', secondaryCat: 'Core',      count: 8 },
+  ],
+  muscle: [
+    { id: 'ms_a', name: 'Armen & Borst',     primaryCat: 'Armen',     secondaryCat: 'Core',      count: 8 },
+    { id: 'ms_b', name: 'Benen Kracht',      primaryCat: 'Legs',      secondaryCat: 'Core',      count: 7 },
+    { id: 'ms_c', name: 'Push & Pull Mix',   primaryCat: 'Armen',     secondaryCat: 'Full Body', count: 8 },
+  ],
+  core: [
+    { id: 'co_a', name: 'Core Basis',        primaryCat: 'Core',      secondaryCat: null,        count: 7 },
+    { id: 'co_b', name: 'Core & Stabiliteit',primaryCat: 'Core',      secondaryCat: 'Legs',      count: 7 },
+    { id: 'co_c', name: 'Core Power',        primaryCat: 'Core',      secondaryCat: 'Full Body', count: 8 },
+  ],
+  fitness: [
+    { id: 'ft_a', name: 'Volledige Sessie',  primaryCat: 'Full Body', secondaryCat: 'Armen',     count: 8 },
+    { id: 'ft_b', name: 'Benen & Core',      primaryCat: 'Legs',      secondaryCat: 'Core',      count: 7 },
+    { id: 'ft_c', name: 'Kracht Mix',        primaryCat: 'Armen',     secondaryCat: 'Legs',      count: 8 },
+  ],
+};
+
+// Oefeningen met explosieve/sprong-componenten — uitgefilterd voor 55+.
+const HIGH_IMPACT_IDS = new Set([
+  'jump-squat', 'burpees', 'squat-jump-rep', 'lateral-jump', 'high-knees', 'butt-kicks',
+]);
+
+const LEVEL_TIME_IDX = { beginner: 0, intermediate: 1, expert: 2 };
+
+const GOAL_LABEL  = { fatloss: 'vetverlies', muscle: 'spieropbouw', core: 'core-stabiliteit', fitness: 'algemene fitheid' };
+const LEVEL_LABEL = { beginner: 'rustig opbouwen', intermediate: 'stabiel doortrainen', expert: 'hoge belasting' };
 
 const BODY_PART_WORKOUTS = {
   Core: [
@@ -660,6 +690,92 @@ const BODY_PART_WORKOUTS = {
     { id: 'fb-h',  name: 'Full Body HIT',   durationLabel: '~25 MIN', exercises: ['jumping-jacks','burpees','high-knees','butt-kicks','squats','pushup','mountain-cl','lateral-jump','inchworm'] },
   ],
 };
+
+// Dag-van-jaar (1-366). Gebruikt als seed voor dagelijkse coach-selectie.
+function dayOfYear(d = new Date()) {
+  const start = new Date(d.getFullYear(), 0, 0);
+  return Math.floor((d - start) / 86400000);
+}
+
+// 32-bit hash voor strings (Mulberry-style); kleine, snel, deterministisch.
+function hashStr(s) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+
+// Pure deterministische shuffle: zelfde seed = zelfde volgorde.
+function seededShuffle(arr, seed) {
+  const out = arr.slice();
+  let s = seed >>> 0;
+  for (let i = out.length - 1; i > 0; i--) {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    const j = s % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+// Bouwt 3 gepersonaliseerde workouts op basis van profile + dag-van-jaar.
+// Retourneert objecten met dezelfde vorm als BODY_PART_WORKOUTS-items.
+function buildCoachWorkouts(profile) {
+  const goal     = profile?.trainingGoal || 'fitness';
+  const level    = profile?.level || 'intermediate';
+  const timeIdx  = LEVEL_TIME_IDX[level] ?? 1;
+  const age      = parseInt(profile?.age, 10) || 0;
+  const weight   = parseFloat(profile?.weight) || 0;
+  const wGoal    = parseFloat(profile?.weightGoal) || 0;
+  const wDelta   = weight - wGoal;
+  const templates = COACH_TEMPLATES[goal] || COACH_TEMPLATES.fitness;
+  const today    = dayOfYear();
+  const baseSeed = hashStr(`${goal}|${level}|${today}`);
+
+  return templates.map((t, idx) => {
+    let primaryCount = Math.ceil(t.count * 0.7);
+    let secondaryCount = t.count - primaryCount;
+
+    // WeightDelta-tweak: bij echt afvallen meer Full Body in fatloss-templates.
+    if (goal === 'fatloss' && wDelta > 5 && t.primaryCat === 'Full Body' && secondaryCount > 1) {
+      primaryCount += 1;
+      secondaryCount -= 1;
+    }
+
+    const inPool = (e, cat) => e.cat === cat && !(age >= 55 && HIGH_IMPACT_IDS.has(e.id));
+    const primaryPool   = EXERCISES.filter(e => inPool(e, t.primaryCat));
+    const secondaryPool = t.secondaryCat ? EXERCISES.filter(e => inPool(e, t.secondaryCat)) : [];
+
+    const seed = baseSeed ^ hashStr(t.id);
+    const primary   = seededShuffle(primaryPool,   seed).slice(0, primaryCount);
+    const secondary = seededShuffle(secondaryPool, seed ^ 0x9E3779B9).slice(0, secondaryCount);
+
+    // Als secundaire pool te klein was, primair aanvullen.
+    if (secondary.length < secondaryCount) {
+      const need = secondaryCount - secondary.length;
+      const extra = seededShuffle(primaryPool.filter(e => !primary.includes(e)), seed + 7).slice(0, need);
+      primary.push(...extra);
+    }
+
+    const picked = [...primary, ...secondary];
+    const totalSec = picked.reduce((sum, e) => sum + (e.times?.[timeIdx] || 30), 0) + (picked.length - 1) * 30;
+    const minutes = Math.max(1, Math.round(totalSec / 60));
+
+    return {
+      id: `coach-${goal}-${t.id}-${today}`,
+      name: t.name,
+      durationLabel: `${minutes}M`,
+      exercises: picked.map(e => e.id),
+      category: t.primaryCat,
+    };
+  });
+}
+
+// Eén regel coach-uitleg boven de 3 cards.
+function buildCoachIntro(profile) {
+  const goal  = profile?.trainingGoal || 'fitness';
+  const level = profile?.level || 'intermediate';
+  const days  = profile?.availableDays || '3';
+  return `Voor jouw doel: ${GOAL_LABEL[goal]}. ${days}× per week, ${LEVEL_LABEL[level]}.`;
+}
 
 // ================================================================
 // BUILTIN PLANS
@@ -755,10 +871,13 @@ const BUILTIN_PLANS = [
 
 function selectDefaultPlan(profile) {
   if (!profile) return BUILTIN_PLANS[0].id;
-  const goal = profile.goal || ((profile.weightGoal && profile.weight && profile.weightGoal < profile.weight) ? 'fat_loss' : 'fitness');
-  if (goal === 'core_strength') return 'core-30';
+  // trainingGoal is canonical; oude profielen vallen via migrateProfile al om.
+  // Inline-fallback voor het pad in OnboardingScreen waar nog geen migratie heeft plaatsgevonden.
+  const tg = profile.trainingGoal
+    || ({ fat_loss: 'fatloss', core_strength: 'core', fitness: 'fitness' }[profile.goal])
+    || ((profile.weightGoal && profile.weight && profile.weightGoal < profile.weight) ? 'fatloss' : 'fitness');
+  if (tg === 'core') return 'core-30';
   if (profile.level === 'beginner') return 'consistency-21';
-  if (goal === 'fitness') return 'fit-28';
   return 'fit-28';
 }
 
@@ -940,7 +1059,7 @@ const Icon = {
 // ================================================================
 // HOME SCREEN
 // ================================================================
-function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNavigate, starterCTA }) {
+function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWorkouts, coachIntro, onNavigate, starterCTA }) {
   const routineCard = (key, name, exerciseIds, label, onClick) => (
     <button key={key} onClick={onClick} style={{
       textAlign: 'left', background: C.surface, cursor: 'pointer',
@@ -1021,15 +1140,20 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNaviga
         </button>
       </section>
 
-      {/* Snel starten — vaste workouts 15/30/45 min */}
+      {/* Aanbevolen — door coach gepersonaliseerde workouts */}
       <section style={{ paddingBottom: 20 }}>
-        <div style={{ padding: '0 20px 12px' }}>
-          <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>SNEL STARTEN</span>
+        <div style={{ padding: '0 20px 6px' }}>
+          <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>AANBEVOLEN</span>
         </div>
+        {coachIntro && (
+          <div style={{ padding: '0 20px 12px', fontFamily: C.mono, fontSize: 12, letterSpacing: '0.04em', color: C.secondary, lineHeight: 1.5 }}>
+            {coachIntro}
+          </div>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '0 20px' }}>
-          {QUICK_WORKOUTS.map(qw => routineCard(
-            qw.id, qw.name, qw.exercises, qw.durationLabel,
-            () => onNavigate('timer', { routine: qw, backTo: 'home' })
+          {(coachWorkouts || []).map(cw => routineCard(
+            cw.id, cw.name, cw.exercises, cw.durationLabel,
+            () => onNavigate('timer', { routine: cw, backTo: 'home' })
           ))}
         </div>
       </section>
@@ -1260,6 +1384,8 @@ function HomeScreen({ dbRef, onNavigate, analytics }) {
   const greeting = hours < 6 ? 'GOEDE NACHT' : hours < 12 ? 'GOEDEMORGEN' : hours < 18 ? 'GOEDEMIDDAG' : 'GOEDENAVOND';
 
   const quickRoutines = routines.filter(r => r.quickStart !== false);
+  const coachWorkouts = useMemo(() => profile ? buildCoachWorkouts(profile) : [], [profile]);
+  const coachIntro    = useMemo(() => profile ? buildCoachIntro(profile)    : '', [profile]);
 
   const tabBtn = (tab) => ({
     flex: 1, padding: '10px 0',
@@ -1288,6 +1414,8 @@ function HomeScreen({ dbRef, onNavigate, analytics }) {
           streak={streak}
           todayDone={todayDone}
           quickRoutines={quickRoutines}
+          coachWorkouts={coachWorkouts}
+          coachIntro={coachIntro}
           onNavigate={onNavigate}
           starterCTA={starterCTA}
         />
@@ -2772,7 +2900,6 @@ function OnboardingScreen({ dbRef, onComplete }) {
   const [weight, setWeight] = useState('');
   const [weightGoal, setWeightGoal] = useState('');
   const [level, setLevel] = useState(null);
-  const [goal, setGoal] = useState(null);
   const [trainingGoal, setTrainingGoal] = useState(null);
   const [availableDays, setAvailableDays] = useState(null);
   useEffect(() => { window.__trackEvent?.('onboarding_started', { step: 1 }); }, []);
@@ -2792,10 +2919,9 @@ function OnboardingScreen({ dbRef, onComplete }) {
       weightStart: parseFloat(weight),
       weightGoal: goalW,
       level,
-      goal,
-      selectedPlanId: selectDefaultPlan({ level, goal, weight: parseFloat(weight), weightGoal: goalW }),
-      planConfirmed: false,
       trainingGoal,
+      selectedPlanId: selectDefaultPlan({ level, trainingGoal, weight: parseFloat(weight), weightGoal: goalW }),
+      planConfirmed: false,
       availableDays: availableDays ? parseInt(availableDays) : null,
       starterPlanProfile: starter.profileId,
       starterPlanSelection: {
@@ -2809,8 +2935,8 @@ function OnboardingScreen({ dbRef, onComplete }) {
       onboardingComplete: true,
       createdAt: Date.now(),
     });
-    window.__trackEvent?.('onboarding_completed', { level, goal, trainingGoal, availableDays: availableDays ? parseInt(availableDays) : null });
-    window.__trackEvent?.('plan_assigned', { mode: 'auto', selectedPlanId: selectDefaultPlan({ level, goal, weight: parseFloat(weight), weightGoal: goalW }) });
+    window.__trackEvent?.('onboarding_completed', { level, trainingGoal, availableDays: availableDays ? parseInt(availableDays) : null });
+    window.__trackEvent?.('plan_assigned', { mode: 'auto', selectedPlanId: selectDefaultPlan({ level, trainingGoal, weight: parseFloat(weight), weightGoal: goalW }) });
     onComplete(starter);
   };
 
@@ -2933,25 +3059,20 @@ function OnboardingScreen({ dbRef, onComplete }) {
               <input style={{ ...inputStyle, paddingRight: 60 }} type="number" step="0.1" value={weightGoal} onChange={e => setWeightGoal(e.target.value)} placeholder={weight || '75'} />
               <span style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', fontFamily: C.mono, color: C.muted, fontSize: 16 }}>kg</span>
             </div>
-            <div style={{ height: 18 }} />
-            <div style={{ display: 'grid', gap: 8 }}>
-              {[{ key: 'fitness', label: 'ALGEMENE FITHEID' }, { key: 'core_strength', label: 'CORE FOCUS' }, { key: 'fat_loss', label: 'CONSISTENTIE / VETVERLIES' }].map(g => (
-                <button key={g.key} onClick={() => setGoal(g.key)} style={{ padding: '11px 10px', borderRadius: 10, border: `1px solid ${goal === g.key ? C.accent : C.borderMd}`, background: goal === g.key ? 'rgba(232,254,60,0.08)' : C.surface, color: goal === g.key ? C.accent : C.secondary, fontFamily: C.mono, fontSize: 12 }}>{g.label}</button>
-              ))}
-            </div>
             <div style={{ flex: 1 }} />
-            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !goal)}</div>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !weightGoal)}</div>
           </>
         )}
 
         {step === 8 && (
           <>
             <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Wat is je trainingsdoel?</h1>
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {[
-                { key: 'core', label: 'CORE' },
                 { key: 'fatloss', label: 'AFVALLEN' },
-                { key: 'muscle', label: 'SPIEROPBOUW' },
+                { key: 'muscle',  label: 'SPIEROPBOUW' },
+                { key: 'core',    label: 'CORE' },
+                { key: 'fitness', label: 'ALGEMENE FITHEID' },
               ].map(({ key, label }) => tileBtn(trainingGoal === key, () => setTrainingGoal(key), label))}
             </div>
             <div style={{ flex: 1 }} />
