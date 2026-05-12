@@ -514,42 +514,53 @@ function MuscleTags({ exercise }) {
 // ================================================================
 const EXERCISES = [
   // CORE
-  { id: 'dead-bug',        cat: 'Core',  name: 'Dead bug',                 desc: 'Op rug, afwisselend arm en tegenovergesteld been langzaam uitstrekken.\nOnderrug plat op vloer houden, langzaam en gecontroleerd bewegen.',           times: [20, 40, 60], muscles: { primary: ['abs'], secondary: ['hip_flexors'] } },
-  { id: 'plank',           cat: 'Core',  name: 'Plank',                    desc: 'Op ellebogen en tenen, lichaam in een rechte lijn vasthouden.\nEllebogen onder schouders, heupen niet laten zakken of omhoog duwen.',           times: [30, 60, 90], muscles: { primary: ['abs', 'lower_back'], secondary: ['shoulders', 'glutes', 'quads'] } },
-  { id: 'side-l',          cat: 'Core',  name: 'Zijplank links',            desc: 'Op linkerelleboog, heupen omhoog, lichaam recht van hoofd tot voeten.\nNiet inzakken in de heup, rechterhand op heup of omhoog.',                  times: [20, 40, 60], muscles: { primary: ['obliques'], secondary: ['abs', 'shoulders', 'glutes'] } },
-  { id: 'side-r',          cat: 'Core',  name: 'Zijplank rechts',           desc: 'Op rechterelleboog, heupen omhoog, lichaam recht van hoofd tot voeten.\nNiet inzakken in de heup, linkerhand op heup of omhoog.',                   times: [20, 40, 60], muscles: { primary: ['obliques'], secondary: ['abs', 'shoulders', 'glutes'] } },
-  { id: 'glute-bridge',    cat: 'Core',  name: 'Glute bridge hold',         desc: 'Op rug, voeten plat op vloer, heupen zo hoog mogelijk omhoog persen.\nBilspieren maximaal aanspannen bovenaan, knieën iets naar buiten.',         times: [20, 45, 60], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back'] } },
-  { id: 'mountain-cl',     cat: 'Core',  name: 'Mountain climbers',         desc: 'In hoge plankpositie, knieën afwisselend explosief naar de borst trekken.\nHeupen laag houden, tempo opbouwen, kern strak houden.',                times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
-  { id: 'bicycles',        cat: 'Core',  name: 'Bicycle crunches',          desc: 'Op rug, handen achter hoofd, elleboog naar tegenovergestelde knie draaien.\nBeen volledig uitstrekken, langzaam draaien, niet aan de nek trekken.', times: [20, 40, 60], muscles: { primary: ['abs', 'obliques'], secondary: ['hip_flexors'] } },
-  // PUSH
-  { id: 'pushup',          cat: 'Push',  name: 'Push-ups',                  desc: 'Handen schouderbreedte, borst richting vloer zakken en omhoog duwen.\nEllebogen ~45° van het lichaam, lichaam als één rechte plank houden.',      times: [20, 40, 60], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
-  { id: 'incline-pushup',  cat: 'Push',  name: 'Incline push-ups',          desc: 'Handen op stoel of tafel, lichaam schuin naar voren, push-up beweging.\nMakkelijkere instap, zelfde techniek als een normale push-up.',           times: [20, 40, 60], muscles: { primary: ['chest'], secondary: ['shoulders', 'triceps'] } },
-  { id: 'diamond-pushup',  cat: 'Push',  name: 'Diamond push-ups',          desc: 'Handen samen in een driehoek direct onder de borst, zakken en omhoog.\nEllebogen langs het lichaam, triceps worden harder aangesproken.',          times: [15, 30, 45], muscles: { primary: ['triceps', 'chest'], secondary: ['shoulders'] } },
-  { id: 'pike-pushup',     cat: 'Push',  name: 'Pike push-ups',             desc: 'Heupen hoog in omgekeerde V-vorm, hoofd richting de vloer zakken.\nGewicht op de schouders, ellebogen stabiel houden, schouders focus.',         times: [15, 30, 45], muscles: { primary: ['shoulders', 'triceps'], secondary: ['chest', 'traps'] } },
-  { id: 'dips',            cat: 'Push',  name: 'Dips (stoel)',              desc: 'Handen op stoel achter je, ellebogen buigen en weer strekken.\nRug dicht bij de stoel houden, ellebogen recht naar achteren.',                   times: [20, 40, 60], muscles: { primary: ['triceps'], secondary: ['shoulders', 'chest'] } },
-  { id: 'decline-pushup',  cat: 'Push',  name: 'Decline push-ups',          desc: 'Voeten op een stoel, handen op de vloer, borst naar beneden zakken.\nHoofd en borst lager dan voeten, hogere borst en schouders aangesproken.',   times: [15, 30, 45], muscles: { primary: ['chest', 'shoulders'], secondary: ['triceps', 'abs'] } },
-  { id: 'slow-pushup',     cat: 'Push',  name: 'Negatieve push-ups',        desc: 'Push-up waarbij je 4 seconden langzaam naar beneden zakt, dan omhoog.\nExplosief omhoog, geen rust onderaan, volledige controle over de beweging.', times: [20, 40, 60], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
+  { id: 'dead-bug',        cat: 'Core',       name: 'Dead bug',                 desc: 'Op rug, afwisselend arm en tegenovergesteld been langzaam uitstrekken.\nOnderrug plat op vloer houden, langzaam en gecontroleerd bewegen.',            times: [20, 40, 60], muscles: { primary: ['abs'], secondary: ['hip_flexors'] } },
+  { id: 'plank',           cat: 'Core',       name: 'Plank',                    desc: 'Op ellebogen en tenen, lichaam in een rechte lijn vasthouden.\nEllebogen onder schouders, heupen niet laten zakken of omhoog duwen.',            times: [30, 60, 90], muscles: { primary: ['abs', 'lower_back'], secondary: ['shoulders', 'glutes', 'quads'] } },
+  { id: 'side-l',          cat: 'Core',       name: 'Zijplank links',            desc: 'Op linkerelleboog, heupen omhoog, lichaam recht van hoofd tot voeten.\nNiet inzakken in de heup, rechterhand op heup of omhoog.',                   times: [20, 40, 60], muscles: { primary: ['obliques'], secondary: ['abs', 'shoulders', 'glutes'] } },
+  { id: 'side-r',          cat: 'Core',       name: 'Zijplank rechts',           desc: 'Op rechterelleboog, heupen omhoog, lichaam recht van hoofd tot voeten.\nNiet inzakken in de heup, linkerhand op heup of omhoog.',                    times: [20, 40, 60], muscles: { primary: ['obliques'], secondary: ['abs', 'shoulders', 'glutes'] } },
+  { id: 'glute-bridge',    cat: 'Core',       name: 'Glute bridge hold',         desc: 'Op rug, voeten plat op vloer, heupen zo hoog mogelijk omhoog persen.\nBilspieren maximaal aanspannen bovenaan, knieën iets naar buiten.',          times: [20, 45, 60], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back'] } },
+  { id: 'mountain-cl',     cat: 'Core',       name: 'Mountain climbers',         desc: 'In hoge plankpositie, knieën afwisselend explosief naar de borst trekken.\nHeupen laag houden, tempo opbouwen, kern strak houden.',                 times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
+  { id: 'bicycles',        cat: 'Core',       name: 'Bicycle crunches',          desc: 'Op rug, handen achter hoofd, elleboog naar tegenovergestelde knie draaien.\nBeen volledig uitstrekken, langzaam draaien, niet aan de nek trekken.',  times: [20, 40, 60], muscles: { primary: ['abs', 'obliques'], secondary: ['hip_flexors'] } },
+  { id: 'hollow-body',     cat: 'Core',       name: 'Hollow body hold',          desc: 'Op rug, benen en schouders van de vloer, lichaam als een banaan vasthouden.\nKern maximaal aanspannen, lage rug plat op de vloer houden.',         times: [15, 30, 45], muscles: { primary: ['abs'], secondary: ['hip_flexors', 'lower_back'] } },
+  { id: 'leg-raise',       cat: 'Core',       name: 'Beenheffers',               desc: 'Op rug, benen gestrekt omhoog tillen tot 90° en langzaam laten zakken.\nLage rug op de vloer drukken, benen net niet de vloer raken onderaan.',   times: [15, 30, 45], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['lower_back'] } },
+  { id: 'russian-twist',   cat: 'Core',       name: 'Russian twist',             desc: 'Zittend met licht gebogen knieën, romp afwisselend links en rechts draaien.\nVoeten optioneel van de vloer voor meer moeilijkheid, rug recht houden.', times: [20, 35, 50], muscles: { primary: ['obliques'], secondary: ['abs', 'hip_flexors'] } },
+  // ARMEN
+  { id: 'pushup',          cat: 'Armen',      name: 'Push-ups',                  desc: 'Handen schouderbreedte, borst richting vloer zakken en omhoog duwen.\nEllebogen ~45° van het lichaam, lichaam als één rechte plank houden.',       times: [20, 40, 60], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
+  { id: 'incline-pushup',  cat: 'Armen',      name: 'Incline push-ups',          desc: 'Handen op stoel of tafel, lichaam schuin naar voren, push-up beweging.\nMakkelijkere instap, zelfde techniek als een normale push-up.',            times: [20, 40, 60], muscles: { primary: ['chest'], secondary: ['shoulders', 'triceps'] } },
+  { id: 'diamond-pushup',  cat: 'Armen',      name: 'Diamond push-ups',          desc: 'Handen samen in een driehoek direct onder de borst, zakken en omhoog.\nEllebogen langs het lichaam, triceps worden harder aangesproken.',           times: [15, 30, 45], muscles: { primary: ['triceps', 'chest'], secondary: ['shoulders'] } },
+  { id: 'pike-pushup',     cat: 'Armen',      name: 'Pike push-ups',             desc: 'Heupen hoog in omgekeerde V-vorm, hoofd richting de vloer zakken.\nGewicht op de schouders, ellebogen stabiel houden, schouders focus.',          times: [15, 30, 45], muscles: { primary: ['shoulders', 'triceps'], secondary: ['chest', 'traps'] } },
+  { id: 'dips',            cat: 'Armen',      name: 'Dips (stoel)',               desc: 'Handen op stoel achter je, ellebogen buigen en weer strekken.\nRug dicht bij de stoel houden, ellebogen recht naar achteren.',                    times: [20, 40, 60], muscles: { primary: ['triceps'], secondary: ['shoulders', 'chest'] } },
+  { id: 'decline-pushup',  cat: 'Armen',      name: 'Decline push-ups',          desc: 'Voeten op een stoel, handen op de vloer, borst naar beneden zakken.\nHoofd en borst lager dan voeten, hogere borst en schouders aangesproken.',    times: [15, 30, 45], muscles: { primary: ['chest', 'shoulders'], secondary: ['triceps', 'abs'] } },
+  { id: 'slow-pushup',     cat: 'Armen',      name: 'Negatieve push-ups',        desc: 'Push-up waarbij je 4 seconden langzaam naar beneden zakt, dan omhoog.\nExplosief omhoog, geen rust onderaan, volledige controle over de beweging.',  times: [20, 40, 60], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
+  { id: 'inv-row',         cat: 'Armen',      name: 'Australian rows',           desc: 'Liggend onder een tafel, borst naar het tafelblad omhoogtrekken.\nRug recht, schouderbladen samenknijpen bovenaan, langzaam laten zakken.',       times: [20, 40, 60], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
+  { id: 'scap-retract',    cat: 'Armen',      name: 'Scapulaire squeeze',        desc: 'Rechtop staan, schouderbladen maximaal naar elkaar persen en vasthouden.\nArmen langs het lichaam, niet ophalen, focus op de bovenrug.',           times: [20, 40, 60], muscles: { primary: ['traps'], secondary: ['shoulders', 'lower_back'] } },
+  { id: 'door-row',        cat: 'Armen',      name: 'Deurpost rows',             desc: 'Deurpost met beide handen vasthouden, naar achter leunen en omhoogtrekken.\nArmen gebogen, rug recht, schouderbladen naar elkaar trekken.',        times: [20, 40, 60], muscles: { primary: ['lats', 'biceps'], secondary: ['traps', 'forearms'] } },
+  { id: 'rev-snow-angel',  cat: 'Armen',      name: 'Prone snow angels',         desc: 'Op buik liggen, armen langs het lichaam omhoog zwaaien tot boven het hoofd.\nSchouderbladen samenknijpen, armen gestrekt en laag houden.',        times: [20, 40, 60], muscles: { primary: ['traps', 'lower_back'], secondary: ['shoulders'] } },
+  { id: 'table-hold',      cat: 'Armen',      name: 'Australian row hold',       desc: 'Onder tafel, lichaam optrekken tot halverwege en die positie vasthouden.\nArmen 90°, rug recht, schouderbladen samengeknepen houden.',            times: [15, 30, 45], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
+  { id: 'wide-pushup',     cat: 'Armen',      name: 'Brede push-ups',            desc: 'Handen ruim buiten schouderbreedte, borst zakken en duwen.\nMeer nadruk op de buitenste borst dan een normale push-up, ellebogen schuin naar buiten.', times: [20, 40, 60], muscles: { primary: ['chest'], secondary: ['triceps', 'shoulders'] } },
+  { id: 'floor-dip',       cat: 'Armen',      name: 'Triceps dips vloer',        desc: 'Op handen en hielen zitten, heupen omhoog, ellebogen buigen en strekken.\nEllebogen recht naar achteren houden, heupen zo hoog mogelijk houden.',   times: [20, 40, 60], muscles: { primary: ['triceps'], secondary: ['shoulders', 'chest'] } },
+  { id: 'superman-pull',   cat: 'Armen',      name: 'Superman trekbeweging',     desc: 'Op buik, armen voor je uitgestrekt, armen en borst van de vloer tillen en terughalen.\nSchouderbladen samenknijpen bovenaan, langzaam en gecontroleerd.',  times: [20, 40, 60], muscles: { primary: ['lats', 'traps'], secondary: ['lower_back', 'shoulders'] } },
   // LEGS
-  { id: 'squats',          cat: 'Legs',  name: 'Squats',                    desc: 'Voeten schouderbreedte, heupen naar achteren en beneden, dan omhoog duwen.\nRug recht, knieën over tenen, explosief omhoog komen.',               times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'lower_back', 'calves'] } },
-  { id: 'jump-squat',      cat: 'Legs',  name: 'Jump squats',               desc: 'Squat uitvoeren en vanuit de bodem explosief omhoog springen.\nZacht landen met gebogen knieën, direct doorzoeken naar de volgende herhaling.',  times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
-  { id: 'wall-sit',        cat: 'Legs',  name: 'Wall sit',                  desc: 'Rug plat tegen de muur, knieën 90°, bovenbenen parallel aan de vloer.\nKnieën boven enkels houden, niet laten zakken.',                          times: [20, 45, 60], muscles: { primary: ['quads'], secondary: ['glutes', 'calves'] } },
-  { id: 'alt-lunges',      cat: 'Legs',  name: 'Alternerende lunges',       desc: 'Afwisselend been naar voren stappen in een lunge en terugkomen.\nKnie boven enkel houden, rug recht, heupen laag en stabiel.',                 times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
-  { id: 'glute-single-l',  cat: 'Legs',  name: 'Single-leg bridge links',   desc: 'Op rug, rechterbeen omhoog, linker heup zo hoog mogelijk opduwen.\nLinker bilspier maximaal aanspannen, heupen recht houden.',                  times: [15, 30, 45], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
-  { id: 'glute-single-r',  cat: 'Legs',  name: 'Single-leg bridge rechts',  desc: 'Op rug, linkerbeen omhoog, rechter heup zo hoog mogelijk opduwen.\nRechter bilspier maximaal aanspannen, heupen recht houden.',                times: [15, 30, 45], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
-  { id: 'donkey-kick',     cat: 'Legs',  name: 'Donkey kicks',              desc: 'Op handen en knieën, één been naar achter en omhoog schoppen.\nBilspier aanspannen op het hoogste punt, heup niet kantelen.',                  times: [20, 40, 60], muscles: { primary: ['glutes'], secondary: ['lower_back', 'hamstrings'] } },
-  // PULL
-  { id: 'inv-row',         cat: 'Pull',  name: 'Australian rows',           desc: 'Liggend onder een tafel, borst naar het tafelblad omhoogtrekken.\nRug recht, schouderbladen samenknijpen bovenaan, langzaam laten zakken.',      times: [20, 40, 60], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
-  { id: 'scap-retract',    cat: 'Pull',  name: 'Scapulaire squeeze',        desc: 'Rechtop staan, schouderbladen maximaal naar elkaar persen en vasthouden.\nArmen langs het lichaam, niet ophalen, focus op de bovenrug.',          times: [20, 40, 60], muscles: { primary: ['traps'], secondary: ['shoulders', 'lower_back'] } },
-  { id: 'door-row',        cat: 'Pull',  name: 'Deurpost rows',             desc: 'Deurpost met beide handen vasthouden, naar achter leunen en omhoogtrekken.\nArmen gebogen, rug recht, schouderbladen naar elkaar trekken.',       times: [20, 40, 60], muscles: { primary: ['lats', 'biceps'], secondary: ['traps', 'forearms'] } },
-  { id: 'rev-snow-angel',  cat: 'Pull',  name: 'Prone snow angels',         desc: 'Op buik liggen, armen langs het lichaam omhoog zwaaien tot boven het hoofd.\nSchouderbladen samenknijpen, armen gestrekt en laag houden.',       times: [20, 40, 60], muscles: { primary: ['traps', 'lower_back'], secondary: ['shoulders'] } },
-  { id: 'table-hold',      cat: 'Pull',  name: 'Australian row hold',       desc: 'Onder tafel, lichaam optrekken tot halverwege en die positie vasthouden.\nArmen 90°, rug recht, schouderbladen samengeknepen houden.',           times: [15, 30, 45], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
-  // CARDIO
-  { id: 'burpees',         cat: 'Cardio', name: 'Burpees',                  desc: 'Vanuit staand naar plank zakken, push-up, terug omhoog springen.\nVloeiende beweging, armen boven het hoofd bij de sprong.',                    times: [20, 40, 60], muscles: { primary: ['quads', 'chest'], secondary: ['shoulders', 'triceps', 'abs', 'glutes', 'calves'] } },
-  { id: 'jumping-jacks',   cat: 'Cardio', name: 'Jumping jacks',            desc: 'Springend de benen spreiden en armen omhoog brengen, dan terug.\nRitmisch tempo houden, armen en benen gelijktijdig bewegen.',                  times: [30, 45, 60], muscles: { primary: ['shoulders', 'calves'], secondary: ['quads', 'glutes'] } },
-  { id: 'high-knees',      cat: 'Cardio', name: 'High knees',               desc: 'Hardlopen op de plek met knieën zo hoog mogelijk optrekken naar de borst.\nArmen mee bewegen als bij hardlopen, rechtop blijven.',               times: [20, 40, 60], muscles: { primary: ['hip_flexors', 'quads'], secondary: ['abs', 'calves'] } },
-  { id: 'butt-kicks',      cat: 'Cardio', name: 'Butt kicks',               desc: 'Hardlopen op de plek, hielen afwisselend naar de billen schoppen.\nRechtop blijven, armen mee bewegen, snel tempo.',                           times: [20, 40, 60], muscles: { primary: ['hamstrings', 'calves'], secondary: ['quads', 'glutes'] } },
-  { id: 'mt-cl-fast',      cat: 'Cardio', name: 'Mountain climbers snel',   desc: 'Mountain climbers op zo hoog mogelijk tempo uitvoeren.\nKern strak houden, heupen laag houden ook bij hoog tempo.',                          times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
-  { id: 'squat-jump-rep',  cat: 'Cardio', name: 'Jump squats HIIT',         desc: 'Non-stop jump squats uitvoeren op maximaal tempo.\nZacht landen met gebogen knieën, direct doorzoeken, explosief blijven.',                    times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
+  { id: 'squats',          cat: 'Legs',       name: 'Squats',                    desc: 'Voeten schouderbreedte, heupen naar achteren en beneden, dan omhoog duwen.\nRug recht, knieën over tenen, explosief omhoog komen.',                times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'lower_back', 'calves'] } },
+  { id: 'jump-squat',      cat: 'Legs',       name: 'Jump squats',               desc: 'Squat uitvoeren en vanuit de bodem explosief omhoog springen.\nZacht landen met gebogen knieën, direct doorzoeken naar de volgende herhaling.',   times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
+  { id: 'wall-sit',        cat: 'Legs',       name: 'Wall sit',                  desc: 'Rug plat tegen de muur, knieën 90°, bovenbenen parallel aan de vloer.\nKnieën boven enkels houden, niet laten zakken.',                           times: [20, 45, 60], muscles: { primary: ['quads'], secondary: ['glutes', 'calves'] } },
+  { id: 'alt-lunges',      cat: 'Legs',       name: 'Alternerende lunges',       desc: 'Afwisselend been naar voren stappen in een lunge en terugkomen.\nKnie boven enkel houden, rug recht, heupen laag en stabiel.',                  times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'glute-single-l',  cat: 'Legs',       name: 'Single-leg bridge links',   desc: 'Op rug, rechterbeen omhoog, linker heup zo hoog mogelijk opduwen.\nLinker bilspier maximaal aanspannen, heupen recht houden.',                   times: [15, 30, 45], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
+  { id: 'glute-single-r',  cat: 'Legs',       name: 'Single-leg bridge rechts',  desc: 'Op rug, linkerbeen omhoog, rechter heup zo hoog mogelijk opduwen.\nRechter bilspier maximaal aanspannen, heupen recht houden.',                 times: [15, 30, 45], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
+  { id: 'donkey-kick',     cat: 'Legs',       name: 'Donkey kicks',              desc: 'Op handen en knieën, één been naar achter en omhoog schoppen.\nBilspier aanspannen op het hoogste punt, heup niet kantelen.',                   times: [20, 40, 60], muscles: { primary: ['glutes'], secondary: ['lower_back', 'hamstrings'] } },
+  { id: 'sumo-squat',      cat: 'Legs',       name: 'Sumo squat',                desc: 'Voeten ruim uit elkaar, tenen schuin naar buiten, diep door de knieën zakken.\nRug recht, knieën over de tenen, inner dijen aanspannen bij omhoog.',  times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'step-up',         cat: 'Legs',       name: 'Step-up (stoel)',            desc: 'Met één voet op een stoel of traptrede stappen en het andere been aanheffen.\nVoet volledig op de verhoging, bovenbeen actief duwen voor de omhoog.',  times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'calf-raise',      cat: 'Legs',       name: 'Kuitheffen',                desc: 'Rechtop staan, op de tenen omhoog komen en langzaam terug laten zakken.\nOp de rand van een trede voor meer bereik, langzame neerwaartse beweging.', times: [25, 45, 60], muscles: { primary: ['calves'], secondary: [] } },
+  // FULL BODY
+  { id: 'burpees',         cat: 'Full Body',  name: 'Burpees',                   desc: 'Vanuit staand naar plank zakken, push-up, terug omhoog springen.\nVloeiende beweging, armen boven het hoofd bij de sprong.',                     times: [20, 40, 60], muscles: { primary: ['quads', 'chest'], secondary: ['shoulders', 'triceps', 'abs', 'glutes', 'calves'] } },
+  { id: 'jumping-jacks',   cat: 'Full Body',  name: 'Jumping jacks',             desc: 'Springend de benen spreiden en armen omhoog brengen, dan terug.\nRitmisch tempo houden, armen en benen gelijktijdig bewegen.',                     times: [30, 45, 60], muscles: { primary: ['shoulders', 'calves'], secondary: ['quads', 'glutes'] } },
+  { id: 'high-knees',      cat: 'Full Body',  name: 'High knees',                desc: 'Hardlopen op de plek met knieën zo hoog mogelijk optrekken naar de borst.\nArmen mee bewegen als bij hardlopen, rechtop blijven.',                  times: [20, 40, 60], muscles: { primary: ['hip_flexors', 'quads'], secondary: ['abs', 'calves'] } },
+  { id: 'butt-kicks',      cat: 'Full Body',  name: 'Butt kicks',                desc: 'Hardlopen op de plek, hielen afwisselend naar de billen schoppen.\nRechtop blijven, armen mee bewegen, snel tempo.',                              times: [20, 40, 60], muscles: { primary: ['hamstrings', 'calves'], secondary: ['quads', 'glutes'] } },
+  { id: 'mt-cl-fast',      cat: 'Full Body',  name: 'Mountain climbers snel',    desc: 'Mountain climbers op zo hoog mogelijk tempo uitvoeren.\nKern strak houden, heupen laag houden ook bij hoog tempo.',                           times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
+  { id: 'squat-jump-rep',  cat: 'Full Body',  name: 'Jump squats HIT',           desc: 'Non-stop jump squats uitvoeren op maximaal tempo.\nZacht landen met gebogen knieën, direct doorzoeken, explosief blijven.',                     times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
+  { id: 'bear-crawl',      cat: 'Full Body',  name: 'Bear crawl',                desc: 'Op handen en voeten (knieën net van de vloer), vooruit en achteruit kruipen.\nHeupen laag en stabiel, kern strak houden, kleine gecontroleerde stappen.', times: [20, 35, 50], muscles: { primary: ['shoulders', 'abs'], secondary: ['quads', 'hip_flexors'] } },
+  { id: 'inchworm',        cat: 'Full Body',  name: 'Inchworm',                  desc: 'Vanuit staand handen naar de vloer zakken, tot plank lopen, dan voeten naar handen.\nTempo rustig, volledige strekking aan het begin en einde.',       times: [20, 35, 50], muscles: { primary: ['abs', 'shoulders'], secondary: ['hamstrings', 'chest'] } },
+  { id: 'lateral-jump',    cat: 'Full Body',  name: 'Zijwaartse sprong',         desc: 'Van het ene been op het andere been springen met zijwaartse beweging.\nZacht landen met gebogen knie, direct doorspringen naar de andere kant.',     times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'abs'] } },
 ];
 const DEFAULT_TARGETS_BY_MODE = {
   time: { beginner: 20, intermediate: 40, expert: 60 },
@@ -574,10 +585,10 @@ const EXERCISES_WITH_MODE = EXERCISES.map(ex => {
   return { ...ex, mode, targets: t, times: ex.times || [t.beginner, t.intermediate, t.expert] };
 });
 
-const CATS = ['Core', 'Push', 'Legs', 'Pull', 'Cardio'];
+const CATS = ['Core', 'Armen', 'Legs', 'Full Body'];
 const LEVELS = ['BEGINNER', 'INTERMEDIATE', 'EXPERT'];
 const LEVEL_COLORS = ['#6BE89B', '#FFB454', '#FF5A5A'];
-const CAT_COLORS = { Core: '#E8FE3C', Push: '#FFB454', Legs: '#6BE89B', Pull: '#69A6FF', Cardio: '#FF5A5A' };
+const CAT_COLORS = { Core: '#E8FE3C', Armen: '#FFB454', Legs: '#6BE89B', 'Full Body': '#FF5A5A' };
 
 function getRoutineCategories(exerciseIds) {
   const seen = new Set();
@@ -626,6 +637,29 @@ const QUICK_WORKOUTS = [
     exercises: ['jumping-jacks', 'pushup', 'squats', 'dead-bug', 'plank', 'alt-lunges', 'glute-bridge', 'mountain-cl', 'incline-pushup', 'bicycles', 'high-knees', 'scap-retract', 'wall-sit', 'butt-kicks', 'diamond-pushup', 'jump-squat', 'side-l', 'side-r', 'burpees', 'inv-row'],
   },
 ];
+
+const BODY_PART_WORKOUTS = {
+  Core: [
+    { id: 'core-s', name: 'Core Start',   durationLabel: '~10 MIN', exercises: ['dead-bug','plank','glute-bridge','side-l'] },
+    { id: 'core-b', name: 'Core Basis',   durationLabel: '~15 MIN', exercises: ['dead-bug','plank','side-l','side-r','glute-bridge','bicycles'] },
+    { id: 'core-k', name: 'Core Kracht',  durationLabel: '~20 MIN', exercises: ['dead-bug','plank','side-l','side-r','glute-bridge','mountain-cl','bicycles','hollow-body'] },
+  ],
+  Armen: [
+    { id: 'arm-s', name: 'Armen Start',   durationLabel: '~10 MIN', exercises: ['incline-pushup','scap-retract','wide-pushup'] },
+    { id: 'arm-b', name: 'Armen Basis',   durationLabel: '~15 MIN', exercises: ['pushup','incline-pushup','scap-retract','door-row','dips'] },
+    { id: 'arm-t', name: 'Armen Totaal',  durationLabel: '~20 MIN', exercises: ['pushup','diamond-pushup','pike-pushup','dips','inv-row','scap-retract','door-row','floor-dip'] },
+  ],
+  Legs: [
+    { id: 'leg-s', name: 'Benen Start',   durationLabel: '~10 MIN', exercises: ['squats','alt-lunges','glute-bridge'] },
+    { id: 'leg-b', name: 'Benen Basis',   durationLabel: '~15 MIN', exercises: ['squats','alt-lunges','wall-sit','sumo-squat','step-up'] },
+    { id: 'leg-k', name: 'Benen Kracht',  durationLabel: '~20 MIN', exercises: ['squats','jump-squat','alt-lunges','wall-sit','glute-single-l','glute-single-r','donkey-kick','calf-raise'] },
+  ],
+  'Full Body': [
+    { id: 'fb-s',  name: 'Full Body Start', durationLabel: '~12 MIN', exercises: ['jumping-jacks','high-knees','squats','mountain-cl'] },
+    { id: 'fb-b',  name: 'Full Body Basis', durationLabel: '~18 MIN', exercises: ['jumping-jacks','burpees','high-knees','butt-kicks','squats','mountain-cl'] },
+    { id: 'fb-h',  name: 'Full Body HIT',   durationLabel: '~25 MIN', exercises: ['jumping-jacks','burpees','high-knees','butt-kicks','squats','pushup','mountain-cl','lateral-jump','inchworm'] },
+  ],
+};
 
 // ================================================================
 // BUILTIN PLANS
@@ -1016,28 +1050,42 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, onNaviga
         </section>
       )}
 
-      {/* Lichaamsdeel — categorie-rij */}
-      <section style={{ paddingBottom: 32 }}>
-        <div style={{ padding: '0 20px 12px' }}>
-          <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>LICHAAMSDEEL</span>
-        </div>
-        <div style={{ display: 'flex', gap: 10, padding: '0 20px', overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-          {CATS.map(cat => (
-            <button key={cat} onClick={() => onNavigate('routines', { filterCat: cat })} style={{
-              flexShrink: 0, cursor: 'pointer',
-              background: C.surface,
-              border: `1px solid ${C.border}`,
-              borderLeft: `3px solid ${CAT_COLORS[cat]}`,
-              borderRadius: 10, padding: '12px 16px',
-              display: 'flex', flexDirection: 'column', gap: 6, minWidth: 82,
-            }}>
-              <span style={{ color: CAT_COLORS[cat], fontFamily: C.mono, fontSize: 11, fontWeight: 700 }}>■</span>
-              <span style={{ color: C.text, fontFamily: C.mono, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em' }}>{cat.toUpperCase()}</span>
-            </button>
-          ))}
-        </div>
-      </section>
+      {/* Per spiergroep */}
+      <BodyPartSection onNavigate={onNavigate} routineCard={routineCard} />
     </>
+  );
+}
+
+function BodyPartSection({ onNavigate, routineCard }) {
+  const [selectedBP, setSelectedBP] = React.useState(CATS[0]);
+  const color = CAT_COLORS[selectedBP] || C.accent;
+  return (
+    <section style={{ paddingBottom: 40 }}>
+      <div style={{ padding: '0 20px 12px' }}>
+        <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>PER SPIERGROEP</span>
+      </div>
+      <div style={{ display: 'flex', gap: 8, padding: '0 20px 16px', overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+        {CATS.map(cat => {
+          const active = selectedBP === cat;
+          const c = CAT_COLORS[cat];
+          return (
+            <button key={cat} onClick={() => setSelectedBP(cat)} style={{
+              flexShrink: 0, cursor: 'pointer',
+              background: active ? c + '22' : C.surface,
+              border: `1px solid ${active ? c : C.border}`,
+              borderRadius: 999, padding: '8px 14px',
+              color: active ? c : C.muted,
+              fontFamily: C.mono, fontSize: 12, fontWeight: 600, letterSpacing: '0.08em',
+            }}>{cat.toUpperCase()}</button>
+          );
+        })}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '0 20px' }}>
+        {(BODY_PART_WORKOUTS[selectedBP] || []).map(w =>
+          routineCard(w.id, w.name, w.exercises, w.durationLabel, () => onNavigate('timer', { routine: w, backTo: 'home' }))
+        )}
+      </div>
+    </section>
   );
 }
 

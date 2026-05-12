@@ -92,7 +92,7 @@ Doel: over 3 maanden weten waarom iets is zoals het is — voor jezelf én voor 
 **Impact:** CATS, CAT_COLORS, alle exercise-definities (cat-veld), PER SPIERGROEP sectie op Home.
 
 ## 2026-05-12 — PER SPIERGROEP sectie op Home + BODY_PART_WORKOUTS
-**Wat:** LICHAAMSDEEL-rij vervangen door interactieve PER SPIERGROEP sectie met pill-filter en 3 vaste workouts per categorie (12 totaal).
+**Wat:** LICHAAMSDEEL-rij vervangen door interactieve PER SPIERGROEP sectie met pill-filter en 3 vaste workouts per categorie (12 totaal). Sectie geëxtraheerd als eigen component `BodyPartSection`.
 **Waarom:** Pure navigatie-knoppen naar RoutinesScreen hadden te weinig directe actiewaarde. Gebruiker wil altijd iets te doen zien op het homescherm zonder te hoeven navigeren.
 **Alternatief:** Modale sheet per categorie. Afgewezen: te veel taps, pill-filter is direct en compact.
 **Impact:** HomeTab, BodyPartSection (nieuw), BODY_PART_WORKOUTS constante (nieuw).
