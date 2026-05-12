@@ -138,9 +138,9 @@ function resolveStarterPlanProfile({ level, trainingGoal, availableDays }) {
 }
 
 // MET-waarden per categorie (Compendium of Physical Activities)
-const MET_BY_CAT = { Core: 4.0, Push: 5.0, Pull: 5.0, Legs: 5.5, Cardio: 8.0 };
+const MET_BY_CAT = { Core: 4.0, Armen: 5.0, Legs: 5.5, 'Full Body': 8.0 };
 const MET_REST = 1.5;
-const MET_SESSION = { Core: 3.5, Push: 4.0, Legs: 5.0, Pull: 4.0, Cardio: 7.0 };
+const MET_SESSION = { Core: 3.5, Armen: 4.0, Legs: 5.0, 'Full Body': 7.0 };
 
 function calcSessionKcal(exercises, durationSec, weightKg) {
   if (!weightKg || !durationSec || !exercises?.length) return 0;
