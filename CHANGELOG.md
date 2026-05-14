@@ -7,6 +7,16 @@ Nieuwste bovenaan.
 
 ## 2026-05-14
 
+### Service worker auto-update bij nieuwe deploy
+**Bestanden:** `www/sw.js`, `www/index.html`
+
+PWA's bleven hangen op oude versies — gebruikers zagen na een deploy nog de oude app. Toegevoegd:
+
+- `sw.js`: `CACHE_NAME` opgehoogd naar `trainr-2026-05-14`; `message`-handler voor `SKIP_WAITING` zodat de nieuwe SW direct kan overnemen zonder dat de gebruiker een tab moet sluiten.
+- `index.html`: SW-registratie roept `reg.update()` aan op elke pagina-load, luistert op `updatefound` → postMessage `SKIP_WAITING`, en bij `controllerchange` doet `window.location.reload()`. Resultaat: elke deploy waarbij `sw.js` of `index.html` byte-veranderd is, leidt automatisch tot een refresh op het toestel.
+
+Eerste transitie van oude naar nieuwe SW: nog één keer handmatig refreshen op het toestel. Daarna volledig automatisch.
+
 ### UI volledig vertaald naar Engels
 **Bestanden:** `www/index.html`, `www/manifest.json`
 
