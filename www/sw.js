@@ -1,6 +1,6 @@
 // Bump CACHE_NAME alleen als je icons of manifest verandert.
 // index.html wordt altijd netwerk-first opgehaald — deploy = direct live.
-const CACHE_NAME = 'trainr-2026-05-12';
+const CACHE_NAME = 'trainr-2026-05-14';
 const STATIC_FILES = ['./manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e =>
@@ -8,6 +8,10 @@ self.addEventListener('install', e =>
     caches.open(CACHE_NAME).then(c => c.addAll(STATIC_FILES)).then(() => self.skipWaiting())
   )
 );
+
+self.addEventListener('message', e => {
+  if (e.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
 
 self.addEventListener('activate', e =>
   e.waitUntil(
