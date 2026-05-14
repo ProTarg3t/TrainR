@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TrainR — Prototype</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { background: #050505; min-height: 100vh; }
+  .canvas-host { padding: 32px; }
+  .top-banner {
+    position: fixed; top: 16px; left: 16px; z-index: 50;
+    padding: 10px 14px; background: rgba(10,10,11,0.85); backdrop-filter: blur(8px);
+    border: 1px solid var(--border-subtle); border-radius: 12px;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--fg-secondary);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .top-banner a { color: var(--signal); text-decoration: none; padding: 6px 10px; border: 1px solid var(--signal); border-radius: 999px; font-size: 10px; }
+  .top-banner a:hover { background: var(--signal-08); }
+</style>
+</head>
+<body>
+
+<div class="top-banner">
+  <span>TRAINR · v0.1 PROTOTYPE</span>
+  <a href="spec.html">DESIGN SPEC →</a>
+</div>
+
+<div id="root" class="canvas-host"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="android-frame.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="body-map.jsx"></script>
+<script type="text/babel" src="screen-home.jsx"></script>
+<script type="text/babel" src="screen-active.jsx"></script>
+<script type="text/babel" src="screen-onboarding.jsx"></script>
+<script type="text/babel" src="screen-profile.jsx"></script>
+<script type="text/babel" src="screen-finish.jsx"></script>
+<script type="text/babel" src="screen-routines.jsx"></script>
+<script type="text/babel" src="screen-routine-detail.jsx"></script>
+<script type="text/babel" src="screen-new-routine.jsx"></script>
+<script type="text/babel" src="screen-exercise-detail.jsx"></script>
+
+<script type="text/babel">
+const { useState } = React;
+
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "density": "compact"
+}/*EDITMODE-END*/;
+
+function PhoneShell({ children, label }) {
+  // Custom slim Android shell — chrome-light so the design speaks
+  return (
+    <div style={{
+      width: 380, height: 820,
+      background: '#000',
+      borderRadius: 44,
+      border: '1px solid #1a1a1a',
+      boxShadow: '0 30px 80px rgba(0,0,0,0.6), inset 0 0 0 6px #0c0c0c',
+      padding: 8,
+      position: 'relative',
+    }}>
+      {/* notch */}
+      <div style={{
+        position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)',
+        width: 110, height: 28, background: '#000', borderRadius: 999, zIndex: 5,
+      }} />
+      <div style={{
+        width: '100%', height: '100%',
+        borderRadius: 36, overflow: 'hidden',
+        background: '#000',
+        position: 'relative',
+      }}>
+        {/* status bar (clean, no browser chrome) */}
+        <div style={{
+          height: 36,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '0 24px',
+          fontFamily: 'var(--font-mono)', fontSize: 11, color: '#fff',
+          letterSpacing: '0.04em',
+        }}>
+          <span>21:14</span>
+          <span style={{ display: 'flex', gap: 6, opacity: 0.85 }}>
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><path d="M1 6h2v3H1zM5 4h2v5H5zM9 2h2v7H9z"/><path d="M13 0h-1v9h1z"/></svg>
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" strokeWidth="1"><rect x="0.5" y="2" width="11" height="6" rx="1"/><rect x="2" y="3.5" width="6" height="3" fill="currentColor"/><path d="M12.5 4v2"/></svg>
+          </span>
+        </div>
+        <div style={{ height: 'calc(100% - 36px)' }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [tweaks, setTweak] = useTweaks(TWEAKS);
+
+  return (
+    <>
+      <DesignCanvas>
+        <DCSection id="batch-a" title="BATCH A — PROFIEL & ONBOARDING">
+          <DCArtboard id="onb" label="ONBOARDING — Typeform-stijl, 8 stappen" width={400} height={840}>
+            <PhoneShell><Onboarding onComplete={() => {}} /></PhoneShell>
+          </DCArtboard>
+
+          <DCArtboard id="profile" label="PROFILE — BMI + gewichtsdoel" width={400} height={840}>
+            <PhoneShell><ProfileScreen density={tweaks.density} /></PhoneShell>
+          </DCArtboard>
+
+          <DCArtboard id="finish" label="FINISH — heatmap + RPE achteraf" width={400} height={840}>
+            <PhoneShell><FinishScreen density={tweaks.density} onClose={() => {}} /></PhoneShell>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="prototypes" title="EERDER — HOME & ACTIVE">
+          <DCArtboard id="home" label="HOME — entry" width={400} height={840}>
+            <PhoneShell><HomeScreen density={tweaks.density} onStart={() => {}} /></PhoneShell>
+          </DCArtboard>
+
+          <DCArtboard id="active" label="ACTIVE WORKOUT — minimalistisch (heatmap eruit)" width={400} height={840}>
+            <PhoneShell><ActiveWorkout density={tweaks.density} onExit={() => {}} /></PhoneShell>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="batch-b" title="BATCH B — ROUTINES & OEFENINGEN">
+          <DCArtboard id="routines" label="ROUTINES — gefilterde lijst" width={400} height={840}>
+            <PhoneShell><RoutinesList density={tweaks.density} onOpen={() => {}} /></PhoneShell>
+          </DCArtboard>
+
+          <DCArtboard id="routine-detail" label="ROUTINE DETAIL — preview + start CTA" width={400} height={840}>
+            <PhoneShell><RoutineDetail density={tweaks.density} onStart={() => {}} onBack={() => {}} /></PhoneShell>
+          </DCArtboard>
+
+          <DCArtboard id="new-routine" label="NIEUWE ROUTINE — 3-staps builder" width={400} height={840}>
+            <PhoneShell><NewRoutine density={tweaks.density} onCancel={() => {}} onDone={() => {}} /></PhoneShell>
+          </DCArtboard>
+
+          <DCArtboard id="exercise-detail" label="OEFENING DETAIL — burpees voorbeeld" width={400} height={840}>
+            <PhoneShell><ExerciseDetail density={tweaks.density} onBack={() => {}} /></PhoneShell>
+          </DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Density">
+          <TweakRadio
+            label="Spacing"
+            value={tweaks.density}
+            options={[
+              { value: 'compact', label: 'Compact' },
+              { value: 'cozy', label: 'Cozy' },
+              { value: 'comfortable', label: 'Comfort' },
+            ]}
+            onChange={v => setTweak('density', v)}
+          />
+        </TweakSection>
+      </TweaksPanel>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+</body>
+</html>

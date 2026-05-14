@@ -1,0 +1,3469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>TRAINR</title>
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TRAINR" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    :root {
+      --bg-base:        #000000;
+      --bg-elev-1:      #0A0A0B;
+      --bg-elev-2:      #131315;
+      --bg-elev-3:      #1C1C1F;
+      --fg-primary:     #FAFAF9;
+      --fg-secondary:   #C8C8C7;
+      --fg-tertiary:    #8E8E8D;
+      --fg-quaternary:  #4A4A49;
+      --border-subtle:  rgba(255,255,255,0.06);
+      --border-default: rgba(255,255,255,0.10);
+      --border-strong:  rgba(255,255,255,0.18);
+      --signal:         #E8FE3C;
+      --signal-fg:      #0A0A0A;
+      --signal-08:      rgba(232,254,60,0.08);
+      --status-go:      #6BE89B;
+      --status-rest:    #69A6FF;
+      --status-warn:    #FFB454;
+      --status-crit:    #FF5A5A;
+      --heat-0: #1A1A1C;
+      --heat-1: #3A3A1A;
+      --heat-2: #76840F;
+      --heat-3: #C2DF1F;
+      --heat-4: #E8FE3C;
+      --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+      --radius-sm:   8px;
+      --radius-md:   12px;
+      --radius-lg:   16px;
+      --radius-pill: 999px;
+      --tab-h:       64px;
+      --pad:         16px;
+      --gap:         18px;
+      --dur-fast:    140ms;
+      --dur-base:    220ms;
+      --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { background: #000; color: #FAFAF9; font-family: var(--font-sans); overscroll-behavior: none; -webkit-font-smoothing: antialiased; }
+    button { cursor: pointer; }
+    input { -webkit-appearance: none; border-radius: 0; }
+    ::-webkit-scrollbar { width: 0; }
+    .rpe-slider { position: absolute; inset: -10px 0; width: 100%; opacity: 0; cursor: pointer; -webkit-appearance: none; }
+
+    /* ── HOME (nieuwe design) ── */
+    .hm-head { padding: 28px var(--pad) 8px; }
+    .hm-eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; color: var(--fg-secondary); text-transform: uppercase; }
+    .hm-title { font-size: 40px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin-top: 8px; color: var(--fg-primary); }
+    .hm-section { padding: var(--gap) 0 0; }
+    .hm-rowhead { display: flex; justify-content: space-between; align-items: center; padding: 0 var(--pad) 10px; }
+    .hm-lbl { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; color: var(--fg-secondary); font-weight: 500; text-transform: uppercase; }
+    .hm-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 var(--pad); }
+    .hm-tile { padding: 14px 12px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 4px; align-items: flex-start; background: transparent; }
+    .hm-tnum { font-family: var(--font-mono); font-size: 28px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: var(--fg-primary); font-variant-numeric: tabular-nums; }
+    .hm-tsuf { font-size: 16px; color: var(--fg-tertiary); margin-left: 2px; }
+    .hm-tlbl { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.10em; color: var(--fg-tertiary); font-weight: 500; text-transform: uppercase; }
+    .hm-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding: 14px; margin: 0 var(--pad); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+    .hm-wcell { aspect-ratio: 1 / 1.4; border-radius: var(--radius-sm); background: var(--bg-elev-1); display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 8px 0; }
+    .hm-wday { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--fg-tertiary); font-weight: 500; }
+    .hm-wdot { width: 6px; height: 6px; border-radius: 50%; background: var(--fg-quaternary); }
+    .hm-wcell.done .hm-wdot { background: var(--signal); }
+    .hm-wcell.done .hm-wday { color: var(--fg-secondary); }
+    .hm-wcell.on { background: var(--bg-elev-2); box-shadow: inset 0 0 0 1px var(--signal); }
+    .hm-wcell.on .hm-wday { color: var(--signal); }
+    .hm-hscroll { display: flex; gap: 10px; padding: 4px var(--pad) 6px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .hm-hscroll::-webkit-scrollbar { display: none; }
+    .qc { flex: 0 0 200px; scroll-snap-align: start; background: var(--bg-elev-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; gap: 10px; text-align: left; transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); color: var(--fg-primary); cursor: pointer; }
+    .qc:active { border-color: var(--border-strong); background: var(--bg-elev-2); }
+    .qc-meta { display: flex; gap: 8px; flex-wrap: wrap; min-height: 14px; }
+    .qc-name { font-size: 19px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: var(--fg-primary); flex: 1; }
+    .qc-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 6px; border-top: 1px solid var(--border-subtle); }
+    .qc-stat { display: flex; align-items: baseline; gap: 4px; }
+    .qc-big { font-family: var(--font-mono); font-size: 17px; font-weight: 600; color: var(--fg-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .qc-unit { font-family: var(--font-mono); font-size: 10px; color: var(--fg-tertiary); letter-spacing: 0.10em; font-weight: 500; }
+    .qc-sep { color: var(--fg-quaternary); margin: 0 2px; }
+    .qc-play { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--signal); color: var(--signal-fg); flex-shrink: 0; }
+    .hm-rows { display: flex; flex-direction: column; padding: 0 var(--pad); }
+    .rr { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); background: transparent; text-align: left; color: var(--fg-primary); cursor: pointer; border-left: 0; border-right: 0; border-top: 0; }
+    .rr:last-child { border-bottom: none; }
+    .rr-left { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .rr-name { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: var(--fg-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rr-meta { display: flex; gap: 8px; align-items: center; }
+    .rr-dur { font-family: var(--font-mono); font-size: 12px; color: var(--fg-secondary); font-weight: 500; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+    .rr-play { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--signal); background: var(--signal-08); color: var(--signal); flex-shrink: 0; transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+    .rr:active .rr-play { background: var(--signal); color: var(--signal-fg); }
+    .tg { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.10em; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; color: var(--fg-secondary); text-transform: uppercase; }
+    .tg::before { content: ''; width: 7px; height: 7px; border-radius: 1px; background: currentColor; }
+    .tg.t-core  { color: var(--signal); }
+    .tg.t-full  { color: var(--status-crit); }
+    .tg.t-legs  { color: var(--status-go); }
+    .tg.t-arms { color: var(--status-warn); }
+    .hm-tinybtn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: transparent; border: 1px solid var(--border-default); border-radius: var(--radius-pill); color: var(--fg-secondary); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.10em; font-weight: 600; cursor: pointer; transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+    .hm-tinybtn:active { color: var(--signal); border-color: var(--signal); }
+    .hm-chips { display: flex; gap: 8px; padding: 0 var(--pad); overflow-x: auto; scrollbar-width: none; }
+    .hm-chips::-webkit-scrollbar { display: none; }
+    .hm-chip { flex-shrink: 0; padding: 9px 16px; border-radius: var(--radius-pill); border: 1px solid var(--border-default); background: transparent; color: var(--fg-secondary); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.10em; font-weight: 600; cursor: pointer; transition: all var(--dur-fast) var(--ease-out); white-space: nowrap; text-transform: uppercase; }
+    .hm-chip.on { color: var(--signal); border-color: var(--signal); background: var(--signal-08); }
+    .hm-empty { padding: 20px var(--pad); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; color: var(--fg-tertiary); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+// ================================================================
+// DB LAYER
+// ================================================================
+const DB_NAME = 'trainr_v1';
+const DB_VERSION = 5;
+const DEV_MODE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+// UI-strings die op meerdere plekken voorkomen
+const MSG_RESET_ONBOARDING = 'Restart onboarding? Your profile will be kept.';
+
+const initDB = () => new Promise((resolve, reject) => {
+  const req = indexedDB.open(DB_NAME, DB_VERSION);
+  req.onupgradeneeded = e => {
+    const db = e.target.result;
+    const old = e.oldVersion;
+
+    if (!db.objectStoreNames.contains('routines')) db.createObjectStore('routines', { keyPath: 'id' });
+    if (!db.objectStoreNames.contains('sessions')) db.createObjectStore('sessions', { keyPath: 'id' });
+
+    // v4: profile store omgebouwd naar KV-schema { key, value }
+    if (old < 4) {
+      if (db.objectStoreNames.contains('profile')) db.deleteObjectStore('profile');
+      db.createObjectStore('profile', { keyPath: 'key' });
+    } else if (!db.objectStoreNames.contains('profile')) {
+      db.createObjectStore('profile', { keyPath: 'key' });
+    }
+    if (!db.objectStoreNames.contains('events')) db.createObjectStore('events', { keyPath: 'id' });
+  };
+  req.onsuccess = e => resolve(e.target.result);
+  req.onerror = e => reject(e.target.error);
+});
+
+// Profile helpers — KV store: { key, value } per record
+// Normaliseert oude profielen: vroege builds hadden `goal` (fitness/core_strength/fat_loss)
+// naast `trainingGoal` (core/fatloss/muscle). trainingGoal is nu canonical.
+function migrateProfile(p) {
+  if (!p) return p;
+  if (!p.trainingGoal && p.goal) {
+    p.trainingGoal = { fat_loss: 'fatloss', core_strength: 'core', fitness: 'fitness' }[p.goal] || 'fitness';
+  }
+  return p;
+}
+
+const getProfile = async db => {
+  const entries = await dbGetAll(db, 'profile');
+  if (!entries.length) return null;
+  return migrateProfile(Object.fromEntries(entries.map(e => [e.key, e.value])));
+};
+const setProfileField = (db, key, value) =>
+  dbOp(db, 'profile', 'readwrite', s => s.put({ key, value }));
+const saveProfile = async (db, profile) => {
+  const FIELDS = [
+    'name', 'age', 'gender', 'height', 'weight', 'weightStart', 'weightGoal',
+    'level', 'trainingGoal', 'availableDays',
+    'selectedPlanId', 'planConfirmed', 'starterPlanProfile', 'starterPlanSelection',
+    'onboardingComplete', 'createdAt',
+    'notificationsEnabled', 'notificationDays', 'notificationTime', 'notificationPermissionState', 'lastReminderAt', 'lastFollowupAt',
+  ];
+  await Promise.all(
+    FIELDS
+      .filter(k => profile[k] !== undefined && profile[k] !== null)
+      .map(k => setProfileField(db, k, profile[k]))
+  );
+  await setProfileField(db, 'updatedAt', Date.now());
+};
+
+const SAFE_STARTER_PROFILE = 'core_beginner_3d';
+function resolveStarterPlanProfile({ level, trainingGoal, availableDays }) {
+  const validDays = Number.isInteger(availableDays) && availableDays > 0;
+  if (!level || !trainingGoal || !validDays) {
+    return {
+      profileId: SAFE_STARTER_PROFILE,
+      fallbackReason: 'missing_or_inconsistent_onboarding_data',
+      routineId: DEFAULT_ROUTINE.id,
+    };
+  }
+
+  const daysBucket = availableDays >= 4 ? '4d' : '3d';
+  let goalKey = 'core';
+  if (trainingGoal === 'fatloss') goalKey = 'fatloss';
+  if (trainingGoal === 'muscle') goalKey = 'muscle';
+  const levelKey = level === 'beginner' ? 'beginner' : 'starter';
+  const profileId = `${goalKey}_${levelKey}_${daysBucket}`;
+  return { profileId, fallbackReason: null, routineId: DEFAULT_ROUTINE.id };
+}
+
+// MET-waarden per categorie (Compendium of Physical Activities)
+const MET_BY_CAT = { Core: 4.0, Arms: 5.0, Legs: 5.5, 'Full Body': 8.0 };
+const MET_REST = 1.5;
+const MET_SESSION = { Core: 3.5, Arms: 4.0, Legs: 5.0, 'Full Body': 7.0 };
+
+function calcSessionKcal(exercises, durationSec, weightKg) {
+  if (!weightKg || !durationSec || !exercises?.length) return 0;
+  const counts = {};
+  exercises.forEach(ex => { counts[ex.cat] = (counts[ex.cat] || 0) + 1; });
+  let dom = exercises[0].cat, max = 0;
+  const seen = new Set();
+  for (const ex of exercises) {
+    if (seen.has(ex.cat)) continue;
+    seen.add(ex.cat);
+    if (counts[ex.cat] > max) { max = counts[ex.cat]; dom = ex.cat; }
+  }
+  return Math.round((MET_SESSION[dom] || 4.0) * weightKg * (durationSec / 3600));
+}
+
+// Calorieën voor een lijst oefeningen + duur (seconden) bij gegeven gewicht
+// Verdeling: ~70% van duur = oefening (gemiddelde MET van categorieën), ~30% rust
+function calcCalories(exercises, durationSec, weightKg) {
+  if (!weightKg || !durationSec || !exercises?.length) return 0;
+  const avgMet = exercises.reduce((sum, ex) => sum + (MET_BY_CAT[ex.category] || 5.0), 0) / exercises.length;
+  const exerciseHours = (durationSec * 0.7) / 3600;
+  const restHours = (durationSec * 0.3) / 3600;
+  return Math.round(avgMet * weightKg * exerciseHours + MET_REST * weightKg * restHours);
+}
+
+// BMI helpers
+function calcBMI(weightKg, heightCm) {
+  if (!weightKg || !heightCm) return 0;
+  const m = heightCm / 100;
+  return weightKg / (m * m);
+}
+function bmiCategory(bmi) {
+  if (bmi < 18.5) return { label: 'UNDERWEIGHT', color: '#69A6FF' };
+  if (bmi < 25)   return { label: 'HEALTHY',     color: '#6BE89B' };
+  if (bmi < 30)   return { label: 'OVERWEIGHT',  color: '#FFB454' };
+  return            { label: 'OBESE',           color: '#FF5A5A' };
+}
+
+const dbOp = (db, store, mode, fn) => new Promise((resolve, reject) => {
+  const tx = db.transaction(store, mode);
+  const req = fn(tx.objectStore(store));
+  req.onsuccess = e => resolve(e.target.result);
+  req.onerror = e => reject(e.target.error);
+});
+
+const dbGetAll = (db, store) => new Promise((resolve, reject) => {
+  const tx = db.transaction(store, 'readonly');
+  const req = tx.objectStore(store).getAll();
+  req.onsuccess = e => resolve(e.target.result || []);
+  req.onerror = e => reject(e.target.error);
+});
+
+function getUserId(profile) {
+  return profile?.createdAt ? `u-${profile.createdAt}` : 'u-anon';
+}
+function getSessionId() {
+  if (!window.__trainrSessionId) window.__trainrSessionId = `sess-${Date.now()}`;
+  return window.__trainrSessionId;
+}
+async function storeEventRecord(db, record) {
+  await dbOp(db, 'events', 'readwrite', s => s.put(record));
+}
+function trackEventFactory(dbRef) {
+  return async (name, meta = {}, opts = {}) => {
+    const profile = dbRef.current ? await getProfile(dbRef.current) : null;
+    const evt = {
+      id: `evt-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      event: name,
+      ts: Date.now(),
+      userId: getUserId(profile),
+      sessionId: opts.sessionId || getSessionId(),
+      planId: opts.planId || null,
+      meta: typeof meta === 'object' && meta !== null ? meta : { value: meta },
+    };
+    try {
+      if (dbRef.current) await storeEventRecord(dbRef.current, evt);
+      else throw new Error('db_not_ready');
+    } catch (err) {
+      const key = 'trainr_events_fallback';
+      const prev = JSON.parse(localStorage.getItem(key) || '[]');
+      prev.push(evt);
+      localStorage.setItem(key, JSON.stringify(prev));
+      console.warn('[analytics] IndexedDB write failed, used localStorage fallback.', err?.message || err);
+    }
+    return evt;
+  };
+}
+async function loadAllEvents(db) {
+  const idbEvents = db ? await dbGetAll(db, 'events') : [];
+  const fallback = JSON.parse(localStorage.getItem('trainr_events_fallback') || '[]');
+  return [...idbEvents, ...fallback].sort((a, b) => a.ts - b.ts);
+}
+function computeKpis(events) {
+  const byUser = new Map();
+  events.forEach(e => {
+    if (!byUser.has(e.userId)) byUser.set(e.userId, []);
+    byUser.get(e.userId).push(e);
+  });
+  let onboarded = 0, activated = 0, d7Users = 0, activeUsers = 0, weekWorkouts = 0;
+  for (const [, ue] of byUser) {
+    const ob = ue.find(e => e.event === 'onboarding_completed');
+    const wc = ue.filter(e => e.event === 'workout_completed');
+    if (ob) {
+      onboarded += 1;
+      if (wc.some(w => w.ts >= ob.ts && w.ts <= ob.ts + 24 * 3600 * 1000)) activated += 1;
+      const d7s = new Date(ob.ts + 7 * 24 * 3600 * 1000).toDateString();
+      if (ue.some(e => new Date(e.ts).toDateString() === d7s)) d7Users += 1;
+    }
+    const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
+    const hasWeekActivity = ue.some(e => e.ts >= weekAgo);
+    if (hasWeekActivity) activeUsers += 1;
+    weekWorkouts += wc.filter(w => w.ts >= weekAgo).length;
+  }
+  return {
+    events7d: events.filter(e => e.ts >= Date.now() - 7 * 24 * 3600 * 1000).length,
+    activation24h: onboarded ? activated / onboarded : 0,
+    d7Retention: onboarded ? d7Users / onboarded : 0,
+    d7ByUser: Object.fromEntries([...byUser.keys()].map(userId => {
+      const ue = byUser.get(userId);
+      const ob = ue.find(e => e.event === 'onboarding_completed');
+      const d7 = ob ? ue.some(e => new Date(e.ts).toDateString() === new Date(ob.ts + 7 * 24 * 3600 * 1000).toDateString()) : false;
+      return [userId, d7];
+    })),
+    workoutsPerActiveUserWeek: activeUsers ? weekWorkouts / activeUsers : 0,
+  };
+}
+
+// ================================================================
+// SPIERVISUALISATIE — config, helpers, SVG, componenten
+// ================================================================
+
+const MUSCLE_COLORS = {
+  none:      { fill: '#1A1A1C', stroke: '#252528' },
+  secondary: { fill: '#3A3A1A', stroke: '#76840F' },
+  primary:   { fill: '#C2DF1F', stroke: '#E8FE3C' },
+};
+
+const MUSCLE_CONFIG = {
+  chest:       { view: 'front', label: 'Chest'       },
+  shoulders:   { view: 'both',  label: 'Shoulders'   },
+  biceps:      { view: 'front', label: 'Biceps'      },
+  triceps:     { view: 'back',  label: 'Triceps'     },
+  forearms:    { view: 'both',  label: 'Forearms'    },
+  abs:         { view: 'front', label: 'Abs'         },
+  obliques:    { view: 'front', label: 'Obliques'    },
+  hip_flexors: { view: 'front', label: 'Hip flexors' },
+  traps:       { view: 'back',  label: 'Trapezius'   },
+  lats:        { view: 'back',  label: 'Lats'        },
+  lower_back:  { view: 'back',  label: 'Lower back'  },
+  glutes:      { view: 'back',  label: 'Glutes'      },
+  quads:       { view: 'front', label: 'Quadriceps'  },
+  hamstrings:  { view: 'back',  label: 'Hamstrings'  },
+  calves:      { view: 'both',  label: 'Calves'      },
+};
+
+function buildHighlighted(ex) {
+  const h = {};
+  (ex.muscles?.secondary || []).forEach(m => { h[m] = 'secondary'; });
+  (ex.muscles?.primary   || []).forEach(m => { h[m] = 'primary';   });
+  return h;
+}
+function detectViews(h) {
+  let f = false, b = false;
+  for (const m of Object.keys(h)) {
+    const v = MUSCLE_CONFIG[m]?.view;
+    if (v === 'front' || v === 'both') f = true;
+    if (v === 'back'  || v === 'both') b = true;
+  }
+  if (f && b) return 'both';
+  return b ? 'back' : 'front';
+}
+function zoneStyle(name, h) {
+  const lvl = h[name] || 'none';
+  return { fill: MUSCLE_COLORS[lvl].fill, stroke: MUSCLE_COLORS[lvl].stroke, strokeWidth: 0.6 };
+}
+function mergeRoutineMuscles(exercises) {
+  const prim = new Set(), sec = new Set();
+  exercises.forEach(ex => {
+    (ex.muscles?.primary   || []).forEach(m => prim.add(m));
+    (ex.muscles?.secondary || []).forEach(m => sec.add(m));
+  });
+  prim.forEach(m => sec.delete(m));
+  return { name: 'Routine', muscles: { primary: [...prim], secondary: [...sec] } };
+}
+function pickStroke(level) {
+  if (level === 'primary')   return '#E8FE3C';
+  if (level === 'secondary') return '#76840F';
+  return '#2a2a2d';
+}
+
+function Shell() {
+  const o = { fill: '#0a0a0b', stroke: '#1c1c1f', strokeWidth: 0.6, strokeLinejoin: 'round' };
+  return (
+    <g>
+      <ellipse cx="50" cy="13" rx="9" ry="11.5" {...o}/>
+      <path d="M 44,22 Q 50,26 56,22 L 57,34 Q 50,36 43,34 Z" {...o}/>
+      <path d="M 43,34 Q 33,36 27,40 Q 21,44 18,52 L 19,60 Q 22,68 25,74 L 27,90 L 28,112 L 30,128 L 32,140 L 68,140 L 70,128 L 72,112 L 73,90 L 75,74 Q 78,68 81,60 L 82,52 Q 79,44 73,40 Q 67,36 57,34 Q 50,33 43,34 Z" {...o}/>
+      <path d="M 22,42 Q 16,46 13,52 Q 10,60 9,72 Q 8,86 9,100 L 11,118 L 13,134 Q 10,138 9,144 Q 8,150 11,152 Q 16,152 18,148 L 21,134 L 23,118 Q 26,100 26,86 Q 27,72 27,60 Q 27,52 28,46 Q 25,42 22,42 Z" {...o}/>
+      <path d="M 78,42 Q 84,46 87,52 Q 90,60 91,72 Q 92,86 91,100 L 89,118 L 87,134 Q 90,138 91,144 Q 92,150 89,152 Q 84,152 82,148 L 79,134 L 77,118 Q 74,100 74,86 Q 73,72 73,60 Q 73,52 72,46 Q 75,42 78,42 Z" {...o}/>
+      <path d="M 32,140 Q 29,160 28,180 Q 27,200 28,218 L 30,232 Q 33,236 36,236 Q 40,236 41,232 L 42,218 Q 44,200 46,180 Q 48,160 49,142 Z" {...o}/>
+      <path d="M 68,140 Q 71,160 72,180 Q 73,200 72,218 L 70,232 Q 67,236 64,236 Q 60,236 59,232 L 58,218 Q 56,200 54,180 Q 52,160 51,142 Z" {...o}/>
+      <path d="M 28,236 L 44,236 Q 44,240 42,240 L 30,240 Q 27,240 28,236 Z" {...o}/>
+      <path d="M 72,236 L 56,236 Q 56,240 58,240 L 70,240 Q 73,240 72,236 Z" {...o}/>
+    </g>
+  );
+}
+
+function DetailFront({ h }) {
+  const ln = (active, w = 0.4) => ({ fill: 'none', strokeLinecap: 'round', stroke: pickStroke(h[active]), strokeWidth: w });
+  return (
+    <g>
+      <path d="M 32,40 Q 41,43 50,42 Q 59,43 68,40" {...ln('chest', 0.45)}/>
+      <path d="M 50,46 L 50,72" {...ln('chest')}/>
+      <path d="M 28,68 Q 38,76 50,72 Q 62,76 72,68" {...ln('chest')}/>
+      <path d="M 27,52 Q 26,60 28,68" {...ln('shoulders')}/>
+      <path d="M 73,52 Q 74,60 72,68" {...ln('shoulders')}/>
+      <path d="M 12,68 Q 14,72 12,78" {...ln('biceps')}/>
+      <path d="M 88,68 Q 86,72 88,78" {...ln('biceps')}/>
+      <path d="M 50,74 L 50,114" {...ln('abs', 0.45)}/>
+      <path d="M 43,82 L 57,82" {...ln('abs')}/>
+      <path d="M 43,92 L 57,92" {...ln('abs')}/>
+      <path d="M 43,102 L 57,102" {...ln('abs')}/>
+      <path d="M 30,86 Q 36,82 40,84" {...ln('obliques')}/>
+      <path d="M 70,86 Q 64,82 60,84" {...ln('obliques')}/>
+      <path d="M 38,118 L 50,134" {...ln('hip_flexors', 0.45)}/>
+      <path d="M 62,118 L 50,134" {...ln('hip_flexors', 0.45)}/>
+      <path d="M 38,148 Q 36,168 35,184" {...ln('quads')}/>
+      <path d="M 62,148 Q 64,168 65,184" {...ln('quads')}/>
+      <path d="M 41,180 Q 42,184 39,186" {...ln('quads')}/>
+      <path d="M 59,180 Q 58,184 61,186" {...ln('quads')}/>
+      <ellipse cx="36" cy="190" rx="3.5" ry="2.5" stroke="#2c2c2c" strokeWidth="0.4" fill="none"/>
+      <ellipse cx="64" cy="190" rx="3.5" ry="2.5" stroke="#2c2c2c" strokeWidth="0.4" fill="none"/>
+      <path d="M 36,196 L 35,222" {...ln('calves')}/>
+      <path d="M 64,196 L 65,222" {...ln('calves')}/>
+    </g>
+  );
+}
+
+function DetailBack({ h }) {
+  const ln = (active, w = 0.4) => ({ fill: 'none', strokeLinecap: 'round', stroke: pickStroke(h[active]), strokeWidth: w });
+  return (
+    <g>
+      <path d="M 36,40 L 50,68 L 64,40" {...ln('traps')}/>
+      <path d="M 50,40 L 50,138" stroke="#262626" strokeWidth="0.4" fill="none"/>
+      <path d="M 27,108 Q 38,114 50,108 Q 62,114 73,108" {...ln('lats')}/>
+      <path d="M 30,68 Q 35,82 36,98" {...ln('lats')}/>
+      <path d="M 70,68 Q 65,82 64,98" {...ln('lats')}/>
+      <path d="M 13,68 Q 17,76 14,82" {...ln('triceps')}/>
+      <path d="M 87,68 Q 83,76 86,82" {...ln('triceps')}/>
+      <path d="M 47,108 L 47,134" {...ln('lower_back')}/>
+      <path d="M 53,108 L 53,134" {...ln('lower_back')}/>
+      <path d="M 50,148 L 50,170" {...ln('glutes')}/>
+      <path d="M 30,166 Q 40,170 50,168" {...ln('glutes')}/>
+      <path d="M 70,166 Q 60,170 50,168" {...ln('glutes')}/>
+      <path d="M 35,176 L 34,196" {...ln('hamstrings')}/>
+      <path d="M 65,176 L 66,196" {...ln('hamstrings')}/>
+      <path d="M 32,200 Q 36,202 40,200" stroke="#2c2c2c" strokeWidth="0.4" fill="none"/>
+      <path d="M 60,200 Q 64,202 68,200" stroke="#2c2c2c" strokeWidth="0.4" fill="none"/>
+      <path d="M 35,210 Q 35,220 35,228" {...ln('calves')}/>
+      <path d="M 65,210 Q 65,220 65,228" {...ln('calves')}/>
+    </g>
+  );
+}
+
+function FrontBody({ h }) {
+  return (
+    <svg viewBox="0 0 100 244" width="100%" height="100%">
+      <Shell/>
+      <path d="M 19,42 Q 14,48 14,58 Q 18,64 25,63 Q 29,60 30,54 L 30,46 Q 26,40 22,40 Q 20,40 19,42 Z" {...zoneStyle('shoulders', h)}/>
+      <path d="M 81,42 Q 86,48 86,58 Q 82,64 75,63 Q 71,60 70,54 L 70,46 Q 74,40 78,40 Q 80,40 81,42 Z" {...zoneStyle('shoulders', h)}/>
+      <path d="M 30,42 Q 38,40 47,44 Q 49,48 49,52 L 49,68 Q 42,72 34,71 Q 28,70 28,64 L 28,50 Q 28,44 30,42 Z" {...zoneStyle('chest', h)}/>
+      <path d="M 70,42 Q 62,40 53,44 Q 51,48 51,52 L 51,68 Q 58,72 66,71 Q 72,70 72,64 L 72,50 Q 72,44 70,42 Z" {...zoneStyle('chest', h)}/>
+      <path d="M 13,58 Q 17,58 18,64 L 17,82 Q 13,84 11,82 L 10,64 Q 10,58 13,58 Z" {...zoneStyle('biceps', h)}/>
+      <path d="M 87,58 Q 83,58 82,64 L 83,82 Q 87,84 89,82 L 90,64 Q 90,58 87,58 Z" {...zoneStyle('biceps', h)}/>
+      <path d="M 11,90 Q 9,100 11,114 L 14,128 Q 18,128 17,118 L 18,100 Q 16,92 13,90 Q 12,90 11,90 Z" {...zoneStyle('forearms', h)}/>
+      <path d="M 89,90 Q 91,100 89,114 L 86,128 Q 82,128 83,118 L 82,100 Q 84,92 87,90 Q 88,90 89,90 Z" {...zoneStyle('forearms', h)}/>
+      <path d="M 41,72 Q 50,70 59,72 L 60,116 Q 55,120 50,120 Q 45,120 40,116 Z" {...zoneStyle('abs', h)}/>
+      <path d="M 30,76 Q 33,90 36,114 L 32,118 Q 28,100 28,80 Z" {...zoneStyle('obliques', h)}/>
+      <path d="M 70,76 Q 67,90 64,114 L 68,118 Q 72,100 72,80 Z" {...zoneStyle('obliques', h)}/>
+      <path d="M 38,118 L 50,134 L 62,118 L 60,132 L 50,140 L 40,132 Z" {...zoneStyle('hip_flexors', h)}/>
+      <path d="M 32,144 Q 28,164 28,184 L 36,188 Q 39,168 41,148 Q 41,144 38,144 Z" {...zoneStyle('quads', h)}/>
+      <path d="M 68,144 Q 72,164 72,184 L 64,188 Q 61,168 59,148 Q 59,144 62,144 Z" {...zoneStyle('quads', h)}/>
+      <path d="M 31,200 L 35,200 L 35,224 L 32,224 Z" {...zoneStyle('calves', h)}/>
+      <path d="M 69,200 L 65,200 L 65,224 L 68,224 Z" {...zoneStyle('calves', h)}/>
+      <DetailFront h={h}/>
+    </svg>
+  );
+}
+
+function BackBody({ h }) {
+  return (
+    <svg viewBox="0 0 100 244" width="100%" height="100%">
+      <Shell/>
+      <path d="M 19,42 Q 14,48 14,58 Q 18,64 25,63 Q 29,60 30,54 L 30,46 Q 26,40 22,40 Q 20,40 19,42 Z" {...zoneStyle('shoulders', h)}/>
+      <path d="M 81,42 Q 86,48 86,58 Q 82,64 75,63 Q 71,60 70,54 L 70,46 Q 74,40 78,40 Q 80,40 81,42 Z" {...zoneStyle('shoulders', h)}/>
+      <path d="M 36,36 Q 50,33 64,36 L 67,52 Q 60,58 50,60 Q 40,58 33,52 Z" {...zoneStyle('traps', h)}/>
+      <path d="M 36,54 L 50,72 L 64,54 Q 58,62 50,64 Q 42,62 36,54 Z" {...zoneStyle('traps', h)}/>
+      <path d="M 27,62 Q 22,80 24,108 L 36,114 Q 41,98 43,82 Q 45,72 47,68 Q 38,64 27,62 Z" {...zoneStyle('lats', h)}/>
+      <path d="M 73,62 Q 78,80 76,108 L 64,114 Q 59,98 57,82 Q 55,72 53,68 Q 62,64 73,62 Z" {...zoneStyle('lats', h)}/>
+      <path d="M 13,58 Q 17,58 18,64 L 17,82 Q 13,84 11,82 L 10,64 Q 10,58 13,58 Z" {...zoneStyle('triceps', h)}/>
+      <path d="M 87,58 Q 83,58 82,64 L 83,82 Q 87,84 89,82 L 90,64 Q 90,58 87,58 Z" {...zoneStyle('triceps', h)}/>
+      <path d="M 11,90 Q 9,100 11,114 L 14,128 Q 18,128 17,118 L 18,100 Q 16,92 13,90 Q 12,90 11,90 Z" {...zoneStyle('forearms', h)}/>
+      <path d="M 89,90 Q 91,100 89,114 L 86,128 Q 82,128 83,118 L 82,100 Q 84,92 87,90 Q 88,90 89,90 Z" {...zoneStyle('forearms', h)}/>
+      <path d="M 43,108 Q 50,106 57,108 L 58,134 Q 50,138 42,134 Z" {...zoneStyle('lower_back', h)}/>
+      <path d="M 32,142 Q 26,150 28,164 Q 32,172 40,172 Q 48,170 49,160 Q 50,148 46,142 Q 38,138 32,142 Z" {...zoneStyle('glutes', h)}/>
+      <path d="M 68,142 Q 74,150 72,164 Q 68,172 60,172 Q 52,170 51,160 Q 50,148 54,142 Q 62,138 68,142 Z" {...zoneStyle('glutes', h)}/>
+      <path d="M 31,176 Q 28,190 28,202 L 38,202 Q 39,188 40,176 Z" {...zoneStyle('hamstrings', h)}/>
+      <path d="M 69,176 Q 72,190 72,202 L 62,202 Q 61,188 60,176 Z" {...zoneStyle('hamstrings', h)}/>
+      <path d="M 30,206 Q 31,218 33,228 L 38,228 Q 38,216 36,206 Z" {...zoneStyle('calves', h)}/>
+      <path d="M 70,206 Q 69,218 67,228 L 62,228 Q 62,216 64,206 Z" {...zoneStyle('calves', h)}/>
+      <DetailBack h={h}/>
+    </svg>
+  );
+}
+
+function BodyDiagram({ exercise, height = 260 }) {
+  const h     = React.useMemo(() => buildHighlighted(exercise), [exercise]);
+  const views = detectViews(h);
+  const both  = views === 'both';
+  const figW  = height * (100 / 244);
+  const lbl   = { textAlign: 'center', fontSize: 12, letterSpacing: 2, color: C.muted, marginBottom: 4, fontFamily: 'var(--font-mono)' };
+  return (
+    <div style={{ display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'flex-start' }}>
+      {(views === 'front' || both) && (
+        <div style={{ width: figW, flexShrink: 0 }}>
+          <div style={lbl}>FRONT</div>
+          <div style={{ height }}><FrontBody h={h}/></div>
+        </div>
+      )}
+      {(views === 'back' || both) && (
+        <div style={{ width: figW, flexShrink: 0 }}>
+          <div style={lbl}>BACK</div>
+          <div style={{ height }}><BackBody h={h}/></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MuscleTags({ exercise }) {
+  const { primary = [], secondary = [] } = exercise.muscles || {};
+  const tag = (m, level) => (
+    <span key={m} style={{
+      display: 'inline-block', padding: '3px 8px', borderRadius: 4,
+      background: level === 'primary' ? 'rgba(232,254,60,0.12)' : 'rgba(255,255,255,0.06)',
+      color:      level === 'primary' ? '#E8FE3C' : C.muted,
+      fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.08em',
+      marginRight: 5, marginBottom: 4,
+    }}>{MUSCLE_CONFIG[m]?.label || m}</span>
+  );
+  return (
+    <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      {primary.length > 0 && (
+        <div style={{ marginBottom: 8 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: C.muted, letterSpacing: '0.12em', marginBottom: 5 }}>PRIMARY</div>
+          <div>{primary.map(m => tag(m, 'primary'))}</div>
+        </div>
+      )}
+      {secondary.length > 0 && (
+        <div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: C.muted, letterSpacing: '0.12em', marginBottom: 5 }}>SECONDARY</div>
+          <div>{secondary.map(m => tag(m, 'secondary'))}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ================================================================
+// EXERCISE LIBRARY
+// ================================================================
+const EXERCISES = [
+  // CORE
+  { id: 'dead-bug',        cat: 'Core',       name: 'Dead bug',                 desc: 'On your back, slowly extend one arm and the opposite leg in turn.\nKeep your lower back flat on the floor, move slowly and with control.', times: [20, 40, 60], muscles: { primary: ['abs'], secondary: ['hip_flexors'] } },
+  { id: 'plank',           cat: 'Core',       name: 'Plank',                    desc: 'On your elbows and toes, hold your body in a straight line.\nElbows under shoulders, do not let your hips sag or pike up.',                 times: [30, 60, 90], muscles: { primary: ['abs', 'lower_back'], secondary: ['shoulders', 'glutes', 'quads'] } },
+  { id: 'side-l',          cat: 'Core',       name: 'Side plank left',          desc: 'On your left elbow, hips up, body straight from head to feet.\nDo not let your hip drop, right hand on hip or pointed up.',                 times: [20, 40, 60], muscles: { primary: ['obliques'], secondary: ['abs', 'shoulders', 'glutes'] } },
+  { id: 'side-r',          cat: 'Core',       name: 'Side plank right',         desc: 'On your right elbow, hips up, body straight from head to feet.\nDo not let your hip drop, left hand on hip or pointed up.',                 times: [20, 40, 60], muscles: { primary: ['obliques'], secondary: ['abs', 'shoulders', 'glutes'] } },
+  { id: 'glute-bridge',    cat: 'Core',       name: 'Glute bridge hold',        desc: 'On your back, feet flat on the floor, press your hips up as high as possible.\nSqueeze your glutes hard at the top, knees slightly out.', times: [20, 45, 60], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back'] } },
+  { id: 'mountain-cl',     cat: 'Core',       name: 'Mountain climbers',        desc: 'In a high plank, drive your knees explosively toward your chest in turn.\nKeep your hips low, build the tempo, keep your core tight.',     times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
+  { id: 'bicycles',        cat: 'Core',       name: 'Bicycle crunches',        desc: 'On your back, hands behind your head, rotate elbow to opposite knee.\nFully extend the other leg, rotate slowly, do not pull on your neck.',  times: [20, 40, 60], muscles: { primary: ['abs', 'obliques'], secondary: ['hip_flexors'] } },
+  { id: 'hollow-body',     cat: 'Core',       name: 'Hollow body hold',         desc: 'On your back, legs and shoulders off the floor, hold your body like a banana.\nMax tension through the core, keep lower back flat.',       times: [15, 30, 45], muscles: { primary: ['abs'], secondary: ['hip_flexors', 'lower_back'] } },
+  { id: 'leg-raise',       cat: 'Core',       name: 'Leg raises',               desc: 'On your back, lift straight legs to 90° and slowly lower them back down.\nPress your lower back into the floor, legs just above the floor at the bottom.', times: [15, 30, 45], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['lower_back'] } },
+  { id: 'russian-twist',   cat: 'Core',       name: 'Russian twist',            desc: 'Seated with knees slightly bent, rotate your torso left and right in turn.\nFeet off the floor for more difficulty, keep your back straight.', times: [20, 35, 50], muscles: { primary: ['obliques'], secondary: ['abs', 'hip_flexors'] } },
+  // ARMS
+  { id: 'pushup',          cat: 'Arms',       name: 'Push-ups',                 desc: 'Hands shoulder-width, lower your chest toward the floor and press up.\nElbows about 45° from the body, hold your body like a straight plank.',  times: [20, 40, 60], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
+  { id: 'incline-pushup',  cat: 'Arms',       name: 'Incline push-ups',         desc: 'Hands on a chair or table, body angled forward, push-up motion.\nAn easier variant — same technique as a regular push-up.',                  times: [20, 40, 60], muscles: { primary: ['chest'], secondary: ['shoulders', 'triceps'] } },
+  { id: 'diamond-pushup',  cat: 'Arms',       name: 'Diamond push-ups',         desc: 'Hands together in a triangle directly under your chest, lower and press up.\nElbows close to the body — triceps work harder.',              times: [15, 30, 45], muscles: { primary: ['triceps', 'chest'], secondary: ['shoulders'] } },
+  { id: 'pike-pushup',     cat: 'Arms',       name: 'Pike push-ups',            desc: 'Hips high in an inverted V, lower your head toward the floor.\nWeight on your shoulders, keep elbows stable — shoulder focus.',           times: [15, 30, 45], muscles: { primary: ['shoulders', 'triceps'], secondary: ['chest', 'traps'] } },
+  { id: 'dips',            cat: 'Arms',       name: 'Dips (chair)',             desc: 'Hands on a chair behind you, bend and straighten your elbows.\nKeep your back close to the chair, elbows pointing straight back.',         times: [20, 40, 60], muscles: { primary: ['triceps'], secondary: ['shoulders', 'chest'] } },
+  { id: 'decline-pushup',  cat: 'Arms',       name: 'Decline push-ups',         desc: 'Feet on a chair, hands on the floor, lower your chest down.\nHead and chest below your feet — upper chest and shoulders work more.',       times: [15, 30, 45], muscles: { primary: ['chest', 'shoulders'], secondary: ['triceps', 'abs'] } },
+  { id: 'slow-pushup',     cat: 'Arms',       name: 'Negative push-ups',        desc: 'Lower for 4 seconds, then press back up.\nExplosive up, no rest at the bottom, full control of the movement.',                            times: [20, 40, 60], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
+  { id: 'inv-row',         cat: 'Arms',       name: 'Australian rows',          desc: 'Lying under a table, pull your chest up to the tabletop.\nBack straight, squeeze shoulder blades together at the top, lower slowly.',      times: [20, 40, 60], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
+  { id: 'scap-retract',    cat: 'Arms',       name: 'Scapular squeeze',         desc: 'Stand upright and squeeze your shoulder blades together as hard as possible — hold.\nArms by your sides, do not shrug, focus on the upper back.', times: [20, 40, 60], muscles: { primary: ['traps'], secondary: ['shoulders', 'lower_back'] } },
+  { id: 'door-row',        cat: 'Arms',       name: 'Doorway rows',             desc: 'Hold a doorframe with both hands, lean back and pull yourself up.\nArms bent, back straight, pull your shoulder blades together.',         times: [20, 40, 60], muscles: { primary: ['lats', 'biceps'], secondary: ['traps', 'forearms'] } },
+  { id: 'rev-snow-angel',  cat: 'Arms',       name: 'Prone snow angels',        desc: 'Lie face down, sweep your arms from your sides up overhead.\nSqueeze your shoulder blades, keep arms straight and low.',                   times: [20, 40, 60], muscles: { primary: ['traps', 'lower_back'], secondary: ['shoulders'] } },
+  { id: 'table-hold',      cat: 'Arms',       name: 'Australian row hold',      desc: 'Under a table, pull yourself halfway up and hold that position.\nArms at 90°, back straight, keep shoulder blades squeezed together.',     times: [15, 30, 45], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
+  { id: 'wide-pushup',     cat: 'Arms',       name: 'Wide push-ups',            desc: 'Hands well outside shoulder-width, lower your chest and press up.\nMore emphasis on the outer chest — elbows flare slightly.',             times: [20, 40, 60], muscles: { primary: ['chest'], secondary: ['triceps', 'shoulders'] } },
+  { id: 'floor-dip',       cat: 'Arms',       name: 'Triceps floor dips',       desc: 'Sit on your hands and heels, hips up, bend and straighten your elbows.\nKeep elbows pointing straight back, hold hips as high as possible.', times: [20, 40, 60], muscles: { primary: ['triceps'], secondary: ['shoulders', 'chest'] } },
+  { id: 'superman-pull',   cat: 'Arms',       name: 'Superman pull',            desc: 'Face down, arms stretched out in front, lift arms and chest off the floor, then lower.\nSqueeze your shoulder blades at the top, slow and controlled.', times: [20, 40, 60], muscles: { primary: ['lats', 'traps'], secondary: ['lower_back', 'shoulders'] } },
+  // LEGS
+  { id: 'squats',          cat: 'Legs',       name: 'Squats',                   desc: 'Feet shoulder-width, hips back and down, then drive up.\nBack straight, knees over toes, come up explosively.',                            times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'lower_back', 'calves'] } },
+  { id: 'jump-squat',      cat: 'Legs',       name: 'Jump squats',              desc: 'Perform a squat and from the bottom jump up explosively.\nLand soft with bent knees, go straight into the next rep.',                       times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
+  { id: 'wall-sit',        cat: 'Legs',       name: 'Wall sit',                 desc: 'Back flat against the wall, knees at 90°, thighs parallel to the floor.\nKeep knees above ankles, do not sag down.',                       times: [20, 45, 60], muscles: { primary: ['quads'], secondary: ['glutes', 'calves'] } },
+  { id: 'alt-lunges',      cat: 'Legs',       name: 'Alternating lunges',       desc: 'Step forward into a lunge and return, alternating legs.\nKeep your knee above your ankle, back straight, hips low and stable.',           times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'glute-single-l',  cat: 'Legs',       name: 'Single-leg bridge left',   desc: 'On your back, right leg up, push your left hip up as high as possible.\nMax tension through the left glute, keep hips level.',           times: [15, 30, 45], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
+  { id: 'glute-single-r',  cat: 'Legs',       name: 'Single-leg bridge right',  desc: 'On your back, left leg up, push your right hip up as high as possible.\nMax tension through the right glute, keep hips level.',          times: [15, 30, 45], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
+  { id: 'donkey-kick',     cat: 'Legs',       name: 'Donkey kicks',             desc: 'On hands and knees, kick one leg back and up.\nSqueeze the glute at the top, do not tilt your hip.',                                       times: [20, 40, 60], muscles: { primary: ['glutes'], secondary: ['lower_back', 'hamstrings'] } },
+  { id: 'sumo-squat',      cat: 'Legs',       name: 'Sumo squat',               desc: 'Feet wide apart, toes angled out, drop deep through the knees.\nBack straight, knees over toes, engage your inner thighs on the way up.', times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'step-up',         cat: 'Legs',       name: 'Step-up (chair)',          desc: 'Step onto a chair or stair with one foot and lift the other leg up.\nFoot fully on the surface, drive up through the working leg.',       times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'calf-raise',      cat: 'Legs',       name: 'Calf raises',              desc: 'Stand upright, rise onto your toes and slowly lower back down.\nUse the edge of a step for more range — slow on the way down.',           times: [25, 45, 60], muscles: { primary: ['calves'], secondary: [] } },
+  // FULL BODY
+  { id: 'burpees',         cat: 'Full Body',  name: 'Burpees',                  desc: 'From standing, drop into a plank, push-up, jump back up.\nFluid motion, arms above your head on the jump.',                                 times: [20, 40, 60], muscles: { primary: ['quads', 'chest'], secondary: ['shoulders', 'triceps', 'abs', 'glutes', 'calves'] } },
+  { id: 'jumping-jacks',   cat: 'Full Body',  name: 'Jumping jacks',            desc: 'Jump while spreading legs and raising arms overhead, then return.\nKeep a steady tempo, arms and legs moving together.',                  times: [30, 45, 60], muscles: { primary: ['shoulders', 'calves'], secondary: ['quads', 'glutes'] } },
+  { id: 'high-knees',      cat: 'Full Body',  name: 'High knees',               desc: 'Run in place, driving your knees up as high as possible toward your chest.\nSwing your arms as if running, stay upright.',                 times: [20, 40, 60], muscles: { primary: ['hip_flexors', 'quads'], secondary: ['abs', 'calves'] } },
+  { id: 'butt-kicks',      cat: 'Full Body',  name: 'Butt kicks',               desc: 'Run in place, kicking your heels up toward your glutes in turn.\nStay upright, swing your arms, fast tempo.',                              times: [20, 40, 60], muscles: { primary: ['hamstrings', 'calves'], secondary: ['quads', 'glutes'] } },
+  { id: 'mt-cl-fast',      cat: 'Full Body',  name: 'Mountain climbers fast',   desc: 'Perform mountain climbers at the highest sustainable tempo.\nKeep core tight, hips low even at high tempo.',                                times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
+  { id: 'squat-jump-rep',  cat: 'Full Body',  name: 'Jump squats HIT',          desc: 'Non-stop jump squats at maximum tempo.\nLand soft with bent knees, keep going, stay explosive.',                                              times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
+  { id: 'bear-crawl',      cat: 'Full Body',  name: 'Bear crawl',               desc: 'On hands and feet (knees just off the floor), crawl forward and backward.\nHips low and stable, core tight, small controlled steps.',     times: [20, 35, 50], muscles: { primary: ['shoulders', 'abs'], secondary: ['quads', 'hip_flexors'] } },
+  { id: 'inchworm',        cat: 'Full Body',  name: 'Inchworm',                 desc: 'From standing, walk your hands out to a plank, then walk your feet up to your hands.\nSteady tempo, full extension at the start and end.', times: [20, 35, 50], muscles: { primary: ['abs', 'shoulders'], secondary: ['hamstrings', 'chest'] } },
+  { id: 'lateral-jump',    cat: 'Full Body',  name: 'Lateral jumps',            desc: 'Jump sideways from one leg to the other.\nLand soft with bent knee, jump straight back to the other side.',                                times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'abs'] } },
+];
+const DEFAULT_TARGETS_BY_MODE = {
+  time: { beginner: 20, intermediate: 40, expert: 60 },
+  reps: { beginner: 8, intermediate: 12, expert: 16 },
+};
+const EXERCISE_CONFIGS = {
+  plank: { mode: 'time', targets: { beginner: 30, intermediate: 60, expert: 90 } },
+  'side-l': { mode: 'time', targets: { beginner: 20, intermediate: 40, expert: 60 } },
+  'side-r': { mode: 'time', targets: { beginner: 20, intermediate: 40, expert: 60 } },
+  pushup: { mode: 'reps', targets: { beginner: 8, intermediate: 15, expert: 25 } },
+  squats: { mode: 'reps', targets: { beginner: 12, intermediate: 20, expert: 35 } },
+  'alt-lunges': { mode: 'reps', targets: { beginner: 8, intermediate: 12, expert: 20 } },
+  dips: { mode: 'reps', targets: { beginner: 6, intermediate: 12, expert: 20 } },
+  burpees: { mode: 'hybrid', targets: { beginner: 8, intermediate: 12, expert: 18 } },
+  'mountain-cl': { mode: 'time', targets: { beginner: 20, intermediate: 35, expert: 50 } },
+  'mt-cl-fast': { mode: 'time', targets: { beginner: 20, intermediate: 35, expert: 50 } },
+};
+const EXERCISES_WITH_MODE = EXERCISES.map(ex => {
+  const cfg = EXERCISE_CONFIGS[ex.id] || {};
+  const mode = cfg.mode || 'time';
+  const t = cfg.targets || (mode === 'reps' ? DEFAULT_TARGETS_BY_MODE.reps : DEFAULT_TARGETS_BY_MODE.time);
+  return { ...ex, mode, targets: t, times: ex.times || [t.beginner, t.intermediate, t.expert] };
+});
+
+const CATS = ['Core', 'Arms', 'Legs', 'Full Body'];
+const LEVELS = ['BEGINNER', 'INTERMEDIATE', 'EXPERT'];
+const LEVEL_COLORS = ['#6BE89B', '#FFB454', '#FF5A5A'];
+const CAT_COLORS = { Core: '#E8FE3C', Arms: '#FFB454', Legs: '#6BE89B', 'Full Body': '#FF5A5A' };
+
+function getRoutineCategories(exerciseIds) {
+  const seen = new Set();
+  const cats = [];
+  exerciseIds.forEach(id => {
+    const ex = EXERCISES_WITH_MODE.find(e => e.id === id);
+    if (ex && !seen.has(ex.cat)) { seen.add(ex.cat); cats.push(ex.cat); }
+  });
+  return cats;
+}
+
+function CatTags({ exerciseIds, count }) {
+  const cats = getRoutineCategories(exerciseIds);
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      {cats.map(cat => (
+        <span key={cat} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: CAT_COLORS[cat], fontSize: 12, letterSpacing: '0.12em' }}>
+          ■ {cat.toUpperCase()}
+        </span>
+      ))}
+      {count != null && <span style={{ color: C.muted, fontSize: 12 }}>· {count} EX</span>}
+    </div>
+  );
+}
+
+const DEFAULT_ROUTINE = {
+  id: 'default-core',
+  name: 'Core Protocol',
+  category: 'Core',
+  quickStart: true,
+  exercises: ['dead-bug','plank','side-l','side-r','glute-bridge','mountain-cl','bicycles'],
+  createdAt: Date.now(),
+};
+
+// Coach-templates per trainingGoal: recepten voor de 3 home-trainingen.
+// primaryCat levert ~70%, secondaryCat ~30% van de oefeningen.
+const COACH_TEMPLATES = {
+  fatloss: [
+    { id: 'fl_a', name: 'Fat Burner',        primaryCat: 'Full Body', secondaryCat: 'Legs',      count: 8 },
+    { id: 'fl_b', name: 'Legs & Cardio',     primaryCat: 'Legs',      secondaryCat: 'Full Body', count: 7 },
+    { id: 'fl_c', name: 'Total Body',        primaryCat: 'Full Body', secondaryCat: 'Core',      count: 8 },
+  ],
+  muscle: [
+    { id: 'ms_a', name: 'Arms & Chest',      primaryCat: 'Arms',      secondaryCat: 'Core',      count: 8 },
+    { id: 'ms_b', name: 'Leg Strength',      primaryCat: 'Legs',      secondaryCat: 'Core',      count: 7 },
+    { id: 'ms_c', name: 'Push & Pull Mix',   primaryCat: 'Arms',      secondaryCat: 'Full Body', count: 8 },
+  ],
+  core: [
+    { id: 'co_a', name: 'Core Basics',       primaryCat: 'Core',      secondaryCat: null,        count: 7 },
+    { id: 'co_b', name: 'Core & Stability',  primaryCat: 'Core',      secondaryCat: 'Legs',      count: 7 },
+    { id: 'co_c', name: 'Core Power',        primaryCat: 'Core',      secondaryCat: 'Full Body', count: 8 },
+  ],
+  fitness: [
+    { id: 'ft_a', name: 'Full Session',      primaryCat: 'Full Body', secondaryCat: 'Arms',      count: 8 },
+    { id: 'ft_b', name: 'Legs & Core',       primaryCat: 'Legs',      secondaryCat: 'Core',      count: 7 },
+    { id: 'ft_c', name: 'Strength Mix',      primaryCat: 'Arms',      secondaryCat: 'Legs',      count: 8 },
+  ],
+};
+
+// Oefeningen met explosieve/sprong-componenten — uitgefilterd voor 55+.
+const HIGH_IMPACT_IDS = new Set([
+  'jump-squat', 'burpees', 'squat-jump-rep', 'lateral-jump', 'high-knees', 'butt-kicks',
+]);
+
+const LEVEL_TIME_IDX = { beginner: 0, intermediate: 1, expert: 2 };
+
+const GOAL_LABEL  = { fatloss: 'fat loss', muscle: 'muscle building', core: 'core stability', fitness: 'general fitness' };
+const LEVEL_LABEL = { beginner: 'easing in', intermediate: 'steady training', expert: 'high load' };
+
+const BODY_PART_WORKOUTS = {
+  Core: [
+    { id: 'core-s', name: 'Core Start',    durationLabel: '~10 MIN', exercises: ['dead-bug','plank','glute-bridge','side-l'] },
+    { id: 'core-b', name: 'Core Basics',   durationLabel: '~15 MIN', exercises: ['dead-bug','plank','side-l','side-r','glute-bridge','bicycles'] },
+    { id: 'core-k', name: 'Core Strength', durationLabel: '~20 MIN', exercises: ['dead-bug','plank','side-l','side-r','glute-bridge','mountain-cl','bicycles','hollow-body'] },
+  ],
+  Arms: [
+    { id: 'arm-s', name: 'Arms Start',   durationLabel: '~10 MIN', exercises: ['incline-pushup','scap-retract','wide-pushup'] },
+    { id: 'arm-b', name: 'Arms Basic',   durationLabel: '~15 MIN', exercises: ['pushup','incline-pushup','scap-retract','door-row','dips'] },
+    { id: 'arm-t', name: 'Arms Total',   durationLabel: '~20 MIN', exercises: ['pushup','diamond-pushup','pike-pushup','dips','inv-row','scap-retract','door-row','floor-dip'] },
+  ],
+  Legs: [
+    { id: 'leg-s', name: 'Legs Start',    durationLabel: '~10 MIN', exercises: ['squats','alt-lunges','glute-bridge'] },
+    { id: 'leg-b', name: 'Legs Basics',   durationLabel: '~15 MIN', exercises: ['squats','alt-lunges','wall-sit','sumo-squat','step-up'] },
+    { id: 'leg-k', name: 'Legs Strength', durationLabel: '~20 MIN', exercises: ['squats','jump-squat','alt-lunges','wall-sit','glute-single-l','glute-single-r','donkey-kick','calf-raise'] },
+  ],
+  'Full Body': [
+    { id: 'fb-s',  name: 'Full Body Start',  durationLabel: '~12 MIN', exercises: ['jumping-jacks','high-knees','squats','mountain-cl'] },
+    { id: 'fb-b',  name: 'Full Body Basics', durationLabel: '~18 MIN', exercises: ['jumping-jacks','burpees','high-knees','butt-kicks','squats','mountain-cl'] },
+    { id: 'fb-h',  name: 'Full Body HIT',    durationLabel: '~25 MIN', exercises: ['jumping-jacks','burpees','high-knees','butt-kicks','squats','pushup','mountain-cl','lateral-jump','inchworm'] },
+  ],
+};
+
+// Dag-van-jaar (1-366). Gebruikt als seed voor dagelijkse coach-selectie.
+function dayOfYear(d = new Date()) {
+  const start = new Date(d.getFullYear(), 0, 0);
+  return Math.floor((d - start) / 86400000);
+}
+
+// 32-bit hash voor strings (Mulberry-style); kleine, snel, deterministisch.
+function hashStr(s) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+
+// Pure deterministische shuffle: zelfde seed = zelfde volgorde.
+function seededShuffle(arr, seed) {
+  const out = arr.slice();
+  let s = seed >>> 0;
+  for (let i = out.length - 1; i > 0; i--) {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    const j = s % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+// Bouwt 3 gepersonaliseerde workouts op basis van profile + dag-van-jaar.
+// Retourneert objecten met dezelfde vorm als BODY_PART_WORKOUTS-items.
+function buildCoachWorkouts(profile) {
+  const goal     = profile?.trainingGoal || 'fitness';
+  const level    = profile?.level || 'intermediate';
+  const timeIdx  = LEVEL_TIME_IDX[level] ?? 1;
+  const age      = parseInt(profile?.age, 10) || 0;
+  const weight   = parseFloat(profile?.weight) || 0;
+  const wGoal    = parseFloat(profile?.weightGoal) || 0;
+  const wDelta   = weight - wGoal;
+  const templates = COACH_TEMPLATES[goal] || COACH_TEMPLATES.fitness;
+  const today    = dayOfYear();
+  const baseSeed = hashStr(`${goal}|${level}|${today}`);
+
+  return templates.map((t, idx) => {
+    let primaryCount = Math.ceil(t.count * 0.7);
+    let secondaryCount = t.count - primaryCount;
+
+    // WeightDelta-tweak: bij echt afvallen meer Full Body in fatloss-templates.
+    if (goal === 'fatloss' && wDelta > 5 && t.primaryCat === 'Full Body' && secondaryCount > 1) {
+      primaryCount += 1;
+      secondaryCount -= 1;
+    }
+
+    const inPool = (e, cat) => e.cat === cat && !(age >= 55 && HIGH_IMPACT_IDS.has(e.id));
+    const primaryPool   = EXERCISES.filter(e => inPool(e, t.primaryCat));
+    const secondaryPool = t.secondaryCat ? EXERCISES.filter(e => inPool(e, t.secondaryCat)) : [];
+
+    const seed = baseSeed ^ hashStr(t.id);
+    const primary   = seededShuffle(primaryPool,   seed).slice(0, primaryCount);
+    const secondary = seededShuffle(secondaryPool, seed ^ 0x9E3779B9).slice(0, secondaryCount);
+
+    // Als secundaire pool te klein was, primair aanvullen.
+    if (secondary.length < secondaryCount) {
+      const need = secondaryCount - secondary.length;
+      const extra = seededShuffle(primaryPool.filter(e => !primary.includes(e)), seed + 7).slice(0, need);
+      primary.push(...extra);
+    }
+
+    const picked = [...primary, ...secondary];
+    const totalSec = picked.reduce((sum, e) => sum + (e.times?.[timeIdx] || 30), 0) + (picked.length - 1) * 30;
+    const minutes = Math.max(1, Math.round(totalSec / 60));
+
+    return {
+      id: `coach-${goal}-${t.id}-${today}`,
+      name: t.name,
+      durationLabel: `${minutes}M`,
+      exercises: picked.map(e => e.id),
+      category: t.primaryCat,
+    };
+  });
+}
+
+// Eén regel coach-uitleg boven de 3 cards.
+function buildCoachIntro(profile) {
+  const goal  = profile?.trainingGoal || 'fitness';
+  const level = profile?.level || 'intermediate';
+  const days  = profile?.availableDays || '3';
+  return `For your goal: ${GOAL_LABEL[goal]}. ${days}× per week, ${LEVEL_LABEL[level]}.`;
+}
+
+// ================================================================
+// BUILTIN PLANS
+// ================================================================
+const BUILTIN_PLANS = [
+  {
+    id: 'consistency-21',
+    title: 'Consistency Start',
+    subtitle: '21 DAYS · BEGINNER CONSISTENCY',
+    goal: 'Build consistency and routine',
+    level: 'beginner',
+    focus: 'full-body',
+    color: '#69A6FF',
+    days: [
+      { day: 1, restDay: false, exercises: ['dead-bug','plank','glute-bridge','high-knees'] },
+      { day: 2, restDay: true },
+      { day: 3, restDay: false, exercises: ['squats','incline-pushup','scap-retract','bicycles'] },
+      { day: 4, restDay: true },
+      { day: 5, restDay: false, exercises: ['jumping-jacks','mountain-cl','dead-bug','plank'] },
+      { day: 6, restDay: true },
+      { day: 7, restDay: false, exercises: ['glute-bridge','squats','side-l','side-r'] },
+      { day: 8, restDay: true },
+      { day: 9, restDay: false, exercises: ['incline-pushup','bicycles','scap-retract','high-knees'] },
+      { day: 10, restDay: true },
+      { day: 11, restDay: false, exercises: ['dead-bug','plank','mountain-cl','glute-bridge'] },
+      { day: 12, restDay: true },
+      { day: 13, restDay: false, exercises: ['squats','jumping-jacks','incline-pushup','bicycles'] },
+      { day: 14, restDay: true },
+      { day: 15, restDay: false, exercises: ['scap-retract','side-l','side-r','plank'] },
+      { day: 16, restDay: true },
+      { day: 17, restDay: false, exercises: ['high-knees','squats','dead-bug','glute-bridge'] },
+      { day: 18, restDay: true },
+      { day: 19, restDay: false, exercises: ['incline-pushup','mountain-cl','bicycles','plank'] },
+      { day: 20, restDay: true },
+      { day: 21, restDay: false, exercises: ['dead-bug','plank','side-l','side-r','jumping-jacks'] },
+    ]
+  },
+  {
+    id: 'fit-28',
+    title: 'General Fitness',
+    subtitle: '28 DAYS · GENERAL FITNESS',
+    goal: 'Improve all-round conditioning and strength',
+    level: 'intermediate',
+    focus: 'full-body',
+    color: '#6BE89B',
+    days: Array.from({ length: 28 }, (_, i) => {
+      const day = i + 1;
+      if ([4,8,12,16,20,24].includes(day)) return { day, restDay: true };
+      const pool = [
+        ['squats','pushup','plank','mountain-cl','bicycles'],
+        ['alt-lunges','diamond-pushup','glute-bridge','jumping-jacks','burpees'],
+        ['high-knees','incline-pushup','side-l','side-r','scap-retract'],
+      ];
+      return { day, restDay: false, exercises: pool[i % pool.length] };
+    })
+  },
+  {
+    id: 'core-30',
+    title: 'Core Protocol',
+    subtitle: '30 DAYS · CORE FOCUS',
+    goal: 'Strengthen core stability and posture',
+    level: 'intermediate',
+    focus: 'core',
+    color: '#FFB454',
+    days: [
+      { day: 1,  restDay: false, exercises: ['dead-bug','plank','dead-bug','bicycles','glute-bridge'] },
+      { day: 2,  restDay: false, exercises: ['plank','side-l','side-r','bicycles','mountain-cl'] },
+      { day: 3,  restDay: true },
+      { day: 4,  restDay: false, exercises: ['dead-bug','plank','dead-bug','bicycles','glute-bridge'] },
+      { day: 5,  restDay: false, exercises: ['plank','side-l','side-r','bicycles','mountain-cl'] },
+      { day: 6,  restDay: true },
+      { day: 7,  restDay: false, exercises: ['dead-bug','plank','mountain-cl','bicycles','glute-bridge','dead-bug'] },
+      { day: 8,  restDay: false, exercises: ['plank','plank','side-l','side-r','bicycles','bicycles'] },
+      { day: 9,  restDay: false, exercises: ['dead-bug','mountain-cl','mountain-cl','glute-bridge','dead-bug','plank'] },
+      { day: 10, restDay: true }, { day: 11, restDay: false, exercises: ['plank','side-l','side-r','bicycles','bicycles','mountain-cl'] },
+      { day: 12, restDay: false, exercises: ['plank','dead-bug','mountain-cl','glute-bridge','dead-bug','plank'] }, { day: 13, restDay: true },
+      { day: 14, restDay: false, exercises: ['mountain-cl','plank','side-l','side-r','bicycles','mountain-cl','bicycles'] },
+      { day: 15, restDay: false, exercises: ['plank','plank','bicycles','mountain-cl','mountain-cl','glute-bridge'] },
+      { day: 16, restDay: false, exercises: ['dead-bug','side-l','side-r','burpees','bicycles','dead-bug'] }, { day: 17, restDay: true },
+      { day: 18, restDay: false, exercises: ['plank','plank','bicycles','mountain-cl','mountain-cl','burpees'] },
+      { day: 19, restDay: false, exercises: ['dead-bug','side-l','side-r','glute-bridge','bicycles','mountain-cl'] }, { day: 20, restDay: true },
+      { day: 21, restDay: false, exercises: ['plank','plank','burpees','bicycles','mountain-cl','side-l','side-r'] },
+      { day: 22, restDay: false, exercises: ['dead-bug','plank','plank','bicycles','mountain-cl','mountain-cl','glute-bridge'] },
+      { day: 23, restDay: false, exercises: ['side-l','side-r','burpees','bicycles','dead-bug','plank','plank'] }, { day: 24, restDay: true },
+      { day: 25, restDay: false, exercises: ['mountain-cl','plank','bicycles','mountain-cl','dead-bug','side-l','side-r'] },
+      { day: 26, restDay: false, exercises: ['plank','burpees','glute-bridge','bicycles','dead-bug','mountain-cl','plank'] }, { day: 27, restDay: true },
+      { day: 28, restDay: false, exercises: ['dead-bug','plank','plank','side-l','side-r','bicycles','mountain-cl','burpees'] },
+      { day: 29, restDay: false, exercises: ['mountain-cl','glute-bridge','bicycles','dead-bug','plank','plank','bicycles','burpees'] },
+      { day: 30, restDay: false, exercises: ['dead-bug','plank','plank','side-l','side-r','bicycles','mountain-cl','mountain-cl','burpees'] },
+    ]
+  }
+];
+
+function selectDefaultPlan(profile) {
+  if (!profile) return BUILTIN_PLANS[0].id;
+  // trainingGoal is canonical; oude profielen vallen via migrateProfile al om.
+  // Inline-fallback voor het pad in OnboardingScreen waar nog geen migratie heeft plaatsgevonden.
+  const tg = profile.trainingGoal
+    || ({ fat_loss: 'fatloss', core_strength: 'core', fitness: 'fitness' }[profile.goal])
+    || ((profile.weightGoal && profile.weight && profile.weightGoal < profile.weight) ? 'fatloss' : 'fitness');
+  if (tg === 'core') return 'core-30';
+  if (profile.level === 'beginner') return 'consistency-21';
+  return 'fit-28';
+}
+
+function isPlanDayUnlocked(plan, dayNumber, sessions) {
+  if (dayNumber === 1) return true;
+  const prevDay = plan.days.find(d => d.day === dayNumber - 1);
+  if (!prevDay) return false;
+  if (prevDay.restDay) return isPlanDayUnlocked(plan, dayNumber - 1, sessions);
+  return sessions.some(s => s.planId === plan.id && s.planDay === dayNumber - 1);
+}
+
+function isPlanDayCompleted(plan, dayNumber, sessions) {
+  const day = plan.days.find(d => d.day === dayNumber);
+  if (!day) return false;
+  if (day.restDay) {
+    const nextDay = plan.days.find(d => d.day === dayNumber + 1);
+    if (!nextDay) return true;
+    return isPlanDayUnlocked(plan, dayNumber + 1, sessions);
+  }
+  return sessions.some(s => s.planId === plan.id && s.planDay === dayNumber);
+}
+
+// ================================================================
+// AUDIO
+// ================================================================
+function beep(ctx, type = 'tick') {
+  if (!ctx) return;
+  try {
+    const cues = {
+      tick:     [{ f: 440,  t: 0,    d: 0.08, g: 0.30, w: 'sine'   }],
+      go:       [{ f: 660,  t: 0,    d: 0.10, g: 0.40, w: 'square' },
+                 { f: 880,  t: 0.13, d: 0.10, g: 0.40, w: 'square' },
+                 { f: 1100, t: 0.26, d: 0.18, g: 0.50, w: 'square' }],
+      exercise: [{ f: 880,  t: 0,    d: 0.10, g: 0.40, w: 'square' },
+                 { f: 1100, t: 0.13, d: 0.18, g: 0.50, w: 'square' }],
+      rest:     [{ f: 660,  t: 0,    d: 0.30, g: 0.25, w: 'sine'   }],
+      warn:     [{ f: 440,  t: 0,    d: 0.06, g: 0.20, w: 'sine'   }],
+    }[type] || [];
+    cues.forEach(({ f, t, d, g, w }) => {
+      const o = ctx.createOscillator(), gn = ctx.createGain();
+      o.connect(gn); gn.connect(ctx.destination);
+      o.type = w; o.frequency.value = f;
+      gn.gain.setValueAtTime(0, ctx.currentTime + t);
+      gn.gain.linearRampToValueAtTime(g, ctx.currentTime + t + 0.01);
+      gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + d);
+      o.start(ctx.currentTime + t);
+      o.stop(ctx.currentTime + t + d + 0.02);
+    });
+  } catch(e) {}
+}
+
+// ================================================================
+// TIMER HELPERS
+// ================================================================
+function buildSequence(exercises, levelIdx) {
+  const seq = [];
+  const midIdx = Math.floor(exercises.length / 2) - 1;
+  exercises.forEach((ex, i) => {
+    const mode = ex.mode || 'time';
+    seq.push({
+      ...ex,
+      mode,
+      target: ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || ex.times?.[levelIdx] || 0,
+      targetReps: (mode === 'reps' || mode === 'hybrid') ? (ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || 10) : null,
+      duration: mode === 'time' ? (ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || ex.times[levelIdx]) : 0,
+      isRest: false
+    });
+    if (i < exercises.length - 1) {
+      const isMid = i === midIdx;
+      seq.push({
+        id: `rest-${i}`, name: isMid ? 'Halfway · rest' : 'Rest',
+        desc: isMid ? 'Great work! Almost done.' : 'Catch your breath.',
+        duration: isMid ? 10 : 5, isRest: true, isMid,
+      });
+    }
+  });
+  return seq;
+}
+
+function calcStreak(sessions) {
+  if (!sessions.length) return 0;
+  const days = new Set(sessions.map(s => new Date(s.completedAt).toDateString()));
+  let count = 0;
+  const d = new Date();
+  // check from today
+  while (days.has(d.toDateString())) { count++; d.setDate(d.getDate() - 1); }
+  // if today not done, check from yesterday
+  if (count === 0) {
+    d.setDate(d.getDate() - 1);
+    while (days.has(d.toDateString())) { count++; d.setDate(d.getDate() - 1); }
+  }
+  return count;
+}
+
+// ================================================================
+// DESIGN TOKENS
+// ================================================================
+const C = {
+  bg:       '#000000',
+  surface:  '#0A0A0B',
+  elev2:    '#131315',
+  elev3:    '#1C1C1F',
+  border:   'rgba(255,255,255,0.06)',
+  borderMd: 'rgba(255,255,255,0.10)',
+  accent:   '#E8FE3C',
+  accentFg: '#0A0A0A',
+  text:     '#FAFAF9',
+  secondary:'#C8C8C7',
+  muted:    '#B8B8B8',
+  dim:      '#1C1C1F',
+  statusGo:   '#6BE89B',
+  statusRest: '#69A6FF',
+  statusWarn: '#FFB454',
+  statusCrit: '#FF5A5A',
+  font: '"Inter", -apple-system, BlinkMacSystemFont, sans-serif',
+  mono: '"Geist Mono", ui-monospace, "SF Mono", Menlo, monospace',
+};
+
+const Btn = ({ onClick, children, bg, color, style = {}, disabled: dis = false }) => {
+  const isPrimary = !bg || bg === C.accent;
+  return (
+    <button onClick={onClick} disabled={dis} style={{
+      background: isPrimary ? C.accent : 'transparent',
+      color: color || (isPrimary ? C.accentFg : C.muted),
+      border: `1px solid ${isPrimary ? C.accent : C.borderMd}`,
+      borderRadius: 8,
+      padding: '14px 22px', fontSize: 12,
+      letterSpacing: '0.14em', fontWeight: 600,
+      cursor: dis ? 'default' : 'pointer',
+      fontFamily: C.mono, textTransform: 'uppercase',
+      opacity: dis ? 0.35 : 1, ...style,
+    }}>{children}</button>
+  );
+};
+
+const Label = ({ children }) => (
+  <div style={{ color: C.muted, fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 8 }}>{children}</div>
+);
+
+// ================================================================
+// ICONS
+// ================================================================
+const Icon = {
+  home: (s = 22) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-7 9 7v9a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2v-9z"/></svg>
+  ),
+  list: (s = 22) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  ),
+  stats: (s = 22) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M6 17V9M11 17V5M16 17v-6M21 17v-9"/></svg>
+  ),
+  back: (s = 20) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+  ),
+  play: (s = 14) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7V5z"/></svg>
+  ),
+  close: (s = 20) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+  ),
+  volume: (s = 20) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5zM15 9a4 4 0 0 1 0 6"/></svg>
+  ),
+  mute: (s = 20) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/></svg>
+  ),
+  edit: (s = 16) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+  ),
+  user: (s = 22) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+  ),
+  settings: (s = 22) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  ),
+};
+
+// ================================================================
+// HOME SCREEN
+// ================================================================
+const CAT_TO_TAG = { 'Core': 'CORE', 'Arms': 'ARMS', 'Legs': 'LEGS', 'Full Body': 'FULL' };
+const TAG_LABEL = { CORE: 'CORE', ARMS: 'ARMS', LEGS: 'LEGS', FULL: 'FULL BODY' };
+function HmTag({ t }) {
+  return <span className={`tg t-${t.toLowerCase()}`}>{TAG_LABEL[t] || t}</span>;
+}
+function HmRoutineRow({ name, min, ex, tags, onClick }) {
+  return (
+    <button className="rr" onClick={onClick}>
+      <div className="rr-left">
+        <div className="rr-name">{name}</div>
+        <div className="rr-meta">
+          {tags.slice(0, 2).map(t => <HmTag key={t} t={t} />)}
+        </div>
+      </div>
+      <span className="rr-dur">{min}M · {ex} EX</span>
+      <span className="rr-play" aria-hidden>{Icon.play(12)}</span>
+    </button>
+  );
+}
+// "~15 MIN" / "15M" / 15 → 15
+function parseMin(v) {
+  if (typeof v === 'number') return v;
+  const m = String(v || '').match(/\d+/);
+  return m ? parseInt(m[0], 10) : 0;
+}
+function routineTags(exerciseIds) {
+  return getRoutineCategories(exerciseIds).map(c => CAT_TO_TAG[c]).filter(Boolean);
+}
+const DAYS_SHORT = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const MONTHS_SHORT = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const WEEK_LETTERS = ['M','T','W','T','F','S','S']; // Mon..Sun
+
+function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWorkouts, coachIntro, onNavigate, starterCTA, sessions }) {
+  const [group, setGroup] = useState(CATS[0]);
+
+  const now = new Date();
+  const eyebrow = `${DAYS_SHORT[now.getDay()]} ${now.getDate()} ${MONTHS_SHORT[now.getMonth()]} · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  // Week ritme — maandag..zondag van deze week
+  const week = useMemo(() => {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dow = (today.getDay() + 6) % 7; // 0 = maandag
+    const monday = new Date(today); monday.setDate(today.getDate() - dow);
+    const doneDays = new Set((sessions || []).map(s => {
+      const d = new Date(s.completedAt); d.setHours(0,0,0,0);
+      return d.getTime();
+    }));
+    return WEEK_LETTERS.map((letter, i) => {
+      const d = new Date(monday); d.setDate(monday.getDate() + i);
+      return { d: letter, done: doneDays.has(d.getTime()), today: d.getTime() === today.getTime() };
+    });
+  }, [sessions]);
+  const weekDone = week.filter(w => w.done).length;
+  const totalSessions = (sessions || []).length;
+
+  const filtered = (BODY_PART_WORKOUTS[group] || []);
+
+  return (
+    <>
+      {/* Header */}
+      <header className="hm-head">
+        <div className="hm-eyebrow">{eyebrow}</div>
+        <h1 className="hm-title">{greeting}</h1>
+      </header>
+
+      {/* Stats tiles */}
+      <section className="hm-section">
+        <div className="hm-tiles">
+          <div className="hm-tile">
+            <div className="hm-tnum">{streak}</div>
+            <div className="hm-tlbl">DAY STREAK</div>
+          </div>
+          <div className="hm-tile">
+            <div className="hm-tnum">{weekDone}<span className="hm-tsuf">/7</span></div>
+            <div className="hm-tlbl">THIS WEEK</div>
+          </div>
+          <div className="hm-tile">
+            <div className="hm-tnum">{totalSessions}</div>
+            <div className="hm-tlbl">SESSIONS</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Week rhythm */}
+      <section className="hm-section">
+        <div className="hm-rowhead">
+          <span className="hm-lbl">WEEK RHYTHM</span>
+          <span className="hm-lbl" style={{ color: 'var(--signal)' }}>{weekDone}/7</span>
+        </div>
+        <div className="hm-week">
+          {week.map((w, i) => (
+            <div key={i} className={`hm-wcell ${w.today ? 'on' : ''} ${w.done ? 'done' : ''}`}>
+              <div className="hm-wday">{w.d}</div>
+              <div className="hm-wdot" />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Starter CTA (first time) */}
+      {starterCTA?.show && (
+        <section className="hm-section">
+          <div style={{ margin: '0 var(--pad)', border: `1px solid ${starterCTA.fallback ? 'var(--status-warn)' : 'var(--signal)'}`, borderRadius: 'var(--radius-md)', background: 'var(--bg-elev-1)', padding: 16 }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.1em', color: starterCTA.fallback ? 'var(--status-warn)' : 'var(--signal)', marginBottom: 8 }}>STARTER PLAN</div>
+            <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Start your first workout</div>
+            <div style={{ color: 'var(--fg-secondary)', fontSize: 14, marginBottom: 14 }}>
+              Suggestion: {starterCTA.profileId.replaceAll('_', ' ').toUpperCase()}
+              {starterCTA.fallback ? ' · safe default chosen.' : ''}
+            </div>
+            <Btn onClick={() => onNavigate('timer', { routineId: starterCTA.routineId })}>START FIRST WORKOUT</Btn>
+          </div>
+        </section>
+      )}
+
+      {/* Quick start — horizontal scroll */}
+      {(coachWorkouts || []).length > 0 && (
+        <section className="hm-section">
+          <div className="hm-rowhead">
+            <span className="hm-lbl">QUICK START</span>
+            <span className="hm-lbl" style={{ color: 'var(--fg-tertiary)' }}>SWIPE →</span>
+          </div>
+          <div className="hm-hscroll">
+            {coachWorkouts.map(cw => {
+              const tags = routineTags(cw.exercises);
+              const min = parseMin(cw.durationLabel);
+              return (
+                <button key={cw.id} className="qc" onClick={() => onNavigate('timer', { routine: cw, backTo: 'home' })}>
+                  <div className="qc-meta">
+                    {tags.map(t => <HmTag key={t} t={t} />)}
+                  </div>
+                  <div className="qc-name">{cw.name}</div>
+                  <div className="qc-foot">
+                    <div className="qc-stat">
+                      <span className="qc-big">{min}</span>
+                      <span className="qc-unit">MIN</span>
+                      <span className="qc-sep">·</span>
+                      <span className="qc-big">{cw.exercises.length}</span>
+                      <span className="qc-unit">EX</span>
+                    </div>
+                    <span className="qc-play" aria-hidden>{Icon.play(13)}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* My routines */}
+      <section className="hm-section">
+        <div className="hm-rowhead">
+          <span className="hm-lbl">MY ROUTINES</span>
+          <button className="hm-tinybtn" onClick={() => onNavigate('builder', {})}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            NEW
+          </button>
+        </div>
+        {quickRoutines.length > 0 ? (
+          <div className="hm-rows">
+            {quickRoutines.map(r => (
+              <HmRoutineRow
+                key={r.id}
+                name={r.name}
+                min={parseMin(r.durationLabel) || Math.max(1, Math.round((r.exercises?.length || 0) * 1.5))}
+                ex={r.exercises?.length || 0}
+                tags={routineTags(r.exercises || [])}
+                onClick={() => onNavigate('timer', { routineId: r.id })}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="hm-empty">
+            <span>No custom routines yet</span>
+            <button className="hm-tinybtn" onClick={() => onNavigate('builder', {})}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              NEW
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* By muscle group */}
+      <section className="hm-section">
+        <div className="hm-rowhead">
+          <span className="hm-lbl">BY MUSCLE GROUP</span>
+        </div>
+        <div className="hm-chips">
+          {CATS.map(cat => (
+            <button
+              key={cat}
+              className={`hm-chip ${group === cat ? 'on' : ''}`}
+              onClick={() => setGroup(cat)}
+            >{cat.toUpperCase()}</button>
+          ))}
+        </div>
+        <div className="hm-rows" style={{ marginTop: 10 }}>
+          {filtered.map(w => (
+            <HmRoutineRow
+              key={w.id}
+              name={w.name}
+              min={parseMin(w.durationLabel)}
+              ex={w.exercises.length}
+              tags={routineTags(w.exercises)}
+              onClick={() => onNavigate('timer', { routine: w, backTo: 'home' })}
+            />
+          ))}
+        </div>
+      </section>
+    </>
+  );
+}
+
+function PlanTab({ sessions, profile, onProfileUpdate, onNavigate }) {
+  const defaultPlanId = selectDefaultPlan(profile);
+  const selectedPlanId = profile?.selectedPlanId || defaultPlanId;
+  const plan = BUILTIN_PLANS.find(p => p.id === selectedPlanId) || BUILTIN_PLANS[0];
+  const hasPlanSession = sessions.some(s => s.planId);
+  const needsPlanConfirmation = !profile?.planConfirmed && !hasPlanSession;
+  const workDays = plan.days.filter(d => !d.restDay);
+  const completedCount = workDays.filter(d => isPlanDayCompleted(plan, d.day, sessions)).length;
+  const currentDay = workDays.find(d =>
+    !isPlanDayCompleted(plan, d.day, sessions) && isPlanDayUnlocked(plan, d.day, sessions)
+  ) || null;
+
+  const startPlanDay = (day) => {
+    const routine = {
+      id: `plan-${plan.id}-day-${day.day}`,
+      name: `DAY ${day.day} — ${plan.title}`,
+      exercises: day.exercises,
+      category: 'Core',
+    };
+    onNavigate('timer', { routine, planId: plan.id, planDay: day.day, backTo: 'home' });
+  };
+
+  const pct = workDays.length > 0 ? (completedCount / workDays.length) * 100 : 0;
+
+  const IcoCheck = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6BE89B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5"/>
+    </svg>
+  );
+  const IcoLock = () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  );
+  const IcoMoon = () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  );
+
+  return (
+    <>
+      {/* Header */}
+      <div style={{ padding: '0 20px 16px' }}>
+        <div style={{ fontFamily: C.mono, fontSize: 26, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1, color: C.text, marginBottom: 4 }}>
+          {plan.title.toUpperCase()}
+        </div>
+        <div style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', color: C.secondary }}>
+          {plan.subtitle}
+        </div>
+      </div>
+
+      {needsPlanConfirmation && (
+        <div style={{ padding: '0 20px 14px' }}>
+          <div style={{ border: `1px solid ${C.borderMd}`, borderRadius: 10, padding: 12, background: C.surface }}>
+            <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted, marginBottom: 10 }}>CHOOSE YOUR START PLAN</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {BUILTIN_PLANS.map(p => (
+                <button key={p.id} onClick={() => onProfileUpdate({ selectedPlanId: p.id })} style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${selectedPlanId === p.id ? p.color : C.borderMd}`, background: selectedPlanId === p.id ? 'rgba(232,254,60,0.08)' : 'transparent', color: selectedPlanId === p.id ? C.text : C.muted, fontFamily: C.mono, fontSize: 11 }}>{p.title}</button>
+              ))}
+            </div>
+            <button onClick={() => onProfileUpdate({ selectedPlanId, planConfirmed: true })} style={{ marginTop: 10, width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${C.accent}`, background: C.accent, color: C.accentFg, fontFamily: C.mono, fontSize: 12 }}>CONFIRM PLAN</button>
+          </div>
+        </div>
+      )}
+      <div style={{ padding: '0 20px 14px', fontFamily: C.mono, fontSize: 12, letterSpacing: '0.06em', color: C.muted }}>
+        This plan was selected based on your goal and level.
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ padding: '0 20px 20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted }}>PROGRESS</div>
+          <div style={{ fontFamily: C.mono, fontSize: 13, color: plan.color }}>{completedCount} / {workDays.length} DAYS</div>
+        </div>
+        <div style={{ height: 4, background: C.surface, borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${pct}%`, background: plan.color, borderRadius: 2 }} />
+        </div>
+      </div>
+
+      {/* Days list */}
+      <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 24 }}>
+        {plan.days.map(day => {
+          const completed = !day.restDay && isPlanDayCompleted(plan, day.day, sessions);
+          const isCurrent = !day.restDay && currentDay?.day === day.day;
+          const unlocked = isPlanDayUnlocked(plan, day.day, sessions);
+
+          return (
+            <div key={day.day} style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              background: C.surface,
+              border: `1px solid ${isCurrent ? C.accent : completed ? 'rgba(107,232,155,0.22)' : C.border}`,
+              borderRadius: 10, padding: '13px 16px',
+              opacity: !day.restDay && !unlocked && !completed ? 0.38 : 1,
+            }}>
+              {/* Status icon left */}
+              <div style={{ width: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {completed ? <IcoCheck /> : day.restDay ? <IcoMoon /> : null}
+              </div>
+
+              {/* Text */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontFamily: C.mono, fontSize: 14, letterSpacing: '0.08em', fontWeight: 600,
+                  color: completed ? C.muted : day.restDay ? C.muted : isCurrent ? C.accent : C.secondary,
+                }}>
+                  {day.restDay ? `DAY ${day.day} — REST` : `DAY ${day.day}`}
+                </div>
+                {!day.restDay && !completed && (
+                  <div style={{ fontFamily: C.mono, fontSize: 12, color: C.muted, marginTop: 3, letterSpacing: '0.06em' }}>
+                    {day.exercises.length} EX
+                  </div>
+                )}
+              </div>
+
+              {/* Action right */}
+              {!day.restDay && !completed && unlocked && !needsPlanConfirmation && (
+                <button onClick={() => startPlanDay(day)} style={{
+                  fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', fontWeight: 600,
+                  background: isCurrent ? C.accent : 'transparent',
+                  color: isCurrent ? C.accentFg : C.secondary,
+                  border: `1px solid ${isCurrent ? C.accent : C.borderMd}`,
+                  borderRadius: 6, padding: '8px 12px',
+                  cursor: 'pointer', flexShrink: 0,
+                }}>START</button>
+              )}
+              {!day.restDay && !completed && !unlocked && <IcoLock />}
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+function HomeScreen({ dbRef, onNavigate, analytics }) {
+  const [activeTab, setActiveTab] = useState('home');
+  const [sessions, setSessions] = useState([]);
+  const [routines, setRoutines] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [ready, setReady] = useState(false);
+  const [starterCTA, setStarterCTA] = useState(null);
+
+  useEffect(() => {
+    if (!dbRef.current) return;
+    Promise.all([
+      dbGetAll(dbRef.current, 'sessions'),
+      dbGetAll(dbRef.current, 'routines'),
+      getProfile(dbRef.current),
+    ]).then(([s, r, prof]) => {
+      setSessions(s.sort((a, b) => b.completedAt - a.completedAt));
+      setRoutines(r);
+      setProfile(prof);
+      setStarterCTA({
+        show: !s.length,
+        profileId: prof?.starterPlanProfile || SAFE_STARTER_PROFILE,
+        routineId: prof?.starterPlanSelection?.auto?.routineId || DEFAULT_ROUTINE.id,
+        fallback: !!prof?.starterPlanSelection?.fallbackReason,
+      });
+      setReady(true);
+    });
+  }, []);
+
+  const streak = useMemo(() => calcStreak(sessions), [sessions]);
+  const today = new Date();
+  const todayDone = sessions.some(s => new Date(s.completedAt).toDateString() === today.toDateString());
+  const hours = today.getHours();
+  const greeting = hours < 6 ? 'GOOD NIGHT' : hours < 12 ? 'GOOD MORNING' : hours < 18 ? 'GOOD AFTERNOON' : 'GOOD EVENING';
+
+  const quickRoutines = routines.filter(r => r.quickStart !== false);
+  const coachWorkouts = useMemo(() => profile ? buildCoachWorkouts(profile) : [], [profile]);
+  const coachIntro    = useMemo(() => profile ? buildCoachIntro(profile)    : '', [profile]);
+
+  const tabBtn = (tab) => ({
+    flex: 1, padding: '10px 0',
+    background: activeTab === tab ? C.accent : 'transparent',
+    color: activeTab === tab ? C.accentFg : C.text,
+    border: `1px solid ${activeTab === tab ? C.accent : '#555'}`,
+    borderRadius: 8,
+    fontFamily: C.mono, fontSize: 12, letterSpacing: '0.14em', fontWeight: 600,
+    cursor: 'pointer',
+  });
+
+  if (!ready) return <Loader />;
+
+  return (
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', paddingBottom: 'calc(var(--tab-h) + 24px)', fontFamily: C.font }}>
+      {/* Tab bar */}
+      <div style={{ padding: '52px 20px 20px', display: 'flex', gap: 8 }}>
+        <button style={tabBtn('home')} onClick={() => setActiveTab('home')}>HOME</button>
+        <button style={tabBtn('plan')} onClick={() => setActiveTab('plan')}>PLAN</button>
+      </div>
+
+      {activeTab === 'home' && (
+        <HomeTab
+          greeting={greeting}
+          profile={profile}
+          streak={streak}
+          todayDone={todayDone}
+          quickRoutines={quickRoutines}
+          coachWorkouts={coachWorkouts}
+          coachIntro={coachIntro}
+          onNavigate={onNavigate}
+          starterCTA={starterCTA}
+          sessions={sessions}
+        />
+      )}
+      {activeTab === 'plan' && (
+        <PlanTab
+          sessions={sessions}
+          profile={profile}
+          onProfileUpdate={async (patch) => {
+            if (!dbRef.current) return;
+            const previous = profile || {};
+            await Promise.all(Object.entries(patch).map(([k,v]) => setProfileField(dbRef.current, k, v)));
+            setProfile(prev => ({ ...(prev || {}), ...patch }));
+            if (patch.planConfirmed && !previous.planConfirmed) {
+              analytics.trackEvent('plan_assigned', { mode: 'manual', selectedPlanId: patch.selectedPlanId || previous.selectedPlanId || selectDefaultPlan(previous) }, { planId: patch.selectedPlanId || previous.selectedPlanId });
+            }
+          }}
+          onNavigate={onNavigate}
+        />
+      )}
+    </div>
+  );
+}
+
+// ================================================================
+// ROUTINES SCREEN
+// ================================================================
+function RoutinesScreen({ dbRef, onNavigate, params }) {
+  const [routines, setRoutines] = useState([]);
+  const [ready, setReady] = useState(false);
+
+  const load = () => {
+    if (!dbRef.current) return;
+    dbGetAll(dbRef.current, 'routines').then(r => {
+      setRoutines(r.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)));
+      setReady(true);
+    });
+  };
+
+  useEffect(load, []);
+
+  const del = async (id, e) => {
+    e.stopPropagation();
+    if (!confirm('Delete routine?')) return;
+    await dbOp(dbRef.current, 'routines', 'readwrite', s => s.delete(id));
+    load();
+  };
+
+  const [filterCatR, setFilterCatR] = useState((params?.filterCat || 'ALL').toUpperCase());
+
+  if (!ready) return <Loader />;
+
+  const catFilters = ['ALL', ...CATS.map(c => c.toUpperCase())];
+  const filteredRoutines = filterCatR === 'ALL'
+    ? routines
+    : routines.filter(r => {
+        const cats = getRoutineCategories(r.exercises).map(c => c.toUpperCase());
+        return cats.includes(filterCatR);
+      });
+
+  return (
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', paddingBottom: 'calc(var(--tab-h) + 24px)', fontFamily: C.font }}>
+
+      {/* Header */}
+      <header style={{ padding: '44px 20px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div>
+          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>MY</div>
+          <h1 style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 0.95 }}>ROUTINES</h1>
+        </div>
+        <button onClick={() => onNavigate('builder', {})} style={{
+          width: 44, height: 44, borderRadius: '50%',
+          background: C.accent, color: C.accentFg,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 22, fontWeight: 300, border: 'none', flexShrink: 0,
+        }}>+</button>
+      </header>
+
+      {/* Filter pills */}
+      <div style={{ display: 'flex', gap: 8, padding: '0 20px 20px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+        {catFilters.map(c => {
+          const active = filterCatR === c;
+          return (
+            <button key={c} onClick={() => setFilterCatR(c)} style={{
+              background: active ? C.accent : 'transparent',
+              color: active ? C.accentFg : C.secondary,
+              border: `1px solid ${active ? C.accent : C.borderMd}`,
+              borderRadius: 999, padding: '7px 14px',
+              fontFamily: C.mono, fontSize: 12, letterSpacing: '0.10em', fontWeight: 500,
+              whiteSpace: 'nowrap', flexShrink: 0,
+            }}>{c}</button>
+          );
+        })}
+      </div>
+
+      {/* Count */}
+      <div style={{ padding: '0 20px 12px', fontFamily: C.mono, fontSize: 13, color: C.muted, letterSpacing: '0.08em' }}>
+        {filteredRoutines.length} ROUTINE{filteredRoutines.length !== 1 ? 'S' : ''}
+      </div>
+
+      {/* List */}
+      <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {filteredRoutines.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: C.muted, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.1em' }}>
+            No routines yet.
+          </div>
+        )}
+        {filteredRoutines.map(r => (
+          <div key={r.id} onClick={() => onNavigate('timer', { routineId: r.id })}
+            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, cursor: 'pointer', overflow: 'hidden' }}>
+            <div style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em', marginBottom: 8 }}>{r.name}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <CatTags exerciseIds={r.exercises} />
+                  <span style={{ fontFamily: C.mono, fontSize: 13, color: C.secondary }}>{r.exercises.length} EX</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginLeft: 12, flexShrink: 0 }}>
+                <button onClick={e => { e.stopPropagation(); onNavigate('builder', { routineId: r.id }); }}
+                  style={{ background: 'none', border: 'none', color: C.muted, fontSize: 16, padding: '4px 6px' }}>✎</button>
+                <button onClick={e => del(r.id, e)}
+                  style={{ background: 'none', border: 'none', color: C.muted, fontSize: 16, padding: '4px 6px' }}>✕</button>
+                <div style={{
+                  color: C.accentFg, background: C.accent, borderRadius: 999,
+                  width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {Icon.play(12)}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
+// ROUTINE BUILDER
+// ================================================================
+function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
+  const isEdit = !!params?.routineId;
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState('Core');
+  const [selected, setSelected] = useState([]);
+  const [filterCat, setFilterCat] = useState('Core');
+  const [quickStart, setQuickStart] = useState(true);
+  const [ready, setReady] = useState(!isEdit);
+  const [detailEx, setDetailEx] = useState(null);
+
+  useEffect(() => {
+    if (!isEdit || !dbRef.current) return;
+    dbOp(dbRef.current, 'routines', 'readonly', s => s.get(params.routineId)).then(r => {
+      if (r) { setName(r.name); setCategory(r.category); setSelected(r.exercises); setFilterCat(r.category); setQuickStart(r.quickStart !== false); }
+      setReady(true);
+    });
+  }, []);
+
+  const toggleEx = id => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const save = async () => {
+    if (!name.trim() || selected.length === 0) return;
+    let createdAt = Date.now();
+    if (isEdit) {
+      const existing = await dbOp(dbRef.current, 'routines', 'readonly', s => s.get(params.routineId));
+      createdAt = existing?.createdAt || createdAt;
+    }
+    await dbOp(dbRef.current, 'routines', 'readwrite', s => s.put({
+      id: params?.routineId || `r-${Date.now()}`,
+      name: name.trim(), category, exercises: selected, quickStart, createdAt, updatedAt: Date.now(),
+    }));
+    onNavigate('routines', {});
+  };
+
+  const filtered = EXERCISES.filter(e => e.cat === filterCat);
+
+  if (!ready) return <Loader />;
+
+  return (
+    <div style={{ padding: '0 0 100px' }}>
+      {/* Header */}
+      <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: `1px solid ${C.border}`, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 10 }}>
+        <button onClick={() => onNavigate('routines', {})} style={{
+          width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.muted, background: 'none',
+        }}>{Icon.back(18)}</button>
+        <div style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', color: C.text }}>{isEdit ? 'EDIT' : 'NEW ROUTINE'}</div>
+      </div>
+
+      <div style={{ padding: '24px 20px' }}>
+        {/* Name */}
+        <div style={{ marginBottom: 22 }}>
+          <Label>NAME</Label>
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="E.g. Morning core..."
+            style={{ width: '100%', background: C.surface, border: `1px solid ${C.borderMd}`, color: C.text,
+              padding: '12px 14px', fontSize: 13, fontFamily: C.font, outline: 'none', borderRadius: 8 }} />
+        </div>
+
+        {/* Category */}
+        <div style={{ marginBottom: 24 }}>
+          <Label>CATEGORY</Label>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {CATS.map(c => (
+              <button key={c} onClick={() => setCategory(c)} style={{
+                background: category === c ? C.accent : 'transparent',
+                color: category === c ? C.accentFg : C.secondary,
+                border: `1px solid ${category === c ? C.accent : C.borderMd}`,
+                borderRadius: 999, padding: '8px 16px',
+                fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', fontWeight: 500,
+              }}>{c}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Exercise picker */}
+        <div style={{ marginBottom: 24 }}>
+          <Label>EXERCISES ({selected.length} selected)</Label>
+          {/* Filter */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto', paddingBottom: 2 }}>
+            {CATS.map(c => (
+              <button key={c} onClick={() => setFilterCat(c)} style={{
+                background: filterCat === c ? C.elev3 : 'transparent',
+                color: filterCat === c ? C.text : C.muted,
+                border: `1px solid ${filterCat === c ? C.borderMd : 'transparent'}`,
+                borderRadius: 999, padding: '6px 14px',
+                fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', whiteSpace: 'nowrap',
+              }}>{c}</button>
+            ))}
+          </div>
+          {filtered.map(ex => {
+            const active = selected.includes(ex.id);
+            return (
+              <div key={ex.id} onClick={() => toggleEx(ex.id)} style={{
+                border: `1px solid ${active ? C.borderMd : C.border}`, borderRadius: 8, padding: '10px 14px', marginBottom: 6,
+                cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                opacity: active ? 1 : 0.5, background: active ? C.surface : 'transparent',
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: active ? C.text : C.muted, fontSize: 16, fontWeight: 500 }}>{ex.name}</div>
+                  {ex.desc.split('\n').map((line, i) => (
+                    <div key={i} style={{ color: i === 0 ? '#C8C8C7' : '#A0A0A0', fontSize: 13, marginTop: i === 0 ? 2 : 1 }}>{line}</div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button onClick={e => { e.stopPropagation(); setDetailEx(ex); }} style={{ background: 'none', border: 'none', color: C.muted, fontSize: 18, padding: '2px 4px', cursor: 'pointer', lineHeight: 1 }}>ⓘ</button>
+                  <div style={{ color: active ? (CAT_COLORS[ex.cat] || C.accent) : C.dim, fontSize: 16 }}>{active ? '●' : '○'}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Selected order */}
+        {selected.length > 0 && (
+          <div style={{ marginBottom: 28 }}>
+            <Label>ORDER ({selected.length})</Label>
+            {selected.map((id, i) => {
+              const ex = EXERCISES_WITH_MODE.find(e => e.id === id);
+              return (
+                <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: `1px solid ${C.dim}` }}>
+                  <span style={{ color: C.muted, fontSize: 13, width: 18 }}>{i+1}</span>
+                  <span style={{ color: C.text, fontSize: 16, flex: 1 }}>{ex?.name}</span>
+                  <span style={{ color: CAT_COLORS[ex?.cat] || C.muted, fontSize: 12, marginRight: 4 }}>■</span>
+                  <button onClick={() => setSelected(prev => prev.filter(x => x !== id))}
+                    style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', fontSize: 14 }}>✕</button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Spiervisualisatie cumulatief */}
+        {selected.length > 0 && (() => {
+          const exObjs = selected.map(id => EXERCISES_WITH_MODE.find(e => e.id === id)).filter(Boolean);
+          const combined = mergeRoutineMuscles(exObjs);
+          const hasMuscles = combined.muscles.primary.length > 0 || combined.muscles.secondary.length > 0;
+          if (!hasMuscles) return null;
+          return (
+            <div style={{ border: `1px solid ${C.border}`, padding: '16px 14px', marginBottom: 24 }}>
+              <Label>MUSCLES</Label>
+              <BodyDiagram exercise={combined} height={220}/>
+              <MuscleTags exercise={combined}/>
+            </div>
+          );
+        })()}
+
+        {/* Quick start toggle */}
+        <div style={{ marginBottom: 16 }}>
+          <Label>HOME SCREEN</Label>
+          <button onClick={() => setQuickStart(v => !v)} style={{
+            width: '100%', background: 'transparent', cursor: 'pointer',
+            border: `1px solid ${quickStart ? C.borderMd : C.border}`, borderRadius: 8,
+            color: quickStart ? C.text : C.muted,
+            padding: '12px 16px', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em',
+            display: 'flex', alignItems: 'center', gap: 10,
+          }}>
+            <span style={{ color: quickStart ? C.accent : C.muted, fontSize: 14 }}>{quickStart ? '■' : '□'}</span>
+            SHOW ON QUICK START
+          </button>
+        </div>
+
+        <Btn onClick={save} disabled={!name.trim() || selected.length === 0} style={{ width: '100%' }}>
+          {isEdit ? 'SAVE' : 'CREATE ROUTINE'}
+        </Btn>
+      </div>
+
+      {detailEx && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: C.bg, overflowY: 'auto' }}>
+          <ExerciseDetailScreen exercise={detailEx} onBack={() => setDetailEx(null)} dbRef={dbRef} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ================================================================
+// TIMER SCREEN
+// ================================================================
+function TimerScreen({ dbRef, onNavigate, params, analytics }) {
+  const [routine, setRoutine] = useState(null);
+  const [levelIdx, setLevelIdx] = useState(1);
+  const [disabled, setDisabled] = useState(new Set());
+  const [phase, setPhase] = useState('idle');
+  const [countdown, setCountdown] = useState(3);
+  const [stepIdx, setStepIdx] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [stepResults, setStepResults] = useState({});
+  const [actualInput, setActualInput] = useState('');
+  const [soundOn, setSoundOn] = useState(true);
+  const [useWakeLock, setUseWakeLock] = useState(true);
+  const [startTs, setStartTs] = useState(null);
+
+  useEffect(() => {
+    if (!dbRef.current) return;
+    getProfile(dbRef.current).then(p => {
+      if (p?.sound === false) setSoundOn(false);
+      if (p?.wakelock === false) setUseWakeLock(false);
+    });
+  }, []);
+  const intervalRef = useRef(null);
+  const audioCtxRef = useRef(null);
+  const wakeLockRef = useRef(null);
+
+  useEffect(() => {
+    if (params?.routine) { setRoutine(params.routine); return; }
+    if (!params?.routineId || !dbRef.current) return;
+    dbOp(dbRef.current, 'routines', 'readonly', s => s.get(params.routineId)).then(r => setRoutine(r));
+  }, []);
+
+  const exercises = useMemo(() => {
+    if (!routine) return [];
+    return routine.exercises.map(id => EXERCISES_WITH_MODE.find(e => e.id === id)).filter(Boolean);
+  }, [routine]);
+
+  const activeEx = useMemo(() => exercises.filter((_, i) => !disabled.has(i)), [exercises, disabled]);
+  const sequence = useMemo(() => buildSequence(activeEx, levelIdx), [activeEx, levelIdx]);
+  const totalDur = sequence.reduce((s, e) => s + e.duration, 0);
+  const step = sequence[stepIdx];
+  const elapsed = sequence.slice(0, stepIdx).reduce((s, e) => s + e.duration, 0) + ((step?.duration || 0) - timeLeft);
+  const progress = totalDur > 0 ? Math.min(elapsed / totalDur, 1) : 0;
+  const workSteps = sequence.filter(s => !s.isRest);
+  const workIdx = sequence.slice(0, stepIdx + 1).filter(s => !s.isRest).length;
+
+  const initAudio = () => { if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)(); };
+  const reqWake = async () => { if (!useWakeLock) return; try { if ('wakeLock' in navigator) wakeLockRef.current = await navigator.wakeLock.request('screen'); } catch(e) {} };
+  const relWake = () => { try { wakeLockRef.current?.release(); wakeLockRef.current = null; } catch(e) {} };
+
+  useEffect(() => {
+    const fn = () => { if (phase === 'running') reqWake(); };
+    document.addEventListener('visibilitychange', fn);
+    return () => document.removeEventListener('visibilitychange', fn);
+  }, [phase]);
+
+  // Countdown
+  useEffect(() => {
+    if (phase !== 'countdown') return;
+    if (countdown <= 0) {
+      setPhase('running'); setStepIdx(0); setTimeLeft(sequence[0]?.duration || 0);
+      if (soundOn) beep(audioCtxRef.current, 'go');
+      return;
+    }
+    if (soundOn) beep(audioCtxRef.current, 'tick');
+    const t = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [phase, countdown]);
+
+  // Beep on step change
+  useEffect(() => {
+    if (phase === 'running' && step && soundOn) beep(audioCtxRef.current, step.isRest ? 'rest' : 'exercise');
+  }, [stepIdx]);
+
+  // Main interval
+  useEffect(() => {
+    if (phase !== 'running') return;
+    intervalRef.current = setInterval(() => {
+      setTimeLeft(t => {
+        if (step && !step.isRest && (step.mode === 'reps' || step.mode === 'hybrid')) return 0;
+        if (t <= 1) {
+          const next = stepIdx + 1;
+          if (next >= sequence.length) {
+            const dur = Math.floor((Date.now() - startTs) / 1000);
+            clearInterval(intervalRef.current);
+            saveSession(dur);
+            return 0;
+          }
+          setStepIdx(next);
+          return sequence[next].duration || 0;
+        }
+        if (t - 1 <= 3 && t - 1 > 0 && soundOn && !step?.isRest) beep(audioCtxRef.current, 'warn');
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(intervalRef.current);
+  }, [phase, stepIdx, sequence.length]);
+
+  const saveSession = async dur => {
+    if (!dbRef.current || !routine) return;
+    const prof = await getProfile(dbRef.current);
+    const calories = calcSessionKcal(activeEx, dur, prof?.weight);
+    const sessionId = `s-${Date.now()}`;
+    const sessionData = {
+      id: sessionId, routineId: routine.id, routineName: routine.name,
+      levelIdx, duration: dur, exercises: activeEx.map(e => e.name), completedAt: Date.now(),
+      mode: activeEx.every(e => e.mode === 'reps') ? 'reps' : (activeEx.every(e => e.mode === 'time') ? 'time' : 'mixed'),
+      stepResults,
+      setCount: activeEx.length,
+      calories,
+    };
+    if (params?.planId)  sessionData.planId  = params.planId;
+    if (params?.planDay) sessionData.planDay = params.planDay;
+    await dbOp(dbRef.current, 'sessions', 'readwrite', s => s.put(sessionData));
+    await analytics.trackEvent('workout_completed', { routineId: routine.id, duration: dur, exerciseCount: activeEx.length, stepResults }, { sessionId, planId: params?.planId || null });
+    relWake();
+    onNavigate('finish', { sessionId, routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx, calories, mode: sessionData.mode, stepResults });
+  };
+
+  const startWorkout = () => {
+    if (!sequence.length) return;
+    initAudio(); reqWake();
+    setStartTs(Date.now()); setCountdown(3); setPhase('countdown');
+    analytics.trackEvent('workout_started', { routineId: routine.id, mode: 'time' }, { planId: params?.planId || null });
+    const workoutMode = activeEx.every(e => e.mode === 'reps') ? 'reps' : (activeEx.every(e => e.mode === 'time') ? 'time' : 'mixed');
+    analytics.trackEvent('workout_mode_used', { mode: workoutMode }, { planId: params?.planId || null });
+  };
+
+  const reset = () => {
+    clearInterval(intervalRef.current); relWake();
+    setPhase('idle'); setStepIdx(0); setTimeLeft(0); setCountdown(3);
+  };
+  const abandonIfNeeded = () => {
+    if (phase === 'running' || phase === 'paused' || phase === 'countdown') {
+      analytics.trackEvent('workout_abandoned', { routineId: routine?.id, phase }, { planId: params?.planId || null });
+    }
+  };
+
+  const skip = () => {
+    clearInterval(intervalRef.current);
+    const next = stepIdx + 1;
+    if (next >= sequence.length) {
+      const dur = Math.floor((Date.now() - startTs) / 1000);
+      saveSession(dur); return;
+    }
+    setStepIdx(next); setTimeLeft(sequence[next].duration);
+  };
+  const completeRepStep = () => {
+    if (!step || step.isRest || (step.mode !== 'reps' && step.mode !== 'hybrid')) return;
+    const actual = Number(actualInput || step.targetReps || 0);
+    setStepResults(prev => ({ ...prev, [step.id]: { mode: step.mode, target: step.targetReps || step.duration, actual, completed: actual > 0 } }));
+    setActualInput('');
+    const next = stepIdx + 1;
+    if (next >= sequence.length) {
+      const dur = Math.floor((Date.now() - startTs) / 1000);
+      saveSession(dur); return;
+    }
+    setStepIdx(next);
+    setTimeLeft(sequence[next].duration || 0);
+  };
+
+  const totalMin = Math.floor(totalDur / 60), totalSec = totalDur % 60;
+  const circ = 2 * Math.PI * 54;
+  const strokeOff = step ? circ * (timeLeft / step.duration) : 0;
+  const lvColor = LEVEL_COLORS[levelIdx];
+
+  if (!routine) return <Loader />;
+
+  const doneWorkCount = sequence.slice(0, stepIdx).filter(s => !s.isRest).length;
+  const ringColor = step?.isRest ? (step?.isMid ? C.statusWarn : C.statusRest) : C.accent;
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: C.bg, color: C.text, fontFamily: C.font }}>
+
+      {/* Fixed header */}
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${C.border}`, zIndex: 10 }}>
+        <button onClick={() => { abandonIfNeeded(); reset(); onNavigate(params?.backTo || 'routines', {}); }} style={{
+          width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.muted, background: 'none',
+        }}>{Icon.back(18)}</button>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.10em', color: C.secondary }}>{routine.name.toUpperCase()}</div>
+          {(phase === 'running' || phase === 'paused') &&
+            <div style={{ fontFamily: C.mono, fontSize: 13, color: C.text, marginTop: 2 }}>
+              {String(workIdx).padStart(2,'0')} / {String(workSteps.length).padStart(2,'0')}
+            </div>
+          }
+        </div>
+        <button onClick={() => { const next = !soundOn; setSoundOn(next); if (dbRef.current) setProfileField(dbRef.current, 'sound', next); }} style={{
+          width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: C.muted, opacity: soundOn ? 1 : 0.35, background: 'none',
+        }}>{soundOn ? Icon.volume(18) : Icon.mute(18)}</button>
+      </div>
+
+      {/* IDLE */}
+      {phase === 'idle' && (
+        <div style={{ padding: '80px 20px 40px', display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {/* Level */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 24, justifyContent: 'center' }}>
+            {LEVELS.map((lv, i) => (
+              <button key={i} onClick={() => setLevelIdx(i)} style={{
+                background: i === levelIdx ? LEVEL_COLORS[i] : 'transparent',
+                color: i === levelIdx ? C.bg : C.muted,
+                border: `1px solid ${i === levelIdx ? LEVEL_COLORS[i] : C.borderMd}`,
+                borderRadius: 999, padding: '8px 16px',
+                fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', fontWeight: 600,
+              }}>{lv}</button>
+            ))}
+          </div>
+
+          {/* Exercise toggles */}
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '6px 16px', marginBottom: 20, background: C.surface }}>
+            {exercises.map((ex, i) => {
+              const active = !disabled.has(i);
+              const toggle = () => setDisabled(prev => { const n = new Set(prev); active ? n.add(i) : n.delete(i); return n; });
+              return (
+                <div key={ex.id} style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: i < exercises.length - 1 ? `1px solid ${C.border}` : 'none', opacity: active ? 1 : 0.35 }}>
+                  <span onClick={toggle} style={{ color: active ? (CAT_COLORS[ex.cat] || C.accent) : C.dim, marginRight: 12, fontSize: 12, cursor: 'pointer', userSelect: 'none' }}>●</span>
+                  <span onClick={toggle} style={{ flex: 1, color: C.text, fontSize: 17, fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>{ex.name}</span>
+                  <span style={{ fontFamily: C.mono, color: active ? C.muted : C.dim, fontSize: 14, marginRight: 8 }}>
+                    {(ex.mode === 'reps' || ex.mode === 'hybrid') ? `${ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || 10} reps` : `${ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || ex.times[levelIdx]}s`}
+                  </span>
+                  <button onClick={() => onNavigate('exerciseDetail', { exercise: ex, backTo: 'timer', backToParams: params })}
+                    style={{ background: 'none', border: 'none', color: C.muted, fontSize: 18, padding: '2px 4px', cursor: 'pointer', lineHeight: 1 }}>ⓘ</button>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{ fontFamily: C.mono, color: C.secondary, fontSize: 14, letterSpacing: '0.08em', marginBottom: 20, textAlign: 'center' }}>
+            {activeEx.length} EXERCISES · {totalMin}:{String(totalSec).padStart(2,'0')} MIN
+          </div>
+
+          {activeEx.length > 0 && (() => {
+            const combined = mergeRoutineMuscles(activeEx);
+            const hasMuscles = combined.muscles.primary.length > 0 || combined.muscles.secondary.length > 0;
+            if (!hasMuscles) return null;
+            return (
+              <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 14px', marginBottom: 24, background: C.surface }}>
+                <Label>MUSCLES</Label>
+                <BodyDiagram exercise={combined} height={220}/>
+                <MuscleTags exercise={combined}/>
+              </div>
+            );
+          })()}
+
+          <Btn onClick={startWorkout} disabled={activeEx.length === 0} style={{ width: '100%' }}>START</Btn>
+        </div>
+      )}
+
+      {/* COUNTDOWN */}
+      {phase === 'countdown' && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px 40px' }}>
+          <div style={{ fontFamily: C.mono, color: C.secondary, fontSize: 14, letterSpacing: '0.3em', marginBottom: 36 }}>READY TO START</div>
+          <div style={{ fontFamily: C.mono, color: lvColor, fontSize: 110, fontWeight: 600, lineHeight: 1, letterSpacing: '-0.06em' }}>
+            {countdown > 0 ? countdown : 'GO'}
+          </div>
+          {countdown > 0 && <div style={{ fontFamily: C.mono, color: C.secondary, fontSize: 15, marginTop: 24, letterSpacing: '0.1em' }}>{sequence[0]?.name}</div>}
+        </div>
+      )}
+
+      {/* RUNNING / PAUSED */}
+      {(phase === 'running' || phase === 'paused') && step && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '74px 20px 0' }}>
+
+          {/* Segmented progress bar */}
+          <div style={{ display: 'flex', gap: 4, margin: '14px 0 12px' }}>
+            {activeEx.map((_, i) => (
+              <div key={i} style={{
+                flex: 1, height: 3, borderRadius: 2,
+                background: i < doneWorkCount ? C.accent : (i === doneWorkCount && !step.isRest ? `${C.accent}88` : C.border),
+              }} />
+            ))}
+          </div>
+
+          {/* Phase chip */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              fontFamily: C.mono, fontSize: 13, letterSpacing: '0.12em', fontWeight: 600,
+              padding: '7px 14px', borderRadius: 999,
+              background: step.isRest ? 'rgba(105,166,255,0.10)' : 'rgba(232,254,60,0.08)',
+              color: step.isRest ? C.statusRest : C.accent,
+              border: `1px solid ${step.isRest ? 'rgba(105,166,255,0.4)' : 'rgba(232,254,60,0.4)'}`,
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
+              {step.isRest ? 'REST' : (step.mode === 'reps' ? 'REPS' : 'EXECUTE')}
+            </span>
+          </div>
+
+          {/* Timer ring */}
+          <div style={{ position: 'relative', alignSelf: 'center', margin: '8px 0 16px' }}>
+            <svg width="240" height="240" style={{ transform: 'rotate(-90deg)' }}>
+              <circle cx="120" cy="120" r="108" fill="none" stroke={C.border} strokeWidth="3" />
+              <circle cx="120" cy="120" r="108" fill="none"
+                stroke={ringColor}
+                strokeWidth="3" strokeLinecap="round"
+                strokeDasharray={`${2 * Math.PI * 108}`}
+                strokeDashoffset={`${2 * Math.PI * 108 * (1 - (1 - timeLeft / (step?.duration || 1)))}`}
+                style={{ transition: 'stroke-dashoffset 0.9s linear' }} />
+            </svg>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ fontFamily: C.mono, fontSize: 80, fontWeight: 600, lineHeight: 1, letterSpacing: '-0.06em', color: step.isRest ? ringColor : C.text }}>
+                {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? `${step.targetReps}` : String(timeLeft).padStart(2,'0')}
+              </div>
+              <div style={{ fontFamily: C.mono, fontSize: 13, color: C.muted, letterSpacing: '0.14em', marginTop: 4 }}>
+                {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? 'REPS' : 'SECONDS'}
+              </div>
+            </div>
+          </div>
+
+          {/* Exercise name + instruction */}
+          <div style={{ textAlign: 'center', padding: '0 8px', marginBottom: 12 }}>
+            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 10 }}>
+              {step.isRest ? 'RECOVERY' : step.name.toUpperCase()}
+            </div>
+            <p style={{ fontSize: 15, color: C.secondary, lineHeight: 1.5, margin: '0 auto', maxWidth: 300 }}>
+              {step.isRest ? 'Breathe deep. Next exercise starts automatically.' : ((step.mode === 'reps' || step.mode === 'hybrid') ? `Do ${step.targetReps} reps and tap done.` : step.desc.split('\n')[0])}
+            </p>
+            {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest && (
+              <input value={actualInput} onChange={e => setActualInput(e.target.value.replace(/[^0-9]/g,''))} placeholder="Actual (optional)"
+                style={{ width: '100%', marginTop: 12, padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.borderMd}`, background: C.surface, color: C.text, fontFamily: C.mono }} />
+            )}
+
+          </div>
+
+          {/* Next up — compact tijdens oefening, prominent tijdens rust */}
+          {(() => {
+            const next = sequence[stepIdx + 1];
+            if (!next || next.isRest) return null;
+            if (!step.isRest) return (
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                margin: '0 0 12px', padding: '12px 14px',
+                border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface,
+              }}>
+                <div>
+                  <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted, marginBottom: 4 }}>NEXT</div>
+                  <div style={{ fontSize: 16, fontWeight: 500 }}>{next.name}</div>
+                </div>
+                <div style={{ fontFamily: C.mono, fontSize: 15, fontWeight: 500, color: C.accent }}>{next.duration}s</div>
+              </div>
+            );
+            return (
+              <div style={{
+                margin: '0 0 12px', padding: '16px',
+                border: `1px solid ${CAT_COLORS[next.cat] || C.border}`,
+                borderRadius: 12, background: C.surface,
+              }}>
+                <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em', color: C.muted, marginBottom: 8 }}>NEXT EXERCISE</div>
+                <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 10 }}>{next.name}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: CAT_COLORS[next.cat] || C.muted, fontSize: 12, letterSpacing: '0.12em', fontFamily: C.mono }}>■ {(next.cat || '').toUpperCase()}</span>
+                  <span style={{ fontFamily: C.mono, fontSize: 15, fontWeight: 600, color: C.accent }}>
+                    {(next.mode === 'reps' || next.mode === 'hybrid') ? `${next.targetReps} reps` : `${next.target || next.duration}s`}
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Footer */}
+          <div style={{ marginTop: 'auto', paddingBottom: 24 }}>
+            <div style={{ height: 2, background: C.border, borderRadius: 2, overflow: 'hidden', marginBottom: 8 }}>
+              <div style={{ background: C.accent, height: 2, width: `${progress * 100}%`, transition: 'width 1s linear' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: C.mono, fontSize: 13, color: C.secondary, marginBottom: 14 }}>
+              <span>{Math.floor(elapsed/60)}:{String(elapsed%60).padStart(2,'0')}</span>
+              <span>{totalMin}:{String(totalSec).padStart(2,'0')}</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {phase === 'running'
+                ? <button onClick={() => setPhase('paused')} style={{ padding: '14px 0', border: `1px solid ${C.borderMd}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600, color: C.text, background: C.surface }}>❚❚  PAUSE</button>
+                : <button onClick={() => setPhase('running')} style={{ padding: '14px 0', border: `1px solid ${lvColor}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600, color: lvColor, background: 'transparent' }}>▶  RESUME</button>
+              }
+              <button onClick={(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? completeRepStep : skip} style={{ padding: '14px 0', background: C.accent, color: C.accentFg, border: `1px solid ${C.accent}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600 }}>
+                {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? 'DONE ✓' : 'SKIP →'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ================================================================
+// FINISH SCREEN
+// ================================================================
+function FinishScreen({ dbRef, onNavigate, params }) {
+  const { sessionId, routineName = '', levelIdx = 1, duration = 0, exerciseCount = 0, exercises = [], calories = 0, mode = 'time', stepResults = {}, completedReps = {} } = params || {};
+  const [rpe, setRpe] = useState(7);
+  const [sessions, setSessions] = useState([]);
+
+  useEffect(() => {
+    if (!dbRef.current) return;
+    dbGetAll(dbRef.current, 'sessions').then(s => setSessions(s));
+  }, []);
+
+  const streak = useMemo(() => calcStreak(sessions), [sessions]);
+  const combined = useMemo(() => exercises.length > 0 ? mergeRoutineMuscles(exercises) : { muscles: { primary: [], secondary: [] } }, [exercises]);
+  const hasMuscles = combined.muscles.primary.length > 0 || combined.muscles.secondary.length > 0;
+  const fmt = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  const heatColors = ['#1A1A1C','#3A3A1A','#76840F','#C2DF1F','#E8FE3C'];
+  const heatLabels = ['NONE','LIGHT','MEDIUM','HIGH','MAX'];
+
+  const rpeDesc = rpe <= 3 ? 'Light effort. You could keep going.' :
+                  rpe <= 6 ? 'Solid effort. Talking is getting harder.' :
+                  rpe <= 8 ? 'Hard. You feel the muscles working.' :
+                  'Maximum. Nothing left in the tank.';
+
+  return (
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', fontFamily: C.font, overflowY: 'auto', paddingBottom: 32 }}>
+
+      {/* Top bar */}
+      <div style={{ padding: '12px 20px', display: 'flex', justifyContent: 'flex-end' }}>
+        <button onClick={() => onNavigate('home', {})} style={{
+          width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.secondary, background: 'none',
+        }}>{Icon.close(18)}</button>
+      </div>
+
+      {/* Hero */}
+      <div style={{ padding: '8px 20px 0' }}>
+        <div style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.12em', color: C.accent, marginBottom: 12 }}>SESSION COMPLETE</div>
+        <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1, margin: '0 0 12px' }}>{routineName.toUpperCase()}</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.14em' }}>
+          <span style={{ color: C.accent, fontSize: 14 }}>●</span>
+          <span>DAY {streak}</span>
+          <span style={{ color: C.secondary, marginLeft: 4 }}>· streak extended</span>
+        </div>
+      </div>
+
+      {/* KPI grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: '20px 20px 0' }}>
+        {[
+          { num: mode === 'reps' ? `${Object.keys(stepResults || completedReps || {}).length}` : fmt(duration), label: mode === 'reps' ? 'SETS' : 'TIME', hi: false },
+          { num: calories > 0 ? `${calories}` : '—', label: 'CALORIES', hi: true },
+          { num: `${exerciseCount}`, label: 'COMPLETED', hi: false },
+        ].map(({ num, label, hi }) => (
+          <div key={label} style={{
+            padding: '16px 12px', border: `1px solid ${hi ? C.accent : C.border}`,
+            borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 6,
+            background: hi ? 'rgba(232,254,60,0.08)' : C.surface,
+          }}>
+            <div style={{ fontFamily: C.mono, fontSize: 22, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1, color: hi ? C.accent : C.text }}>{num}</div>
+            <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Body diagram */}
+      {hasMuscles && (
+        <section style={{ padding: '24px 0 0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 20px 12px' }}>
+            <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>MUSCLES TARGETED</span>
+            <span style={{ fontFamily: C.mono, fontSize: 12, color: C.muted }}>INTENSITY</span>
+          </div>
+          <div style={{ padding: '0 20px 12px', display: 'flex', justifyContent: 'center' }}>
+            <BodyDiagram exercise={combined} height={220}/>
+          </div>
+          <div style={{ display: 'flex', gap: 12, padding: '0 20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {heatColors.map((col, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ width: 22, height: 8, borderRadius: 2, background: col }} />
+                <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>{heatLabels[i]}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* RPE slider */}
+      <section style={{ padding: '24px 20px 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+          <span style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.08em', color: C.muted }}>HOW DID IT FEEL?</span>
+          <span style={{ fontFamily: C.mono, fontSize: 13, color: C.accent }}>{rpe} / 10</span>
+        </div>
+        <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 16, background: C.surface }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', marginBottom: 14, fontWeight: 500 }}>
+            <span style={{ color: C.statusGo }}>EASY</span>
+            <span style={{ color: C.accent }}>STRONG</span>
+            <span style={{ color: C.statusCrit }}>MAX</span>
+          </div>
+          <div style={{ position: 'relative', height: 4, background: C.elev3, borderRadius: 2, marginBottom: 12 }}>
+            <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${(rpe/10)*100}%`, background: `linear-gradient(90deg, ${C.statusGo}, ${C.accent}, ${C.statusCrit})`, borderRadius: 2 }} />
+            <input type="range" min="1" max="10" value={rpe} onChange={e => setRpe(parseInt(e.target.value))} className="rpe-slider" />
+            <div style={{ position: 'absolute', top: -8, left: `${((rpe-1)/9)*100}%`, width: 20, height: 20, borderRadius: '50%', background: '#fff', transform: 'translateX(-10px)', boxShadow: `0 0 0 3px ${C.bg}`, pointerEvents: 'none' }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
+            {[1,2,3,4,5,6,7,8,9,10].map(n => (
+              <div key={n} style={{ width: 2, height: 8, borderRadius: 1, background: n <= rpe ? C.accent : C.borderMd }} />
+            ))}
+          </div>
+          <div style={{ fontSize: 14, color: C.secondary, lineHeight: 1.5 }}>{rpeDesc}</div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 8, padding: '24px 20px 0' }}>
+        <button onClick={() => onNavigate('profile', {})} style={{ padding: '16px 0', background: C.surface, color: C.text, border: `1px solid ${C.border}`, borderRadius: 12, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.14em' }}>DETAILS</button>
+        <button onClick={async () => {
+          if (sessionId && dbRef.current) {
+            const s = await dbOp(dbRef.current, 'sessions', 'readonly', st => st.get(sessionId));
+            if (s) await dbOp(dbRef.current, 'sessions', 'readwrite', st => st.put({ ...s, rpe }));
+          }
+          onNavigate('home', {});
+        }} style={{ padding: '16px 0', background: C.accent, color: C.accentFg, border: 'none', borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600 }}>DONE →</button>
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
+// PROFILE SCREEN
+// ================================================================
+function ProfileScreen({ dbRef, onNavigate, analytics }) {
+  const [profile, setProfile] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [editing, setEditing] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+
+  const loadAll = async () => {
+    if (!dbRef.current) return;
+    const [p, s] = await Promise.all([
+      getProfile(dbRef.current),
+      dbGetAll(dbRef.current, 'sessions'),
+    ]);
+    setProfile(p);
+    setSessions(s);
+    setReady(true);
+  };
+
+  useEffect(() => { loadAll(); }, []);
+
+  const handleResetOnboarding = async () => {
+    if (!dbRef.current) return;
+    if (!window.confirm(MSG_RESET_ONBOARDING)) return;
+    await setProfileField(dbRef.current, 'onboardingComplete', false);
+    onNavigate('onboarding', {});
+  };
+
+  const streak   = useMemo(() => calcStreak(sessions), [sessions]);
+  const totalKcal = useMemo(() => sessions.reduce((sum, s) => sum + (s.calories ?? s.kcal ?? 0), 0), [sessions]);
+  const debugKpis = useMemo(() => computeKpis(analytics.events || []), [analytics.events]);
+
+  if (!ready) return <Loader />;
+
+  const hasName = !!(profile?.name);
+  const hasBMI  = !!(profile?.height && profile?.weight);
+  const hasGoal = !!(profile?.weightStart && profile?.weightGoal);
+
+  const bmi    = hasBMI ? calcBMI(profile.weight, profile.height) : 0;
+  const bmiCat = hasBMI ? bmiCategory(bmi) : null;
+
+  let goalPct = 0, goalReached = false;
+  if (hasGoal) {
+    const { weightStart, weightGoal, weight } = profile;
+    if (weight <= weightGoal) {
+      goalReached = true; goalPct = 100;
+    } else {
+      goalPct = Math.min(100, Math.max(0, Math.round(
+        (weightStart - weight) / (weightStart - weightGoal) * 100
+      )));
+    }
+  }
+
+  return (
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', fontFamily: C.font, paddingBottom: 100 }}>
+
+      {/* Header */}
+      <div style={{ padding: '44px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>PROFILE</div>
+          <h1 style={{ fontSize: 38, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1 }}>
+            {hasName ? profile.name.toUpperCase() : 'SET UP PROFILE'}
+          </h1>
+        </div>
+        <button onClick={() => setEditing(true)} style={{
+          display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', marginTop: 44,
+          background: 'transparent', color: C.text, border: `1px solid ${C.border}`,
+          borderRadius: 999, fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em', cursor: 'pointer',
+        }}>
+          {Icon.edit(14)}
+          <span>EDIT</span>
+        </button>
+      </div>
+
+      {/* Stat tiles — altijd zichtbaar */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: '24px 20px 0' }}>
+        <StatTile num={streak} label="DAY STREAK" />
+        <StatTile num={sessions.length} label="SESSIONS" />
+        <StatTile num={totalKcal >= 1000 ? `${(totalKcal/1000).toFixed(1)}k` : totalKcal} label="CAL TOTAL" />
+      </div>
+
+      {/* CTA als profiel leeg */}
+      {!hasName && (
+        <div style={{ padding: '24px 20px 0' }}>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '24px 20px', background: C.surface, textAlign: 'center' }}>
+            <div style={{ fontWeight: 600, fontSize: 17, marginBottom: 8 }}>Set up your profile</div>
+            <div style={{ color: C.secondary, marginBottom: 20, lineHeight: 1.6, fontSize: 14 }}>
+              For BMI, weight goal and calories
+            </div>
+            <button onClick={() => setEditing(true)} style={{
+              padding: '14px 24px', background: C.accent, color: C.accentFg, border: 'none', borderRadius: 12,
+              fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600, cursor: 'pointer',
+            }}>START</button>
+          </div>
+        </div>
+      )}
+
+      {/* BMI — alleen als lengte + gewicht ingevuld */}
+      {hasBMI && (
+        <section style={{ padding: '32px 20px 0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>BMI</span>
+            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: bmiCat.label === 'HEALTHY' ? C.accent : C.text }}>{bmiCat.label}</span>
+          </div>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, background: C.surface }}>
+            <div style={{ fontSize: 48, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: 16, fontFamily: C.mono }}>
+              {bmi.toFixed(1)}
+            </div>
+            <div style={{ position: 'relative', height: 10, borderRadius: 4, overflow: 'hidden', display: 'flex' }}>
+              <div style={{ flex: 18.5, background: '#69A6FF' }} />
+              <div style={{ flex: 6.5,  background: '#E8FE3C' }} />
+              <div style={{ flex: 5,    background: '#FFB454' }} />
+              <div style={{ flex: 10,   background: '#FF5A5A' }} />
+              <div style={{
+                position: 'absolute', top: -3, height: 16, width: 3, background: '#fff', borderRadius: 2,
+                left: `${Math.min(100, (Math.min(bmi, 40) / 40) * 100)}%`, transform: 'translateX(-1.5px)',
+              }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontFamily: C.mono, fontSize: 12, color: C.muted, letterSpacing: '0.06em' }}>
+              <span>0</span><span>18.5</span><span>25</span><span>30</span><span>40</span>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Gewichtsdoel — alleen als start + doel ingevuld */}
+      {hasGoal && (
+        <section style={{ padding: '24px 20px 0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>WEIGHT GOAL</span>
+            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: goalReached ? C.statusGo : C.accent }}>
+              {goalReached ? 'GOAL REACHED 🎯' : `${goalPct}%`}
+            </span>
+          </div>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, background: C.surface }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 18 }}>
+              <GoalCol label="START" value={`${profile.weightStart}kg`} />
+              <GoalCol label="NOW"   value={`${profile.weight}kg`} highlight />
+              <GoalCol label="GOAL"  value={`${profile.weightGoal}kg`} align="right" />
+            </div>
+            <div style={{ position: 'relative', height: 6, background: C.elev3, borderRadius: 3, marginBottom: 12 }}>
+              <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${goalPct}%`, background: C.accent, borderRadius: 3 }} />
+              <div style={{ position: 'absolute', top: -3, left: `${goalPct}%`, width: 12, height: 12, borderRadius: '50%', background: C.accent, transform: 'translateX(-6px)' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.06em' }}>
+              <span style={{ color: C.statusGo }}>
+                -{(profile.weightStart - profile.weight).toFixed(1)} kg lost
+              </span>
+              <span style={{ color: C.muted }}>
+                {Math.max(0, profile.weight - profile.weightGoal).toFixed(1)} kg to go
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Persoonlijk — altijd zichtbaar */}
+      <section style={{ padding: '32px 20px 0' }}>
+          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 12 }}>PERSONAL</div>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden' }}>
+            <PersonalRow label="AGE"    value={profile?.age    ? `${profile.age} years`     : '—'} />
+            <PersonalRow label="GENDER" value={profile?.gender ? (({ man: 'MALE', vrouw: 'FEMALE', anders: 'OTHER' }[profile.gender]) || profile.gender.toUpperCase()) : '—'} />
+            <PersonalRow label="HEIGHT" value={profile?.height ? `${profile.height} cm` : '—'} />
+            <PersonalRow label="WEIGHT" value={profile?.weight ? `${profile.weight} kg` : '—'} last />
+          </div>
+        </section>
+      {/* Session history */}
+      <section style={{ padding: '32px 20px 0' }}>
+        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 12 }}>RECENT SESSIONS</div>
+        {sessions.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '24px 0', fontFamily: C.mono, color: C.muted, fontSize: 12, letterSpacing: '0.1em' }}>No sessions completed yet.</div>
+        ) : (
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden' }}>
+            {sessions
+              .sort((a, b) => b.completedAt - a.completedAt)
+              .slice(0, 5)
+              .map((s, i, arr) => (
+              <div key={s.id} style={{ padding: '14px 16px', borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 500, marginBottom: 3 }}>{s.routineName}</div>
+                  <div style={{ fontFamily: C.mono, color: C.secondary, fontSize: 12, letterSpacing: '0.06em' }}>
+                    {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} EX · {Math.floor(s.duration / 60)}:{String(s.duration % 60).padStart(2, '0')} MIN
+                  </div>
+                </div>
+                <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 11, textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
+                  {new Date(s.completedAt).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {editing && <ProfileEditModal profile={profile} onSave={async p => {
+        await saveProfile(dbRef.current, { ...(profile || {}), ...p, createdAt: profile?.createdAt || Date.now() });
+        setEditing(false);
+        loadAll();
+      }} onClose={() => setEditing(false)} />}
+    </div>
+  );
+}
+
+// Stat tegel voor profiel header
+function StatTile({ num, label }) {
+  return (
+    <div style={{
+      padding: '16px 12px', border: `1px solid ${C.border}`, borderRadius: 12,
+      display: 'flex', flexDirection: 'column', gap: 6, background: C.surface,
+    }}>
+      <div style={{ fontFamily: C.mono, fontSize: 28, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1 }}>{num}</div>
+      <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.10em', color: C.muted }}>{label}</div>
+    </div>
+  );
+}
+
+// Kolom in gewichtsdoel-card
+function GoalCol({ label, value, highlight, align = 'left' }) {
+  return (
+    <div style={{ textAlign: align }}>
+      <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.10em', color: C.muted, marginBottom: 6 }}>{label}</div>
+      <div style={{ fontFamily: C.mono, fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', color: highlight ? C.accent : C.text }}>{value}</div>
+    </div>
+  );
+}
+
+// Rij in persoonlijk-blok
+function PersonalRow({ label, value, last }) {
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '14px 16px', borderBottom: last ? 'none' : `1px solid ${C.border}`,
+    }}>
+      <span style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.12em', color: C.muted }}>{label}</span>
+      <span style={{ fontFamily: C.mono, fontSize: 16, color: C.text }}>{value}</span>
+    </div>
+  );
+}
+
+// ================================================================
+// PROFILE EDIT MODAL
+// ================================================================
+function ProfileEditModal({ profile, onSave, onClose }) {
+  const [name,         setName]         = useState(profile?.name         || '');
+  const [age,          setAge]          = useState(profile?.age          || '');
+  const [gender,       setGender]       = useState(({ man: 'male', vrouw: 'female', anders: 'other' }[profile?.gender]) || profile?.gender || 'male');
+  const [height,       setHeight]       = useState(profile?.height      || '');
+  const [weight,       setWeight]       = useState(profile?.weight      || '');
+  const [startWeight,  setStartWeight]  = useState(profile?.weightStart || '');
+  const [targetWeight, setTargetWeight] = useState(profile?.weightGoal  || '');
+  const [error,        setError]        = useState('');
+
+  const handleSave = () => {
+    if (!name.trim())                      { setError('Name is required.');   return; }
+    if (!age || parseInt(age) <= 0)        { setError('Age is required.');    return; }
+    if (!height || parseInt(height) <= 0)  { setError('Height is required.'); return; }
+    if (!weight || parseFloat(weight) <= 0){ setError('Weight is required.'); return; }
+    setError('');
+    onSave({
+      name: name.trim(),
+      age: parseInt(age),
+      gender,
+      height:      parseInt(height),
+      weight:      parseFloat(weight),
+      weightStart: startWeight  ? parseFloat(startWeight)  : null,
+      weightGoal:  targetWeight ? parseFloat(targetWeight) : null,
+    });
+  };
+
+  const inputStyle = {
+    width: '100%', padding: '12px 14px', background: C.elev2,
+    border: `1px solid ${C.border}`, borderRadius: 8, color: C.text,
+    fontFamily: C.font, fontSize: 15,
+  };
+  const labelStyle = {
+    fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted,
+    marginBottom: 6, display: 'block',
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+      zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+    }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: C.bg, width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto',
+        borderTopLeftRadius: 20, borderTopRightRadius: 20,
+        border: `1px solid ${C.border}`, padding: '20px 20px 32px',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <h2 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>EDIT PROFILE</h2>
+          <button onClick={onClose} style={{
+            width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.secondary, background: 'none',
+          }}>{Icon.close(18)}</button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label style={labelStyle}>NAME</label>
+            <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Your name" />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>AGE</label>
+              <input style={inputStyle} type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="34" />
+            </div>
+            <div>
+              <label style={labelStyle}>GENDER</label>
+              <select style={{ ...inputStyle, appearance: 'auto' }} value={gender} onChange={e => setGender(e.target.value)}>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>HEIGHT (CM)</label>
+              <input style={inputStyle} type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="198" />
+            </div>
+            <div>
+              <label style={labelStyle}>WEIGHT (KG)</label>
+              <input style={inputStyle} type="number" step="0.1" value={weight} onChange={e => setWeight(e.target.value)} placeholder="110" />
+            </div>
+          </div>
+
+          <div style={{ height: 1, background: C.border, margin: '4px 0' }} />
+          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted }}>WEIGHT GOAL (OPTIONAL)</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>START WEIGHT</label>
+              <input style={inputStyle} type="number" step="0.1" value={startWeight} onChange={e => setStartWeight(e.target.value)} placeholder="110" />
+            </div>
+            <div>
+              <label style={labelStyle}>TARGET WEIGHT</label>
+              <input style={inputStyle} type="number" step="0.1" value={targetWeight} onChange={e => setTargetWeight(e.target.value)} placeholder="95" />
+            </div>
+          </div>
+
+          {error && <div style={{ color: C.statusCrit, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', marginTop: 4 }}>{error}</div>}
+          <button onClick={handleSave} style={{
+            marginTop: 12, padding: '16px 0', width: '100%',
+            background: C.accent, color: C.accentFg,
+            border: 'none', borderRadius: 12,
+            fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600,
+            cursor: 'pointer',
+          }}>SAVE</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
+// HISTORY SCREEN
+// ================================================================
+function HistoryScreen({ dbRef }) {
+  const [sessions, setSessions] = useState([]);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!dbRef.current) return;
+    dbGetAll(dbRef.current, 'sessions').then(s => {
+      setSessions(s.sort((a, b) => b.completedAt - a.completedAt));
+      setReady(true);
+    });
+  }, []);
+
+  const streak = useMemo(() => calcStreak(sessions), [sessions]);
+  const totalTime = sessions.reduce((s, e) => s + (e.duration || 0), 0);
+
+  if (!ready) return <Loader />;
+
+  return (
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', paddingBottom: 'calc(var(--tab-h) + 24px)', fontFamily: C.font }}>
+
+      {/* Header */}
+      <header style={{ padding: '44px 20px 20px' }}>
+        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>MY</div>
+        <h1 style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 0.95 }}>STATS</h1>
+      </header>
+
+      {/* Stats grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: '0 20px 24px' }}>
+        {[
+          { label: 'SESSIONS', value: sessions.length },
+          { label: 'STREAK', value: `${streak}d` },
+          { label: 'TOTAL', value: `${Math.floor(totalTime/60)}m` },
+        ].map(({ label, value }) => (
+          <div key={label} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '14px 10px', textAlign: 'center' }}>
+            <div style={{ fontFamily: C.mono, fontSize: 26, fontWeight: 600, letterSpacing: '-0.03em', color: C.accent, lineHeight: 1, marginBottom: 6 }}>{value}</div>
+            <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted }}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {sessions.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '60px 0', fontFamily: C.mono, color: C.muted, fontSize: 12, letterSpacing: '0.1em' }}>No sessions completed yet.</div>
+      )}
+
+      <div style={{ padding: '0 20px' }}>
+        {sessions.map(s => (
+          <div key={s.id} style={{ borderBottom: `1px solid ${C.border}`, padding: '14px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontSize: 17, fontWeight: 500, marginBottom: 4 }}>{s.routineName}</div>
+              <div style={{ fontFamily: C.mono, color: C.secondary, fontSize: 14, letterSpacing: '0.06em' }}>
+                {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} EX · {s.mode === 'reps' ? `${Object.keys(s.stepResults || s.completedReps || {}).length} sets` : `${Math.floor(s.duration/60)}:${String(s.duration%60).padStart(2,'0')} MIN`} · {(s.mode || 'time').toUpperCase()}
+              </div>
+            </div>
+            <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 12, textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
+              {new Date(s.completedAt).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
+// SHARED COMPONENTS
+// ================================================================
+function Loader() {
+  return (
+    <div style={{ color: C.muted, textAlign: 'center', paddingTop: 100, fontSize: 11, letterSpacing: '0.3em', fontFamily: C.mono }}>
+      LOADING...
+    </div>
+  );
+}
+
+// ================================================================
+// SETTINGS SCREEN
+// ================================================================
+function SettingsScreen({ dbRef, onNavigate }) {
+  const [profile, setProfile] = useState(null);
+  const [ready, setReady] = useState(false);
+
+  const load = async () => {
+    if (!dbRef.current) return;
+    const p = await getProfile(dbRef.current);
+    setProfile(p || {});
+    setReady(true);
+  };
+  useEffect(() => { load(); }, []);
+
+  const save = async (fields) => {
+    if (!dbRef.current) return;
+    await saveProfile(dbRef.current, { ...(profile || {}), ...fields });
+    setProfile(p => ({ ...(p || {}), ...fields }));
+  };
+
+  if (!ready) return <Loader />;
+
+  const notifEnabled = !!profile?.notificationsEnabled;
+  const notifTime    = profile?.notificationTime  || '19:00';
+  const notifDays    = profile?.notificationDays  || ['mon', 'wed', 'fri'];
+  const level        = profile?.level             || 'intermediate';
+  const soundOn      = profile?.sound !== false;
+  const wakeLock     = profile?.wakelock !== false;
+
+  const handleResetOnboarding = async () => {
+    if (!window.confirm(MSG_RESET_ONBOARDING)) return;
+    await setProfileField(dbRef.current, 'onboardingComplete', false);
+    onNavigate('onboarding', {});
+  };
+
+  const handleExportData = async () => {
+    const [sessions, routines] = await Promise.all([
+      dbGetAll(dbRef.current, 'sessions'),
+      dbGetAll(dbRef.current, 'routines'),
+    ]);
+    const blob = new Blob([JSON.stringify({ sessions, routines, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `trainr-export-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleClearData = async () => {
+    if (!window.confirm('Delete all data? This CANNOT be undone.')) return;
+    if (!window.confirm('Final warning: all sessions, routines and profile will be erased.')) return;
+    const db = dbRef.current;
+    for (const store of ['routines', 'sessions', 'profile', 'events']) {
+      await new Promise((res, rej) => {
+        const tx = db.transaction(store, 'readwrite');
+        const req = tx.objectStore(store).clear();
+        req.onsuccess = res; req.onerror = rej;
+      });
+    }
+    window.location.reload();
+  };
+
+  const DAYS_EN = { mon: 'MON', tue: 'TUE', wed: 'WED', thu: 'THU', fri: 'FRI', sat: 'SAT', sun: 'SUN' };
+
+  const sectionLabel = (txt) => (
+    <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 10 }}>{txt}</div>
+  );
+
+  const card = (children) => (
+    <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden', marginBottom: 24 }}>
+      {children}
+    </div>
+  );
+
+  const row = (label, control, last = false) => (
+    <div style={{ padding: '14px 16px', borderBottom: last ? 'none' : `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <span style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.08em', color: C.text }}>{label}</span>
+      {control}
+    </div>
+  );
+
+  const toggle = (on, onToggle) => (
+    <button onClick={onToggle} style={{
+      padding: '6px 14px', borderRadius: 999,
+      border: `1px solid ${on ? C.accent : C.borderMd}`,
+      background: on ? 'rgba(232,254,60,0.10)' : 'transparent',
+      fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em', fontWeight: 600,
+      color: on ? C.accent : C.secondary, cursor: 'pointer', minWidth: 46,
+    }}>{on ? 'AAN' : 'UIT'}</button>
+  );
+
+  return (
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', paddingBottom: 'calc(var(--tab-h) + 24px)', fontFamily: C.font }}>
+      <header style={{ padding: '44px 20px 28px' }}>
+        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>APP</div>
+        <h1 style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 0.95 }}>SETTINGS</h1>
+      </header>
+
+      <div style={{ padding: '0 20px' }}>
+
+        {sectionLabel('TRAINING')}
+        {card(<>
+          {row('TRAINING LEVEL', (
+            <div style={{ display: 'flex', gap: 6 }}>
+              {[['beginner','BEG'], ['intermediate','MID'], ['expert','EXP']].map(([key, short]) => (
+                <button key={key} onClick={() => save({ level: key })} style={{
+                  padding: '6px 10px', borderRadius: 6,
+                  border: `1px solid ${level === key ? C.accent : C.borderMd}`,
+                  background: level === key ? 'rgba(232,254,60,0.10)' : 'transparent',
+                  fontFamily: C.mono, fontSize: 11, letterSpacing: '0.08em', fontWeight: 600,
+                  color: level === key ? C.accent : C.secondary, cursor: 'pointer',
+                }}>{short}</button>
+              ))}
+            </div>
+          ))}
+          {row('SOUND', toggle(soundOn, () => save({ sound: !soundOn })))}
+          {row('KEEP SCREEN ON', toggle(wakeLock, () => save({ wakelock: !wakeLock })), true)}
+        </>)}
+
+        {sectionLabel('NOTIFICATIONS')}
+        {card(<>
+          {row('REMINDERS', toggle(notifEnabled, () => save({ notificationsEnabled: !notifEnabled })), !notifEnabled)}
+          {notifEnabled && row('TIME', (
+            <input type="time" value={notifTime} onChange={e => save({ notificationTime: e.target.value })} style={{
+              background: C.elev2, border: `1px solid ${C.border}`, color: C.text,
+              padding: '6px 10px', borderRadius: 6, fontFamily: C.mono, fontSize: 13,
+            }} />
+          ))}
+          {notifEnabled && row('DAYS', (
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              {Object.entries(DAYS_EN).map(([d, label]) => (
+                <button key={d} onClick={() => {
+                  const days = notifDays.includes(d) ? notifDays.filter(x => x !== d) : [...notifDays, d];
+                  save({ notificationDays: days });
+                }} style={{
+                  width: 30, height: 30, borderRadius: 6,
+                  border: `1px solid ${notifDays.includes(d) ? C.accent : C.borderMd}`,
+                  background: notifDays.includes(d) ? 'rgba(232,254,60,0.10)' : 'transparent',
+                  fontFamily: C.mono, fontSize: 10, color: notifDays.includes(d) ? C.accent : C.secondary,
+                  cursor: 'pointer',
+                }}>{label}</button>
+              ))}
+            </div>
+          ), true)}
+        </>)}
+
+        {sectionLabel('DATA')}
+        {card(<>
+          {row('EXPORT SESSIONS', (
+            <button onClick={handleExportData} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.borderMd}`, background: 'transparent', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.text, cursor: 'pointer' }}>DOWNLOAD</button>
+          ))}
+          {row('CLEAR ALL DATA', (
+            <button onClick={handleClearData} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.statusCrit}`, background: 'transparent', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.statusCrit, cursor: 'pointer' }}>DELETE</button>
+          ), true)}
+        </>)}
+
+        {sectionLabel('ACCOUNT')}
+        {card(<>
+          {row('RESTART ONBOARDING', (
+            <button onClick={handleResetOnboarding} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.borderMd}`, background: 'transparent', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.secondary, cursor: 'pointer' }}>START</button>
+          ), !DEV_MODE)}
+          {DEV_MODE && row('DEBUG MODE', (
+            <span style={{ fontFamily: C.mono, fontSize: 11, color: C.accent }}>ACTIVE</span>
+          ), true)}
+        </>)}
+
+      </div>
+    </div>
+  );
+}
+
+function BottomNav({ current, onNavigate }) {
+  const tabs = [
+    { id: 'home',     label: 'HOME',     icon: Icon.home     },
+    { id: 'routines', label: 'ROUTINES', icon: Icon.list     },
+    { id: 'settings', label: 'SETTINGS', icon: Icon.settings },
+    { id: 'profile',  label: 'PROFILE',  icon: Icon.user     },
+  ];
+  return (
+    <div style={{
+      position: 'fixed', bottom: 0, left: 0, right: 0,
+      height: 'var(--tab-h)',
+      display: 'grid', gridTemplateColumns: 'repeat(4,1fr)',
+      background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)',
+      borderTop: '1px solid var(--border-subtle)', zIndex: 100,
+    }}>
+      {tabs.map(t => {
+        const active = current === t.id;
+        return (
+          <button key={t.id} onClick={() => onNavigate(t.id, {})} style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: 4, color: active ? C.accent : C.muted,
+            fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', fontWeight: 500,
+            background: 'none', border: 'none',
+          }}>
+            {t.icon(20)}
+            <span>{t.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ================================================================
+// ONBOARDING SCREEN
+// ================================================================
+function OnboardingScreen({ dbRef, onComplete }) {
+  const [step, setStep] = useState(1);
+  const [name, setName] = useState('');
+  const [gender, setGender] = useState(null);
+  const [age, setAge] = useState('');
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [weightGoal, setWeightGoal] = useState('');
+  const [level, setLevel] = useState(null);
+  const [trainingGoal, setTrainingGoal] = useState(null);
+  const [availableDays, setAvailableDays] = useState(null);
+  useEffect(() => { window.__trackEvent?.('onboarding_started', { step: 1 }); }, []);
+
+  const goNext = () => setStep(s => s + 1);
+  const goBack = () => setStep(s => s - 1);
+
+  const finish = async () => {
+    const goalW = weightGoal ? parseFloat(weightGoal) : parseFloat(weight);
+    const starter = resolveStarterPlanProfile({ level, trainingGoal, availableDays: availableDays ? parseInt(availableDays) : null });
+    await saveProfile(dbRef.current, {
+      name: name.trim(),
+      gender,
+      age: parseInt(age),
+      height: parseInt(height),
+      weight: parseFloat(weight),
+      weightStart: parseFloat(weight),
+      weightGoal: goalW,
+      level,
+      trainingGoal,
+      selectedPlanId: selectDefaultPlan({ level, trainingGoal, weight: parseFloat(weight), weightGoal: goalW }),
+      planConfirmed: false,
+      availableDays: availableDays ? parseInt(availableDays) : null,
+      starterPlanProfile: starter.profileId,
+      starterPlanSelection: {
+        auto: { profileId: starter.profileId, routineId: starter.routineId, createdAt: Date.now() },
+        manuallyAdjusted: false,
+        fallbackReason: starter.fallbackReason,
+      },
+      notificationsEnabled: false,
+      notificationTime: '19:00',
+      notificationDays: ['mon', 'wed', 'fri'],
+      onboardingComplete: true,
+      createdAt: Date.now(),
+    });
+    window.__trackEvent?.('onboarding_completed', { level, trainingGoal, availableDays: availableDays ? parseInt(availableDays) : null });
+    window.__trackEvent?.('plan_assigned', { mode: 'auto', selectedPlanId: selectDefaultPlan({ level, trainingGoal, weight: parseFloat(weight), weightGoal: goalW }) });
+    onComplete(starter);
+  };
+
+  const inputStyle = {
+    width: '100%', padding: '16px 18px', background: C.elev2,
+    border: `1px solid ${C.borderMd}`, borderRadius: 12, color: C.text,
+    fontFamily: C.font, fontSize: 18, outline: 'none',
+  };
+
+  const tileBtn = (selected, onClick, children) => (
+    <button onClick={onClick} style={{
+      flex: 1, padding: '20px 10px', border: `1px solid ${selected ? C.accent : C.borderMd}`,
+      borderRadius: 12, cursor: 'pointer', background: selected ? 'rgba(232,254,60,0.08)' : C.surface,
+      fontFamily: C.mono, fontSize: 13, letterSpacing: '0.12em', fontWeight: 600,
+      color: selected ? C.accent : C.secondary, display: 'flex', flexDirection: 'column', gap: 8,
+    }}>{children}</button>
+  );
+
+  const ctaBtn = (label, onClick, disabled = false) => (
+    <button onClick={onClick} disabled={disabled} style={{
+      width: '100%', padding: '18px 0',
+      background: disabled ? C.elev3 : C.accent,
+      color: disabled ? C.muted : C.accentFg,
+      border: 'none', borderRadius: 14,
+      fontFamily: C.mono, fontSize: 14, letterSpacing: '0.16em', fontWeight: 600,
+      cursor: disabled ? 'default' : 'pointer',
+    }}>{label}</button>
+  );
+
+  return (
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', fontFamily: C.font, display: 'flex', flexDirection: 'column' }}>
+      {/* Top bar */}
+      <div style={{ padding: '52px 20px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {step > 1 ? (
+          <button onClick={goBack} style={{ background: 'none', border: 'none', color: C.muted, display: 'flex', alignItems: 'center', gap: 6, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', cursor: 'pointer', padding: 0 }}>
+            {Icon.back(16)} BACK
+          </button>
+        ) : <div />}
+        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.22em', color: C.muted }}>STEP {step} / 10</div>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ display: 'flex', gap: 4, padding: '0 20px', marginBottom: 40 }}>
+        {[1,2,3,4,5,6,7,8,9,10].map(s => (
+          <div key={s} style={{ flex: 1, height: 3, borderRadius: 2, background: s <= step ? C.accent : C.border }} />
+        ))}
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, padding: '0 20px', display: 'flex', flexDirection: 'column' }}>
+
+        {step === 1 && (
+          <>
+            <h1 style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 16 }}>Welcome to TrainR.</h1>
+            <p style={{ fontSize: 16, color: C.secondary, lineHeight: 1.6, flex: 1 }}>Set up your profile. Takes about 1 minute.</p>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('START →', goNext)}</div>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>What's your name?</h1>
+            <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="First name" />
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !name.trim())}</div>
+          </>
+        )}
+
+        {step === 3 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>What's your gender?</h1>
+            <div style={{ display: 'flex', gap: 12 }}>
+              {tileBtn(gender === 'male', () => setGender('male'), 'MALE')}
+              {tileBtn(gender === 'female', () => setGender('female'), 'FEMALE')}
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !gender)}</div>
+          </>
+        )}
+
+        {step === 4 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>How old are you?</h1>
+            <input style={inputStyle} type="number" min="10" max="99" value={age} onChange={e => setAge(e.target.value)} placeholder="34" />
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !age || parseInt(age) < 10 || parseInt(age) > 99)}</div>
+          </>
+        )}
+
+        {step === 5 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>How tall are you?</h1>
+            <div style={{ position: 'relative' }}>
+              <input style={{ ...inputStyle, paddingRight: 60 }} type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="180" />
+              <span style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', fontFamily: C.mono, color: C.muted, fontSize: 16 }}>cm</span>
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !height || parseInt(height) <= 0)}</div>
+          </>
+        )}
+
+        {step === 6 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 12 }}>What do you weigh now?</h1>
+            <p style={{ fontSize: 14, color: C.muted, marginBottom: 28 }}>Used to calculate calories burned.</p>
+            <div style={{ position: 'relative' }}>
+              <input style={{ ...inputStyle, paddingRight: 60 }} type="number" step="0.1" value={weight} onChange={e => setWeight(e.target.value)} placeholder="80" />
+              <span style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', fontFamily: C.mono, color: C.muted, fontSize: 16 }}>kg</span>
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !weight || parseFloat(weight) <= 0)}</div>
+          </>
+        )}
+
+        {step === 7 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 12 }}>What's your target weight?</h1>
+            <p style={{ fontSize: 14, color: C.muted, marginBottom: 28 }}>No goal? Enter the same as your current weight.</p>
+            <div style={{ position: 'relative' }}>
+              <input style={{ ...inputStyle, paddingRight: 60 }} type="number" step="0.1" value={weightGoal} onChange={e => setWeightGoal(e.target.value)} placeholder={weight || '75'} />
+              <span style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', fontFamily: C.mono, color: C.muted, fontSize: 16 }}>kg</span>
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !weightGoal)}</div>
+          </>
+        )}
+
+        {step === 8 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>What's your training goal?</h1>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {[
+                { key: 'fatloss', label: 'FAT LOSS' },
+                { key: 'muscle',  label: 'MUSCLE BUILDING' },
+                { key: 'core',    label: 'CORE' },
+                { key: 'fitness', label: 'GENERAL FITNESS' },
+              ].map(({ key, label }) => tileBtn(trainingGoal === key, () => setTrainingGoal(key), label))}
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !trainingGoal)}</div>
+          </>
+        )}
+
+        {step === 9 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>How many days per week?</h1>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {['3', '4', '5'].map(days => tileBtn(availableDays === days, () => setAvailableDays(days), `${days} DAYS`))}
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !availableDays)}</div>
+          </>
+        )}
+
+        {step === 10 && (
+          <>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>What's your training level?</h1>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {[
+                { key: 'beginner',     label: 'BEGINNER',      desc: 'Just starting, or back after a long break.' },
+                { key: 'intermediate', label: 'INTER-\nMEDIATE', desc: 'Regularly active, base fitness in place.' },
+                { key: 'expert',       label: 'EXPERT',        desc: 'Active daily, can handle high training loads.' },
+              ].map(({ key, label, desc }) => (
+                tileBtn(level === key, () => setLevel(key), (
+                  <>
+                    <span style={{ whiteSpace: 'pre-line' }}>{label}</span>
+                    <span style={{ fontSize: 11, letterSpacing: '0.04em', fontWeight: 400, color: level === key ? C.accent : C.muted, lineHeight: 1.4 }}>{desc}</span>
+                  </>
+                ))
+              ))}
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('DONE → START', finish, !level)}</div>
+          </>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
+// EXERCISE DETAIL SCREEN
+// ================================================================
+function ExerciseDetailScreen({ exercise, onBack, dbRef }) {
+  const [usedIn, setUsedIn] = useState([]);
+
+  useEffect(() => {
+    if (!dbRef?.current) return;
+    dbGetAll(dbRef.current, 'routines').then(routines => {
+      setUsedIn(routines.filter(r => r.exercises.includes(exercise.id)).map(r => r.name));
+    });
+  }, []);
+
+  const catColor = CAT_COLORS[exercise.cat] || C.accent;
+  const [line1, line2] = exercise.desc.split('\n');
+
+  return (
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh', fontFamily: C.font, overflowY: 'auto', paddingBottom: 40 }}>
+      {/* Header */}
+      <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${C.border}`, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 10 }}>
+        <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.muted, background: 'none' }}>
+          {Icon.back(18)}
+        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: catColor }} />
+          <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.14em', color: catColor }}>{exercise.cat.toUpperCase()}</span>
+        </div>
+      </div>
+
+      <div style={{ padding: '28px 20px 0' }}>
+        {/* Naam */}
+        <h1 style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 28 }}>
+          {exercise.name.toUpperCase()}
+        </h1>
+
+        {/* Spiergroepen */}
+        <div style={{ marginBottom: 28 }}>
+          <Label>MUSCLE GROUPS</Label>
+          <BodyDiagram exercise={exercise} height={200} />
+          <MuscleTags exercise={exercise} />
+        </div>
+
+        {/* Hoe uitvoeren */}
+        <div style={{ marginBottom: 28 }}>
+          <Label>HOW TO PERFORM</Label>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 18px', background: C.surface }}>
+            <p style={{ fontSize: 15, color: C.text, lineHeight: 1.65, marginBottom: line2 ? 12 : 0 }}>{line1}</p>
+            {line2 && <p style={{ fontSize: 14, color: C.secondary, lineHeight: 1.65 }}>{line2}</p>}
+          </div>
+        </div>
+
+        {/* Niveau tiles */}
+        <div style={{ marginBottom: 28 }}>
+          <Label>LEVEL</Label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+            {LEVELS.map((lv, i) => (
+              <div key={lv} style={{ padding: '16px 10px', border: `1px solid ${C.border}`, borderRadius: 12, textAlign: 'center', background: C.surface }}>
+                <div style={{ fontFamily: C.mono, fontSize: 26, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1, color: LEVEL_COLORS[i], marginBottom: 6 }}>
+                  {(exercise.mode === 'reps' || exercise.mode === 'hybrid') ? `${exercise.targets?.[lv.toLowerCase()] || 0} reps` : `${exercise.targets?.[lv.toLowerCase()] || exercise.times[i]}s`}
+                </div>
+                <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>{lv}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Gebruik in routines */}
+        <div style={{ marginBottom: 28 }}>
+          <Label>USED IN ROUTINES</Label>
+          {usedIn.length === 0 ? (
+            <div style={{ color: C.muted, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.08em', padding: '12px 0' }}>
+              Not used in any routine yet
+            </div>
+          ) : (
+            <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden' }}>
+              {usedIn.map((rname, i) => (
+                <div key={i} style={{ padding: '14px 16px', borderBottom: i < usedIn.length - 1 ? `1px solid ${C.border}` : 'none', fontSize: 15, fontWeight: 500 }}>
+                  {rname}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
+// APP
+// ================================================================
+function App() {
+  const [screen, setScreen] = useState('home');
+  const [params, setParams] = useState({});
+  const [ready, setReady] = useState(false);
+  const dbRef = useRef(null);
+  const [events, setEvents] = useState([]);
+  const baseTrackEvent = useMemo(() => trackEventFactory(dbRef), []);
+  const trackEvent = useCallback(async (name, meta = {}, opts = {}) => {
+    const evt = await baseTrackEvent(name, meta, opts);
+    setEvents(prev => [...prev, evt].sort((a, b) => a.ts - b.ts));
+    return evt;
+  }, [baseTrackEvent]);
+  window.__trackEvent = trackEvent;
+
+  const ensureStarterFallback = async (db, prof) => {
+    const starter = resolveStarterPlanProfile({
+      level: prof?.level,
+      trainingGoal: prof?.trainingGoal,
+      availableDays: Number.isInteger(prof?.availableDays) ? prof.availableDays : parseInt(prof?.availableDays),
+    });
+    if (prof?.starterPlanProfile && prof?.starterPlanSelection?.auto?.routineId && !starter.fallbackReason) return;
+    await saveProfile(db, {
+      starterPlanProfile: starter.profileId,
+      starterPlanSelection: {
+        auto: { profileId: starter.profileId, routineId: starter.routineId, createdAt: Date.now() },
+        manuallyAdjusted: !!prof?.starterPlanSelection?.manuallyAdjusted,
+        fallbackReason: starter.fallbackReason,
+      },
+    });
+  };
+
+  useEffect(() => {
+    initDB().then(async db => {
+      dbRef.current = db;
+      // Seed default Core routine if empty
+      const existing = await dbGetAll(db, 'routines');
+      if (existing.length === 0) {
+        await dbOp(db, 'routines', 'readwrite', s => s.put(DEFAULT_ROUTINE));
+      }
+      // Onboarding check
+      const prof = await getProfile(db);
+      if (!prof || !prof.onboardingComplete) {
+        setScreen('onboarding');
+      } else {
+        await ensureStarterFallback(db, prof);
+      }
+      const evts = await loadAllEvents(db);
+      setEvents(evts);
+      const hasOnboarding = evts.some(e => e.event === 'onboarding_completed');
+      const hasStarted = evts.some(e => e.event === 'workout_started');
+      const hasCompleted = evts.some(e => e.event === 'workout_completed');
+      if (hasOnboarding && !hasStarted) console.warn('[data-quality] ontbrekend event: workout_started na onboarding_completed.');
+      if (hasStarted && !hasCompleted) console.warn('[data-quality] workout gestart zonder completion/abandon event.');
+      setReady(true);
+    }).catch(() => setReady(true));
+  }, []);
+
+  useEffect(() => {
+    if (!ready || !dbRef.current) return;
+    (async () => {
+      const prof = await getProfile(dbRef.current);
+      if (!prof?.notificationsEnabled) return;
+      const permission = ('Notification' in window) ? Notification.permission : 'unsupported';
+      await trackEvent('reminder_permission_state', { state: permission });
+      if (permission === 'default' && 'Notification' in window) {
+        const req = await Notification.requestPermission();
+        await setProfileField(dbRef.current, 'notificationPermissionState', req);
+        await trackEvent('reminder_permission_state', { state: req });
+        if (req === 'denied') alert('Notifications are blocked. Enable permission in your browser settings.');
+      } else if (permission === 'denied') {
+        alert('Notifications are blocked. Enable permission in your browser settings.');
+        return;
+      }
+      if (Notification.permission !== 'granted') return;
+      new Notification('TRAINR reminder', { body: `Workout scheduled at ${prof.notificationTime || '19:00'}.` });
+      await trackEvent('reminder_scheduled', { time: prof.notificationTime || '19:00', days: prof.notificationDays || [] });
+      setTimeout(async () => {
+        new Notification('Missed your session?', { body: 'Still time for a short workout today.' });
+        await trackEvent('reminder_opened', { type: 'followup_missed_session' });
+      }, 4000);
+    })();
+  }, [ready]);
+
+  const navigate = useCallback((s, p = {}) => { setScreen(s); setParams(p); }, []);
+  const showNav = !['timer', 'builder', 'finish', 'onboarding', 'exerciseDetail', 'history'].includes(screen);
+
+  if (!ready) return (
+    <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.font }}>
+      <div style={{ color: C.accent, fontSize: 18, letterSpacing: '0.4em', fontFamily: C.mono }}>TRAINR</div>
+    </div>
+  );
+
+  return (
+    <div style={{ background: C.bg, minHeight: '100vh', fontFamily: C.font, color: C.text }}>
+      {screen === 'onboarding'     && <OnboardingScreen dbRef={dbRef} onComplete={() => navigate('home', {})} />}
+      {screen === 'home'           && <HomeScreen dbRef={dbRef} onNavigate={navigate} analytics={{ trackEvent, events }} />}
+      {screen === 'routines'       && <RoutinesScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
+      {screen === 'builder'        && <RoutineBuilderScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
+      {screen === 'timer'          && <TimerScreen dbRef={dbRef} onNavigate={navigate} params={params} analytics={{ trackEvent, events }} />}
+      {screen === 'finish'         && <FinishScreen dbRef={dbRef} onNavigate={navigate} params={params} />}
+      {screen === 'settings'       && <SettingsScreen dbRef={dbRef} onNavigate={navigate} />}
+      {screen === 'profile'        && <ProfileScreen dbRef={dbRef} onNavigate={navigate} analytics={{ trackEvent, events }} />}
+      {screen === 'exerciseDetail' && <ExerciseDetailScreen exercise={params.exercise} onBack={() => navigate(params.backTo || 'home', params.backToParams || {})} dbRef={dbRef} />}
+      {showNav && <BottomNav current={screen} onNavigate={navigate} />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+// Register service worker — auto-update bij nieuwe deploy
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      reg.update();
+      reg.addEventListener('updatefound', () => {
+        const sw = reg.installing;
+        if (!sw) return;
+        sw.addEventListener('statechange', () => {
+          if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+            // Nieuwe SW staat klaar; activeer direct
+            sw.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+    }).catch(err => console.warn('SW registration failed:', err));
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloading) return;
+      reloading = true;
+      window.location.reload();
+    });
+  });
+}
+</script>
+</body>
+</html>

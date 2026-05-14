@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TrainR — Design Spec</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { background: var(--bg-base); color: var(--fg-primary); }
+  .doc { max-width: 1080px; margin: 0 auto; padding: 64px 32px 120px; }
+  .top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 48px; padding-bottom: 24px; border-bottom: 1px solid var(--border-subtle); }
+  .top a { color: var(--signal); text-decoration: none; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.14em; padding: 8px 14px; border: 1px solid var(--signal); border-radius: 999px; }
+  h1 { font-size: 56px; font-weight: 700; letter-spacing: -0.04em; margin: 0 0 8px; line-height: 0.95; }
+  h1 span { color: var(--signal); }
+  h2 { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg-secondary); margin: 56px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle); }
+  h3 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 28px 0 12px; }
+  p, li { color: var(--fg-secondary); line-height: 1.55; font-size: 14px; }
+  .lede { font-size: 18px; color: var(--fg-secondary); max-width: 640px; line-height: 1.5; }
+
+  /* token rows */
+  .tokens { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .tok { display: grid; grid-template-columns: 36px 220px 1fr 200px; gap: 16px; align-items: center; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 8px; }
+  .tok-swatch { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border-subtle); }
+  .tok-name { font-family: var(--font-mono); font-size: 12px; color: var(--fg-primary); }
+  .tok-val { font-family: var(--font-mono); font-size: 12px; color: var(--fg-tertiary); }
+  .tok-desc { font-size: 12px; color: var(--fg-secondary); }
+
+  /* type table */
+  .type-row { display: grid; grid-template-columns: 200px 80px 1fr; gap: 16px; padding: 12px 0; align-items: baseline; border-bottom: 1px solid var(--border-subtle); }
+  .type-row .name { font-family: var(--font-mono); font-size: 11px; color: var(--fg-tertiary); letter-spacing: 0.12em; text-transform: uppercase; }
+  .type-row .meta { font-family: var(--font-mono); font-size: 11px; color: var(--fg-tertiary); }
+  .type-row .sample { color: var(--fg-primary); }
+
+  /* component grid */
+  .comp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .comp { padding: 24px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-elev-1); }
+  .comp-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; color: var(--fg-tertiary); margin-bottom: 16px; text-transform: uppercase; }
+  .comp-stack { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+
+  /* buttons */
+  .btn { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.14em; padding: 12px 20px; border-radius: 999px; border: 1px solid var(--border-default); background: var(--bg-elev-2); color: var(--fg-primary); cursor: pointer; }
+  .btn.signal { background: var(--signal); color: var(--signal-fg); border-color: var(--signal); }
+  .btn.ghost { background: transparent; color: var(--signal); border-color: var(--signal); }
+  .btn.icon { display: inline-flex; align-items: center; gap: 8px; }
+
+  /* tags */
+  .tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; padding: 4px 8px; border-radius: 4px; background: var(--bg-elev-3); color: var(--fg-secondary); display: inline-block; }
+  .tag.signal { background: var(--signal-08); color: var(--signal); }
+  .tag.rest { background: rgba(105,166,255,0.10); color: var(--status-rest); }
+
+  /* heatmap chips */
+  .heat-row { display: flex; gap: 6px; align-items: center; }
+  .heat-chip { width: 36px; height: 36px; border-radius: 6px; }
+
+  /* wireframes */
+  .wires { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .wire { aspect-ratio: 1 / 2; background: var(--bg-elev-1); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 12px; position: relative; overflow: hidden; }
+  .wire-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; color: var(--fg-tertiary); text-transform: uppercase; margin-bottom: 8px; }
+  .ws { background: var(--bg-elev-2); border-radius: 4px; }
+  .ws.ln { height: 8px; }
+  .ws.lg { height: 36px; }
+  .ws.bx { height: 60px; }
+  .ws.tll { height: 80px; }
+  .ws.sq { aspect-ratio: 1; }
+  .wire-stack { display: flex; flex-direction: column; gap: 6px; }
+  .wire-row { display: flex; gap: 4px; }
+  .wire-row > * { flex: 1; }
+  .wire-circ { aspect-ratio: 1; border-radius: 50%; background: var(--bg-elev-2); }
+  .wire-tabs { position: absolute; bottom: 8px; left: 8px; right: 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .wire-tabs > div { height: 24px; background: var(--bg-elev-2); border-radius: 4px; }
+  .wire-tabs > div:first-child { background: rgba(232,254,60,0.20); }
+
+  /* principles */
+  .principles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .principle { padding: 20px; border: 1px solid var(--border-subtle); border-radius: 12px; }
+  .principle .num { font-family: var(--font-mono); color: var(--signal); font-size: 11px; letter-spacing: 0.14em; }
+  .principle h4 { margin: 6px 0 8px; font-size: 16px; font-weight: 600; color: var(--fg-primary); }
+  .principle p { font-size: 13px; margin: 0; }
+</style>
+</head>
+<body>
+
+<div class="doc">
+
+  <div class="top">
+    <div>
+      <div class="eyebrow">DESIGN SPECIFICATION · v0.1</div>
+      <h1 style="margin-top:8px;">TRAINR<br/><span>SYSTEM</span></h1>
+    </div>
+    <a href="TrainR.html">← PROTOTYPE</a>
+  </div>
+
+  <p class="lede">Athletic monochroom met één signaalkleur. Mono accents voor data en labels, Inter voor body & headings. Doel: leesbaarheid en focus boven decoratie. Strakke, militair-functionele toon.</p>
+
+  <!-- ───── PRINCIPLES ───── -->
+  <h2>01 — Design principles</h2>
+  <div class="principles">
+    <div class="principle"><div class="num">P.01</div><h4>Sessie is heilig</h4><p>Tijdens een workout is het scherm één instrument. Geen secundaire CTAs, geen meldingen, geen scroll-druk.</p></div>
+    <div class="principle"><div class="num">P.02</div><h4>Eén signaal</h4><p>Signal yellow markeert state-changes en de actieve set. Andere kleuren zijn status, niet decoratie.</p></div>
+    <div class="principle"><div class="num">P.03</div><h4>Numeriek = mono</h4><p>Tijden, sessies, percentages, streaks: altijd Geist Mono met tabular-nums. Body & koppen blijven Inter.</p></div>
+    <div class="principle"><div class="num">P.04</div><h4>Density is een keuze</h4><p>Compact / Cozy / Comfortable als first-class token. Default = Cozy. Geen gratis whitespace, geen claustrofobie.</p></div>
+  </div>
+
+  <!-- ───── COLORS ───── -->
+  <h2>02 — Color tokens</h2>
+  <h3>Surfaces & ink</h3>
+  <div class="tokens">
+    <div class="tok"><div class="tok-swatch" style="background:#000"></div><div class="tok-name">--bg-base</div><div class="tok-desc">App achtergrond, OLED zwart</div><div class="tok-val">#000000</div></div>
+    <div class="tok"><div class="tok-swatch" style="background:#0A0A0B"></div><div class="tok-name">--bg-elev-1</div><div class="tok-desc">Card / sheet</div><div class="tok-val">#0A0A0B</div></div>
+    <div class="tok"><div class="tok-swatch" style="background:#131315"></div><div class="tok-name">--bg-elev-2</div><div class="tok-desc">Nested card / hover</div><div class="tok-val">#131315</div></div>
+    <div class="tok"><div class="tok-swatch" style="background:#1C1C1F"></div><div class="tok-name">--bg-elev-3</div><div class="tok-desc">Pressed / chip background</div><div class="tok-val">#1C1C1F</div></div>
+    <div class="tok"><div class="tok-swatch" style="background:#F5F5F4"></div><div class="tok-name">--fg-primary</div><div class="tok-desc">Primary text</div><div class="tok-val">#F5F5F4</div></div>
+    <div class="tok"><div class="tok-swatch" style="background:#A1A1A0"></div><div class="tok-name">--fg-secondary</div><div class="tok-desc">Secondary / labels</div><div class="tok-val">#A1A1A0</div></div>
+    <div class="tok"><div class="tok-swatch" style="background:#6B6B6A"></div><div class="tok-name">--fg-tertiary</div><div class="tok-desc">Tertiary / disabled</div><div class="tok-val">#6B6B6A</div></div>
+  </div>
+
+  <h3>Signal & status</h3>
+  <div class="tokens">
+    <div class="tok"><div class="tok-swatch" style="background:#E8FE3C"></div><div class="tok-name">--signal</div><div class="tok-desc">Primary accent. Active set, CTA, streak.</div><div class="tok-val">#E8FE3C</div></div>
+    <div class="tok"><div class="tok-swatch" style="background:#6BE89B"></div><div class="tok-name">--status-go</div><div class="tok-desc">Success / completed</div><div class="tok-val">#6BE89B</div></div>
+    <div class="tok"><div class="tok-swatch" style="background:#69A6FF"></div><div class="tok-name">--status-rest</div><div class="tok-desc">Rest / cooldown phase</div><div class="tok-val">#69A6FF</div></div>
+    <div class="tok"><div class="tok-swatch" style="background:#FFB454"></div><div class="tok-name">--status-warn</div><div class="tok-desc">Pause / warning</div><div class="tok-val">#FFB454</div></div>
+    <div class="tok"><div class="tok-swatch" style="background:#FF5A5A"></div><div class="tok-name">--status-crit</div><div class="tok-desc">Stop / critical</div><div class="tok-val">#FF5A5A</div></div>
+  </div>
+
+  <h3>Heatmap scale (intensity 0 → 4)</h3>
+  <p>Voor de body-map: gradiente van neutraal donker → signal yellow. Eén dimensie, vijf stappen.</p>
+  <div class="heat-row">
+    <div class="heat-chip" style="background:#1A1A1C"></div>
+    <div class="heat-chip" style="background:#3A3A1A"></div>
+    <div class="heat-chip" style="background:#76840F"></div>
+    <div class="heat-chip" style="background:#C2DF1F"></div>
+    <div class="heat-chip" style="background:#E8FE3C"></div>
+    <span class="tag" style="margin-left:12px;">0 — niet getarget</span>
+    <span class="tag">4 — primaire spier</span>
+  </div>
+
+  <!-- ───── TYPE ───── -->
+  <h2>03 — Typography</h2>
+  <p>Twee families. Inter voor leesbaarheid (body, headings, exercise names). Geist Mono voor labels, eyebrows, numerics, en alles wat data-flavor heeft.</p>
+
+  <div class="type-row"><div class="name">DISPLAY · 96/600 mono</div><div class="meta">timer</div><div class="sample numeric" style="font-size:64px;font-weight:600;letter-spacing:-0.06em;">39</div></div>
+  <div class="type-row"><div class="name">HERO · 44/700 sans</div><div class="meta">page title</div><div class="sample" style="font-size:36px;font-weight:700;letter-spacing:-0.04em;">PROTOCOL READY</div></div>
+  <div class="type-row"><div class="name">TITLE · 28/700 sans</div><div class="meta">exercise</div><div class="sample" style="font-size:28px;font-weight:700;letter-spacing:-0.02em;">BURPEES</div></div>
+  <div class="type-row"><div class="name">CARD · 18/600 sans</div><div class="meta">routine name</div><div class="sample" style="font-size:18px;font-weight:600;">Cardio Burn</div></div>
+  <div class="type-row"><div class="name">BODY · 15/400 sans</div><div class="meta">instruction</div><div class="sample" style="font-size:15px;">Vanuit staand naar plank zakken, push-up, terug omhoog.</div></div>
+  <div class="type-row"><div class="name">CAPTION · 13/400 sans</div><div class="meta">tip / meta</div><div class="sample" style="font-size:13px;color:var(--fg-secondary)">Vloeiende beweging, armen boven hoofd bij sprong.</div></div>
+  <div class="type-row"><div class="name">EYEBROW · 11/500 mono</div><div class="meta">section</div><div class="sample label-mono">SNEL STARTEN</div></div>
+  <div class="type-row"><div class="name">TAB · 9/500 mono</div><div class="meta">nav</div><div class="sample" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.16em;color:var(--fg-tertiary)">ROUTINES</div></div>
+
+  <!-- ───── SPACING ───── -->
+  <h2>04 — Spacing & radius</h2>
+  <div class="tokens">
+    <div class="tok"><div class="tok-swatch" style="width:4px;height:24px;background:var(--signal)"></div><div class="tok-name">--space-1</div><div class="tok-desc">Inline gaps in tags</div><div class="tok-val">4 px</div></div>
+    <div class="tok"><div class="tok-swatch" style="width:8px;height:24px;background:var(--signal)"></div><div class="tok-name">--space-2</div><div class="tok-desc">Tight clusters</div><div class="tok-val">8 px</div></div>
+    <div class="tok"><div class="tok-swatch" style="width:12px;height:24px;background:var(--signal)"></div><div class="tok-name">--space-3</div><div class="tok-desc">Inside small components</div><div class="tok-val">12 px</div></div>
+    <div class="tok"><div class="tok-swatch" style="width:16px;height:24px;background:var(--signal)"></div><div class="tok-name">--space-4</div><div class="tok-desc">Card padding</div><div class="tok-val">16 px</div></div>
+    <div class="tok"><div class="tok-swatch" style="width:20px;height:24px;background:var(--signal)"></div><div class="tok-name">--space-5 / gutter</div><div class="tok-desc">Default gutter, page padding</div><div class="tok-val">20 px</div></div>
+    <div class="tok"><div class="tok-swatch" style="width:24px;height:24px;background:var(--signal)"></div><div class="tok-name">--space-6</div><div class="tok-desc">Between sections</div><div class="tok-val">24 px</div></div>
+    <div class="tok"><div class="tok-swatch" style="width:32px;height:24px;background:var(--signal)"></div><div class="tok-name">--space-7</div><div class="tok-desc">Major section breaks</div><div class="tok-val">32 px</div></div>
+  </div>
+
+  <h3>Radius</h3>
+  <div class="tokens">
+    <div class="tok"><div class="tok-swatch" style="border-radius:4px;background:var(--bg-elev-2)"></div><div class="tok-name">--radius-xs</div><div class="tok-desc">Tags, chips</div><div class="tok-val">4 px</div></div>
+    <div class="tok"><div class="tok-swatch" style="border-radius:8px;background:var(--bg-elev-2)"></div><div class="tok-name">--radius-sm</div><div class="tok-desc">Inputs, week cells</div><div class="tok-val">8 px</div></div>
+    <div class="tok"><div class="tok-swatch" style="border-radius:12px;background:var(--bg-elev-2)"></div><div class="tok-name">--radius-md</div><div class="tok-desc">Cards, buttons</div><div class="tok-val">12 px</div></div>
+    <div class="tok"><div class="tok-swatch" style="border-radius:16px;background:var(--bg-elev-2)"></div><div class="tok-name">--radius-lg</div><div class="tok-desc">Sheets, large cards</div><div class="tok-val">16 px</div></div>
+    <div class="tok"><div class="tok-swatch" style="border-radius:999px;background:var(--bg-elev-2)"></div><div class="tok-name">--radius-pill</div><div class="tok-desc">Phase chips, pill CTAs</div><div class="tok-val">999 px</div></div>
+  </div>
+
+  <!-- ───── COMPONENTS ───── -->
+  <h2>05 — Components</h2>
+  <div class="comp-grid">
+    <div class="comp">
+      <div class="comp-label">Buttons</div>
+      <div class="comp-stack">
+        <button class="btn signal">EXECUTE →</button>
+        <button class="btn">PAUZE</button>
+        <button class="btn ghost">SLA OVER</button>
+      </div>
+    </div>
+    <div class="comp">
+      <div class="comp-label">Tags / Chips</div>
+      <div class="comp-stack">
+        <span class="tag signal">CORE</span>
+        <span class="tag rest">REST 5s</span>
+        <span class="tag">INTERMEDIATE</span>
+      </div>
+    </div>
+    <div class="comp">
+      <div class="comp-label">Phase chip (active)</div>
+      <div class="comp-stack">
+        <span style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;padding:6px 12px;border-radius:999px;background:var(--signal-08);color:var(--signal);border:1px solid rgba(232,254,60,0.4);">
+          <span style="width:6px;height:6px;border-radius:50%;background:currentColor;"></span>EXECUTE
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;padding:6px 12px;border-radius:999px;background:rgba(105,166,255,0.10);color:var(--status-rest);border:1px solid rgba(105,166,255,0.4);">
+          <span style="width:6px;height:6px;border-radius:50%;background:currentColor;"></span>RUST
+        </span>
+      </div>
+    </div>
+    <div class="comp">
+      <div class="comp-label">Routine card</div>
+      <div style="background:var(--bg-elev-1);border:1px solid var(--border-subtle);border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr auto;gap:6px 16px;align-items:center;width:100%;">
+        <div style="display:flex;gap:10px;align-items:center;"><span class="tag signal">CORE</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--fg-tertiary);letter-spacing:0.05em;">10 OEF · 12:30</span></div>
+        <div style="font-size:18px;font-weight:600;letter-spacing:-0.01em;">Core Protocol</div>
+        <div style="grid-column:2;grid-row:1 / span 2;display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.14em;color:var(--signal);background:var(--signal-08);border:1px solid var(--signal);border-radius:999px;padding:10px 14px;">EXECUTE ▶</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── SCREEN MAP ───── -->
+  <h2>06 — Screen map (full app)</h2>
+  <p>Twee schermen zijn als hi-fi prototype gebouwd (HOME + ACTIVE). De rest is hieronder als wireframe-blueprint zodat je in Claude Code de hele app-structuur kunt opbouwen vanuit dit systeem.</p>
+
+  <div class="wires">
+    <!-- 1 HOME -->
+    <div class="wire">
+      <div class="wire-label">01 · HOME ✓</div>
+      <div class="wire-stack">
+        <div class="ws lg" style="background:var(--signal-08);"></div>
+        <div class="ws ln" style="width:40%"></div>
+        <div class="wire-row">
+          <div class="ws sq"></div><div class="ws sq"></div><div class="ws sq"></div><div class="ws sq"></div><div class="ws sq" style="background:rgba(232,254,60,0.18)"></div><div class="ws sq"></div><div class="ws sq"></div>
+        </div>
+        <div class="ws bx"></div>
+        <div class="ws ln" style="width:30%"></div>
+        <div class="ws bx"></div>
+        <div class="ws bx"></div>
+        <div class="ws bx"></div>
+      </div>
+      <div class="wire-tabs"><div></div><div></div><div></div><div></div></div>
+    </div>
+
+    <!-- 2 ACTIVE -->
+    <div class="wire">
+      <div class="wire-label">02 · ACTIVE ✓</div>
+      <div class="wire-stack">
+        <div class="wire-row"><div class="ws ln"></div><div class="ws ln"></div><div class="ws ln"></div></div>
+        <div class="wire-row" style="gap:2px;"><div class="ws ln" style="background:var(--signal)"></div><div class="ws ln" style="background:var(--signal);opacity:0.4"></div><div class="ws ln"></div><div class="ws ln"></div><div class="ws ln"></div><div class="ws ln"></div></div>
+        <div style="margin:12px auto 0;width:60%;aspect-ratio:1;border-radius:50%;border:2px solid var(--signal);display:flex;align-items:center;justify-content:center;">
+          <span style="font-family:var(--font-mono);font-size:32px;font-weight:600;color:var(--signal);">39</span>
+        </div>
+        <div class="ws ln" style="width:50%;margin:8px auto 0;"></div>
+        <div class="ws lg"></div>
+        <div class="ws bx"></div>
+      </div>
+    </div>
+
+    <!-- 3 ROUTINES -->
+    <div class="wire">
+      <div class="wire-label">03 · ROUTINES</div>
+      <div class="wire-stack">
+        <div class="ws lg"></div>
+        <div class="wire-row"><div class="ws ln"></div><div class="ws ln"></div><div class="ws ln"></div><div class="ws ln"></div><div class="ws ln"></div></div>
+        <div class="ws bx"></div>
+        <div class="ws bx"></div>
+        <div class="ws bx"></div>
+        <div class="ws bx"></div>
+        <div class="ws bx"></div>
+      </div>
+      <div class="wire-tabs"><div></div><div style="background:rgba(232,254,60,0.20)"></div><div></div><div></div></div>
+    </div>
+
+    <!-- 4 ROUTINE DETAIL -->
+    <div class="wire">
+      <div class="wire-label">04 · ROUTINE DETAIL</div>
+      <div class="wire-stack">
+        <div class="ws ln" style="width:50%"></div>
+        <div class="wire-row"><div class="ws lg"></div><div class="ws lg"></div><div class="ws lg"></div></div>
+        <div class="ws bx"></div>
+        <div class="ws ln"></div>
+        <div class="ws ln"></div>
+        <div class="ws ln"></div>
+        <div class="ws tll" style="margin-top:8px;"></div>
+        <div class="wire-row"><div class="ws ln"></div><div class="ws ln"></div><div class="ws ln"></div></div>
+      </div>
+    </div>
+
+    <!-- 5 NEW ROUTINE -->
+    <div class="wire">
+      <div class="wire-label">05 · NEW ROUTINE</div>
+      <div class="wire-stack">
+        <div class="ws ln" style="width:60%"></div>
+        <div class="ws lg"></div>
+        <div class="wire-row"><div class="ws ln"></div><div class="ws ln" style="background:var(--signal-08)"></div><div class="ws ln"></div><div class="ws ln"></div></div>
+        <div class="ws bx"></div>
+        <div class="ws bx"></div>
+        <div class="ws bx"></div>
+        <div class="ws bx"></div>
+      </div>
+    </div>
+
+    <!-- 6 STATS -->
+    <div class="wire">
+      <div class="wire-label">06 · STATS (future)</div>
+      <div class="wire-stack">
+        <div class="ws ln" style="width:40%"></div>
+        <div class="wire-row"><div class="ws lg"></div><div class="ws lg"></div><div class="ws lg"></div></div>
+        <div class="ws tll" style="background:linear-gradient(180deg,var(--signal-08),var(--bg-elev-2))"></div>
+        <div class="ws ln"></div>
+        <div class="wire-row"><div class="ws bx"></div><div class="ws bx"></div></div>
+      </div>
+      <div class="wire-tabs"><div></div><div></div><div style="background:rgba(232,254,60,0.20)"></div><div></div></div>
+    </div>
+
+    <!-- 7 EXERCISE DETAIL -->
+    <div class="wire">
+      <div class="wire-label">07 · EXERCISE DETAIL</div>
+      <div class="wire-stack">
+        <div class="ws lg" style="height:120px;"></div>
+        <div class="ws ln" style="width:50%"></div>
+        <div class="ws ln"></div>
+        <div class="ws ln"></div>
+        <div class="ws bx"></div>
+        <div class="wire-row"><div class="ws ln"></div><div class="ws ln"></div><div class="ws ln"></div></div>
+      </div>
+    </div>
+
+    <!-- 8 PROFILE -->
+    <div class="wire">
+      <div class="wire-label">08 · PROFILE</div>
+      <div class="wire-stack">
+        <div style="margin:0 auto;" class="wire-circ ws" />
+        <div class="ws ln" style="width:50%;margin:0 auto;"></div>
+        <div class="ws bx"></div>
+        <div class="ws ln"></div>
+        <div class="ws ln"></div>
+        <div class="ws ln"></div>
+        <div class="ws ln"></div>
+      </div>
+      <div class="wire-tabs"><div></div><div></div><div></div><div style="background:rgba(232,254,60,0.20)"></div></div>
+    </div>
+
+    <!-- 9 ONBOARDING -->
+    <div class="wire">
+      <div class="wire-label">09 · ONBOARDING</div>
+      <div class="wire-stack" style="height:100%;justify-content:space-between;display:flex;flex-direction:column;">
+        <div class="ws ln" style="width:40%"></div>
+        <div style="margin:auto;"><div class="ws lg" style="height:140px;width:140px;background:var(--signal-08);border-radius:16px;"></div></div>
+        <div>
+          <div class="ws ln" style="margin-bottom:6px;"></div>
+          <div class="ws ln" style="width:80%"></div>
+        </div>
+        <div class="ws lg" style="background:var(--signal);height:48px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── DATA SCHEMA ───── -->
+  <h2>07 — Data schema (voor Claude Code)</h2>
+  <p>Concrete TypeScript-achtige interfaces om mee te beginnen. Slaat lokaal op (IndexedDB / Dexie / Drizzle SQLite). Sync naar backend optioneel later.</p>
+
+  <h3>UserProfile</h3>
+<pre style="background:var(--bg-elev-1);border:1px solid var(--border-subtle);border-radius:12px;padding:20px;font-family:var(--font-mono);font-size:13px;line-height:1.6;color:var(--fg-primary);overflow-x:auto;">interface UserProfile {
+  id: string;
+  name: string;
+  dob: string;                     // ISO date — leeftijd afgeleid
+  sex: 'm' | 'f' | 'x' | '-';      // beïnvloedt BMR
+  height_cm: number;
+  weight_kg: number;               // huidige gewicht
+  start_weight_kg: number;         // bij onboarding vastgelegd
+  target_weight_kg: number | null; // doel — null = geen target
+  goal: 'lose' | 'maintain' | 'muscle' | 'strength';
+  level: 'beginner' | 'inter' | 'pro';
+  units: 'metric' | 'imperial';    // alleen displayvoorkeur
+  notifications: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Afgeleide waardes (computed, niet opgeslagen):
+// age          = floor((now - dob) / year)
+// bmi          = weight_kg / (height_cm/100)^2
+// bmr (M-SJ)   = 10*weight + 6.25*height - 5*age + (sex=='m' ? 5 : -161)
+// tdee         = bmr * activity_factor (1.375 sedentary → 1.725 active)</pre>
+
+  <h3>Routine + Exercise</h3>
+<pre style="background:var(--bg-elev-1);border:1px solid var(--border-subtle);border-radius:12px;padding:20px;font-family:var(--font-mono);font-size:13px;line-height:1.6;color:var(--fg-primary);overflow-x:auto;">type Muscle =
+  | 'chest' | 'shoulders' | 'biceps' | 'triceps' | 'forearms'
+  | 'abs' | 'hipflexors' | 'quads' | 'hamstrings' | 'glutes'
+  | 'calves' | 'back' | 'lowback' | 'traps';
+
+interface Exercise {
+  id: string;
+  name: string;                    // "BURPEES"
+  category: 'core' | 'cardio' | 'push' | 'pull' | 'legs' | 'full';
+  instruction: string;             // 1 zin, max 80 tekens
+  tip?: string;                    // optionele coach-tip (alleen detail-scherm)
+  met: number;                     // MET-waarde voor calorieberekening
+                                   //   bv. burpees=8.0, jumping_jacks=8.0,
+                                   //   walking=3.5, squats=5.0
+  heat: Partial&lt;Record&lt;Muscle, 0|1|2|3|4&gt;&gt;;
+  default_secs?: number;           // tijdgebaseerde oefening
+  default_reps?: number;           // rep-gebaseerde oefening
+}
+
+interface RoutineExercise {
+  exercise_id: string;
+  secs?: number;                   // override per routine
+  reps?: number;
+  rest_secs: number;               // standaard 5–15
+}
+
+interface Routine {
+  id: string;
+  name: string;                    // "Cardio Burn"
+  category: Exercise['category'];  // primaire categorie
+  exercises: RoutineExercise[];
+  created_at: string;
+  is_built_in: boolean;            // standaard-routines vs user-made
+}</pre>
+
+  <h3>Session log (achteraf)</h3>
+<pre style="background:var(--bg-elev-1);border:1px solid var(--border-subtle);border-radius:12px;padding:20px;font-family:var(--font-mono);font-size:13px;line-height:1.6;color:var(--fg-primary);overflow-x:auto;">interface Session {
+  id: string;
+  routine_id: string;
+  routine_name_snapshot: string;   // ivm latere routine-edits
+  started_at: string;
+  finished_at: string;
+  duration_s: number;              // werkelijk getraind
+  exercises_done: number;
+  exercises_skipped: number;
+  calories_kcal: number;           // berekend, zie hieronder
+  rpe: number | null;              // 1–10, null = niet ingevuld
+  heat_summary: Record&lt;Muscle, 0|1|2|3|4&gt;; // max heat per spier
+}
+
+// Calorie-formule per oefening (en gesommeerd):
+//   kcal = MET × weight_kg × (duration_s / 3600)
+//
+// Voor een hele sessie:
+//   total_kcal = Σ exercises ( MET_i × weight_kg × secs_i / 3600 )
+//
+// Voorbeeld: 70kg, burpees (MET 8.0), 40s
+//   8.0 × 70 × (40/3600) = 6.2 kcal</pre>
+
+  <h3>Body heatmap aggregatie</h3>
+<pre style="background:var(--bg-elev-1);border:1px solid var(--border-subtle);border-radius:12px;padding:20px;font-family:var(--font-mono);font-size:13px;line-height:1.6;color:var(--fg-primary);overflow-x:auto;">// Per sessie: voor elke spier, neem MAX van de oefeningen die hem raken.
+//   heat_summary[muscle] = Math.max(...exercises.map(e => e.heat[muscle] ?? 0))
+//
+// Voor de "lifetime" cumulatieve heatmap (Stats-scherm later):
+//   normalize per muscle = sessies_waarin_geraakt / total_sessies
+//   bucket → 0..4 voor visuele rendering</pre>
+
+  <!-- ───── ADVIES ───── -->
+  <h2>08 — Advies om te imporeren in Claude Code</h2>
+  <ol>
+    <li><strong>Drop tokens.css als root in /styles/</strong> — gebruik de CSS variabelen overal. Geen hardcoded hex.</li>
+    <li><strong>Type-pairing vastleggen</strong>: Inter (400/500/600/700) voor alles wat tekst is, Geist Mono (400/500/600) voor data, labels, eyebrows, timers. Configureer in <code>tailwind.config.ts</code> als <code>fontFamily.sans</code> en <code>fontFamily.mono</code>.</li>
+    <li><strong>Vervang de oranje/paars dual-accent</strong> door één <code>--signal</code>. Categorieën (CORE, CARDIO, PUSH) blijven gekleurd via <code>--status-*</code>, niet als brand.</li>
+    <li><strong>Kill mono voor body</strong>: oude screens hadden alles in mono → onleesbaar. Mono alleen voor: tabs, eyebrows, numerics, kleine meta (4 OEF · 12:30), en cijfers in het timer-oog. Headings en instructies altijd Inter.</li>
+    <li><strong>Body-figuur</strong>: vervang de gestockte 3D illustratie door <code>BodyMap</code> (zie <code>body-map.jsx</code>) — abstracte regio's met heatmap fill 0–4. Schaalbaar, datadriven, geen assets nodig.</li>
+    <li><strong>Active workout = coach mode</strong>: timer-ring (260px) + oefening-naam (Inter 700, 28px) + 1-zin instructie + body heat preview + <em>volgende oefening</em> kaartje + 2-knop control row. Geen scrolling tijdens werken, alles past in 1 viewport.</li>
+    <li><strong>Density token</strong>: data-density attribuut op &lt;html&gt; → 3 niveaus. Gebruik <code>--space-row</code>, <code>--card-pad</code>, <code>--gutter</code> in plaats van magic numbers.</li>
+    <li><strong>4-tab nav</strong>: HOME / ROUTINES / STATS / PROFILE. Stats placeholder klaarzetten (lege state met "Begin je eerste sessie") tot grafieken er komen.</li>
+    <li><strong>Copy in NL, militair-strak</strong>: PROTOCOL, EXECUTE, SESSIE, RUST, SLA OVER, HERVAT. Geen emoji, geen "Goed bezig!".</li>
+    <li><strong>Motion guidelines</strong>: <code>--dur-fast</code> voor hover/press, <code>--dur-base</code> voor transitions, <code>--dur-slow</code> voor screen changes. Easing altijd <code>--ease-out</code> tenzij heel-en-weer.</li>
+  </ol>
+
+</div>
+
+</body>
+</html>
