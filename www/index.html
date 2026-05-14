@@ -26,6 +26,7 @@
       --fg-primary:     #FAFAF9;
       --fg-secondary:   #C8C8C7;
       --fg-tertiary:    #8E8E8D;
+      --fg-quaternary:  #4A4A49;
       --border-subtle:  rgba(255,255,255,0.06);
       --border-default: rgba(255,255,255,0.10);
       --border-strong:  rgba(255,255,255,0.18);
@@ -45,8 +46,14 @@
       --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
       --radius-sm:   8px;
       --radius-md:   12px;
+      --radius-lg:   16px;
       --radius-pill: 999px;
       --tab-h:       64px;
+      --pad:         16px;
+      --gap:         18px;
+      --dur-fast:    140ms;
+      --dur-base:    220ms;
+      --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { background: #000; color: #FAFAF9; font-family: var(--font-sans); overscroll-behavior: none; -webkit-font-smoothing: antialiased; }
@@ -54,7 +61,62 @@
     input { -webkit-appearance: none; border-radius: 0; }
     ::-webkit-scrollbar { width: 0; }
     .rpe-slider { position: absolute; inset: -10px 0; width: 100%; opacity: 0; cursor: pointer; -webkit-appearance: none; }
-  </style>
+
+    /* ── HOME (nieuwe design) ── */
+    .hm-head { padding: 28px var(--pad) 8px; }
+    .hm-eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; color: var(--fg-secondary); text-transform: uppercase; }
+    .hm-title { font-size: 40px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin-top: 8px; color: var(--fg-primary); }
+    .hm-section { padding: var(--gap) 0 0; }
+    .hm-rowhead { display: flex; justify-content: space-between; align-items: center; padding: 0 var(--pad) 10px; }
+    .hm-lbl { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; color: var(--fg-secondary); font-weight: 500; text-transform: uppercase; }
+    .hm-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 var(--pad); }
+    .hm-tile { padding: 14px 12px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 4px; align-items: flex-start; background: transparent; }
+    .hm-tnum { font-family: var(--font-mono); font-size: 28px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: var(--fg-primary); font-variant-numeric: tabular-nums; }
+    .hm-tsuf { font-size: 16px; color: var(--fg-tertiary); margin-left: 2px; }
+    .hm-tlbl { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.10em; color: var(--fg-tertiary); font-weight: 500; text-transform: uppercase; }
+    .hm-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding: 14px; margin: 0 var(--pad); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+    .hm-wcell { aspect-ratio: 1 / 1.4; border-radius: var(--radius-sm); background: var(--bg-elev-1); display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 8px 0; }
+    .hm-wday { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--fg-tertiary); font-weight: 500; }
+    .hm-wdot { width: 6px; height: 6px; border-radius: 50%; background: var(--fg-quaternary); }
+    .hm-wcell.done .hm-wdot { background: var(--signal); }
+    .hm-wcell.done .hm-wday { color: var(--fg-secondary); }
+    .hm-wcell.on { background: var(--bg-elev-2); box-shadow: inset 0 0 0 1px var(--signal); }
+    .hm-wcell.on .hm-wday { color: var(--signal); }
+    .hm-hscroll { display: flex; gap: 10px; padding: 4px var(--pad) 6px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .hm-hscroll::-webkit-scrollbar { display: none; }
+    .qc { flex: 0 0 200px; scroll-snap-align: start; background: var(--bg-elev-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; gap: 10px; text-align: left; transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); color: var(--fg-primary); cursor: pointer; }
+    .qc:active { border-color: var(--border-strong); background: var(--bg-elev-2); }
+    .qc-meta { display: flex; gap: 8px; flex-wrap: wrap; min-height: 14px; }
+    .qc-name { font-size: 19px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: var(--fg-primary); flex: 1; }
+    .qc-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 6px; border-top: 1px solid var(--border-subtle); }
+    .qc-stat { display: flex; align-items: baseline; gap: 4px; }
+    .qc-big { font-family: var(--font-mono); font-size: 17px; font-weight: 600; color: var(--fg-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .qc-unit { font-family: var(--font-mono); font-size: 10px; color: var(--fg-tertiary); letter-spacing: 0.10em; font-weight: 500; }
+    .qc-sep { color: var(--fg-quaternary); margin: 0 2px; }
+    .qc-play { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--signal); color: var(--signal-fg); flex-shrink: 0; }
+    .hm-rows { display: flex; flex-direction: column; padding: 0 var(--pad); }
+    .rr { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); background: transparent; text-align: left; color: var(--fg-primary); cursor: pointer; border-left: 0; border-right: 0; border-top: 0; }
+    .rr:last-child { border-bottom: none; }
+    .rr-left { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .rr-name { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: var(--fg-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rr-meta { display: flex; gap: 8px; align-items: center; }
+    .rr-dur { font-family: var(--font-mono); font-size: 12px; color: var(--fg-secondary); font-weight: 500; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+    .rr-play { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--signal); background: var(--signal-08); color: var(--signal); flex-shrink: 0; transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+    .rr:active .rr-play { background: var(--signal); color: var(--signal-fg); }
+    .tg { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.10em; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; color: var(--fg-secondary); text-transform: uppercase; }
+    .tg::before { content: ''; width: 7px; height: 7px; border-radius: 1px; background: currentColor; }
+    .tg.t-core  { color: var(--signal); }
+    .tg.t-full  { color: var(--status-crit); }
+    .tg.t-legs  { color: var(--status-go); }
+    .tg.t-armen { color: var(--status-warn); }
+    .hm-tinybtn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: transparent; border: 1px solid var(--border-default); border-radius: var(--radius-pill); color: var(--fg-secondary); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.10em; font-weight: 600; cursor: pointer; transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+    .hm-tinybtn:active { color: var(--signal); border-color: var(--signal); }
+    .hm-chips { display: flex; gap: 8px; padding: 0 var(--pad); overflow-x: auto; scrollbar-width: none; }
+    .hm-chips::-webkit-scrollbar { display: none; }
+    .hm-chip { flex-shrink: 0; padding: 9px 16px; border-radius: var(--radius-pill); border: 1px solid var(--border-default); background: transparent; color: var(--fg-secondary); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.10em; font-weight: 600; cursor: pointer; transition: all var(--dur-fast) var(--ease-out); white-space: nowrap; text-transform: uppercase; }
+    .hm-chip.on { color: var(--signal); border-color: var(--signal); background: var(--signal-08); }
+    .hm-empty { padding: 20px var(--pad); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; color: var(--fg-tertiary); }
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -1059,63 +1121,112 @@ const Icon = {
 // ================================================================
 // HOME SCREEN
 // ================================================================
-function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWorkouts, coachIntro, onNavigate, starterCTA }) {
-  const routineCard = (key, name, exerciseIds, label, onClick) => (
-    <button key={key} onClick={onClick} style={{
-      textAlign: 'left', background: C.surface, cursor: 'pointer',
-      border: `1px solid ${C.border}`, borderRadius: 12,
-      padding: 16, display: 'grid',
-      gridTemplateColumns: '1fr auto', gridTemplateRows: 'auto auto',
-      gap: '6px 16px', alignItems: 'center', width: '100%',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <CatTags exerciseIds={exerciseIds} />
-        <span style={{ fontFamily: C.mono, fontSize: 12, color: C.secondary, letterSpacing: '0.06em' }}>{exerciseIds.length} OEF</span>
+const CAT_TO_TAG = { 'Core': 'CORE', 'Armen': 'ARMEN', 'Legs': 'LEGS', 'Full Body': 'FULL' };
+const TAG_LABEL = { CORE: 'CORE', ARMEN: 'ARMEN', LEGS: 'LEGS', FULL: 'FULL BODY' };
+function HmTag({ t }) {
+  return <span className={`tg t-${t.toLowerCase()}`}>{TAG_LABEL[t] || t}</span>;
+}
+function HmRoutineRow({ name, min, ex, tags, onClick }) {
+  return (
+    <button className="rr" onClick={onClick}>
+      <div className="rr-left">
+        <div className="rr-name">{name}</div>
+        <div className="rr-meta">
+          {tags.slice(0, 2).map(t => <HmTag key={t} t={t} />)}
+        </div>
       </div>
-      <div style={{
-        gridRow: '1 / span 2', display: 'flex', alignItems: 'center', gap: 6,
-        fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', fontWeight: 600,
-        color: C.accentFg, background: C.accent,
-        borderRadius: 999, padding: '10px 14px', alignSelf: 'center', whiteSpace: 'nowrap',
-      }}>
-        {label} {Icon.play(10)}
-      </div>
-      <div style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.01em', color: C.text }}>{name}</div>
+      <span className="rr-dur">{min}M · {ex} OEF</span>
+      <span className="rr-play" aria-hidden>{Icon.play(12)}</span>
     </button>
   );
+}
+// "~15 MIN" / "15M" / 15 → 15
+function parseMin(v) {
+  if (typeof v === 'number') return v;
+  const m = String(v || '').match(/\d+/);
+  return m ? parseInt(m[0], 10) : 0;
+}
+function routineTags(exerciseIds) {
+  return getRoutineCategories(exerciseIds).map(c => CAT_TO_TAG[c]).filter(Boolean);
+}
+const DUTCH_DAYS_SHORT = ['ZO','MA','DI','WO','DO','VR','ZA'];
+const DUTCH_MONTHS_SHORT = ['JAN','FEB','MRT','APR','MEI','JUN','JUL','AUG','SEP','OKT','NOV','DEC'];
+const WEEK_LETTERS = ['M','D','W','D','V','Z','Z']; // Mon..Sun
+
+function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWorkouts, coachIntro, onNavigate, starterCTA, sessions }) {
+  const [group, setGroup] = useState(CATS[0]);
+
+  const now = new Date();
+  const eyebrow = `${DUTCH_DAYS_SHORT[now.getDay()]} ${now.getDate()} ${DUTCH_MONTHS_SHORT[now.getMonth()]} · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  // Week ritme — maandag..zondag van deze week
+  const week = useMemo(() => {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dow = (today.getDay() + 6) % 7; // 0 = maandag
+    const monday = new Date(today); monday.setDate(today.getDate() - dow);
+    const doneDays = new Set((sessions || []).map(s => {
+      const d = new Date(s.completedAt); d.setHours(0,0,0,0);
+      return d.getTime();
+    }));
+    return WEEK_LETTERS.map((letter, i) => {
+      const d = new Date(monday); d.setDate(monday.getDate() + i);
+      return { d: letter, done: doneDays.has(d.getTime()), today: d.getTime() === today.getTime() };
+    });
+  }, [sessions]);
+  const weekDone = week.filter(w => w.done).length;
+  const totalSessions = (sessions || []).length;
+
+  const filtered = (BODY_PART_WORKOUTS[group] || []);
 
   return (
     <>
-      {/* Greeting */}
-      <div style={{ padding: '0 20px 20px' }}>
-        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.22em', color: C.muted, marginBottom: 8 }}>TRAINR</div>
-        <div style={{ fontFamily: C.mono, fontSize: 14, letterSpacing: '0.08em', color: C.secondary, marginBottom: 6, textTransform: 'lowercase' }}>{greeting}</div>
-        {profile?.name && <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1 }}>{profile.name}</div>}
-      </div>
+      {/* Header */}
+      <header className="hm-head">
+        <div className="hm-eyebrow">{eyebrow}</div>
+        <h1 className="hm-title">{greeting}</h1>
+      </header>
 
-      {/* Stats strip */}
-      <div style={{ display: 'flex', gap: 10, padding: '0 20px 20px' }}>
-        <div style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 14px' }}>
-          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted, marginBottom: 6 }}>STREAK</div>
-          <div style={{ fontFamily: C.mono, fontSize: 28, fontWeight: 600, lineHeight: 1, color: C.text }}>
-            {streak}<span style={{ fontSize: 14, color: C.muted, marginLeft: 3 }}>d</span>
+      {/* Stats tiles */}
+      <section className="hm-section">
+        <div className="hm-tiles">
+          <div className="hm-tile">
+            <div className="hm-tnum">{streak}</div>
+            <div className="hm-tlbl">DAG STREAK</div>
+          </div>
+          <div className="hm-tile">
+            <div className="hm-tnum">{weekDone}<span className="hm-tsuf">/7</span></div>
+            <div className="hm-tlbl">DEZE WEEK</div>
+          </div>
+          <div className="hm-tile">
+            <div className="hm-tnum">{totalSessions}</div>
+            <div className="hm-tlbl">SESSIES</div>
           </div>
         </div>
-        <div style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 14px' }}>
-          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted, marginBottom: 6 }}>VANDAAG</div>
-          <div style={{ fontFamily: C.mono, fontSize: todayDone ? 16 : 28, fontWeight: 600, lineHeight: 1, color: todayDone ? C.accent : C.muted }}>
-            {todayDone ? 'KLAAR ✓' : '—'}
-          </div>
+      </section>
+
+      {/* Week ritme */}
+      <section className="hm-section">
+        <div className="hm-rowhead">
+          <span className="hm-lbl">WEEK RITME</span>
+          <span className="hm-lbl" style={{ color: 'var(--signal)' }}>{weekDone}/7</span>
         </div>
-      </div>
+        <div className="hm-week">
+          {week.map((w, i) => (
+            <div key={i} className={`hm-wcell ${w.today ? 'on' : ''} ${w.done ? 'done' : ''}`}>
+              <div className="hm-wday">{w.d}</div>
+              <div className="hm-wdot" />
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Starter CTA (eerste keer) */}
       {starterCTA?.show && (
-        <section style={{ padding: '0 20px 20px' }}>
-          <div style={{ border: `1px solid ${starterCTA.fallback ? C.statusWarn : C.accent}`, borderRadius: 12, background: C.surface, padding: 16 }}>
-            <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.1em', color: starterCTA.fallback ? C.statusWarn : C.accent, marginBottom: 8 }}>STARTER PLAN</div>
+        <section className="hm-section">
+          <div style={{ margin: '0 var(--pad)', border: `1px solid ${starterCTA.fallback ? 'var(--status-warn)' : 'var(--signal)'}`, borderRadius: 'var(--radius-md)', background: 'var(--bg-elev-1)', padding: 16 }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.1em', color: starterCTA.fallback ? 'var(--status-warn)' : 'var(--signal)', marginBottom: 8 }}>STARTER PLAN</div>
             <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Start je eerste training</div>
-            <div style={{ color: C.secondary, fontSize: 14, marginBottom: 14 }}>
+            <div style={{ color: 'var(--fg-secondary)', fontSize: 14, marginBottom: 14 }}>
               Voorstel: {starterCTA.profileId.replaceAll('_', ' ').toUpperCase()}
               {starterCTA.fallback ? ' · veilige standaard gekozen.' : ''}
             </div>
@@ -1124,92 +1235,101 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWor
         </section>
       )}
 
-      {/* Hero — maak eigen routine */}
-      <section style={{ padding: '0 20px 20px' }}>
-        <button onClick={() => onNavigate('builder', {})} style={{
-          width: '100%', textAlign: 'left', cursor: 'pointer',
-          background: C.surface, border: `1px solid ${C.accent}`,
-          borderRadius: 12, padding: '16px 20px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <div>
-            <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em', color: C.accent, marginBottom: 4 }}>AANGEPAST</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: C.text }}>Maak je eigen routine</div>
+      {/* Snel starten — horizontale scroll */}
+      {(coachWorkouts || []).length > 0 && (
+        <section className="hm-section">
+          <div className="hm-rowhead">
+            <span className="hm-lbl">SNEL STARTEN</span>
+            <span className="hm-lbl" style={{ color: 'var(--fg-tertiary)' }}>SWIPE →</span>
           </div>
-          <div style={{ background: C.accent, color: C.accentFg, borderRadius: 999, padding: '10px 16px', fontFamily: C.mono, fontSize: 11, fontWeight: 600, letterSpacing: '0.10em', whiteSpace: 'nowrap' }}>+ NIEUW</div>
-        </button>
-      </section>
-
-      {/* Aanbevolen — door coach gepersonaliseerde workouts */}
-      <section style={{ paddingBottom: 20 }}>
-        <div style={{ padding: '0 20px 6px' }}>
-          <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>AANBEVOLEN</span>
-        </div>
-        {coachIntro && (
-          <div style={{ padding: '0 20px 12px', fontFamily: C.mono, fontSize: 12, letterSpacing: '0.04em', color: C.secondary, lineHeight: 1.5 }}>
-            {coachIntro}
-          </div>
-        )}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '0 20px' }}>
-          {(coachWorkouts || []).map(cw => routineCard(
-            cw.id, cw.name, cw.exercises, cw.durationLabel,
-            () => onNavigate('timer', { routine: cw, backTo: 'home' })
-          ))}
-        </div>
-      </section>
-
-      {/* Mijn routines */}
-      {quickRoutines.length > 0 && (
-        <section style={{ paddingBottom: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px 12px' }}>
-            <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>MIJN ROUTINES</span>
-            <span style={{ fontFamily: C.mono, fontSize: 12, color: C.muted }}>{quickRoutines.length}</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '0 20px' }}>
-            {quickRoutines.map(r => routineCard(
-              r.id, r.name, r.exercises, 'START',
-              () => onNavigate('timer', { routineId: r.id })
-            ))}
+          <div className="hm-hscroll">
+            {coachWorkouts.map(cw => {
+              const tags = routineTags(cw.exercises);
+              const min = parseMin(cw.durationLabel);
+              return (
+                <button key={cw.id} className="qc" onClick={() => onNavigate('timer', { routine: cw, backTo: 'home' })}>
+                  <div className="qc-meta">
+                    {tags.map(t => <HmTag key={t} t={t} />)}
+                  </div>
+                  <div className="qc-name">{cw.name}</div>
+                  <div className="qc-foot">
+                    <div className="qc-stat">
+                      <span className="qc-big">{min}</span>
+                      <span className="qc-unit">MIN</span>
+                      <span className="qc-sep">·</span>
+                      <span className="qc-big">{cw.exercises.length}</span>
+                      <span className="qc-unit">OEF</span>
+                    </div>
+                    <span className="qc-play" aria-hidden>{Icon.play(13)}</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </section>
       )}
 
-      {/* Per spiergroep */}
-      <BodyPartSection onNavigate={onNavigate} routineCard={routineCard} />
-    </>
-  );
-}
-
-function BodyPartSection({ onNavigate, routineCard }) {
-  const [selectedBP, setSelectedBP] = React.useState(CATS[0]);
-  const color = CAT_COLORS[selectedBP] || C.accent;
-  return (
-    <section style={{ paddingBottom: 40 }}>
-      <div style={{ padding: '0 20px 12px' }}>
-        <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>PER SPIERGROEP</span>
-      </div>
-      <div style={{ display: 'flex', gap: 8, padding: '0 20px 16px', overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-        {CATS.map(cat => {
-          const active = selectedBP === cat;
-          const c = CAT_COLORS[cat];
-          return (
-            <button key={cat} onClick={() => setSelectedBP(cat)} style={{
-              flexShrink: 0, cursor: 'pointer',
-              background: active ? c + '22' : C.surface,
-              border: `1px solid ${active ? c : C.border}`,
-              borderRadius: 999, padding: '8px 14px',
-              color: active ? c : C.muted,
-              fontFamily: C.mono, fontSize: 12, fontWeight: 600, letterSpacing: '0.08em',
-            }}>{cat.toUpperCase()}</button>
-          );
-        })}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '0 20px' }}>
-        {(BODY_PART_WORKOUTS[selectedBP] || []).map(w =>
-          routineCard(w.id, w.name, w.exercises, w.durationLabel, () => onNavigate('timer', { routine: w, backTo: 'home' }))
+      {/* Mijn routines */}
+      <section className="hm-section">
+        <div className="hm-rowhead">
+          <span className="hm-lbl">MIJN ROUTINES</span>
+          <button className="hm-tinybtn" onClick={() => onNavigate('builder', {})}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            NIEUW
+          </button>
+        </div>
+        {quickRoutines.length > 0 ? (
+          <div className="hm-rows">
+            {quickRoutines.map(r => (
+              <HmRoutineRow
+                key={r.id}
+                name={r.name}
+                min={parseMin(r.durationLabel) || Math.max(1, Math.round((r.exercises?.length || 0) * 1.5))}
+                ex={r.exercises?.length || 0}
+                tags={routineTags(r.exercises || [])}
+                onClick={() => onNavigate('timer', { routineId: r.id })}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="hm-empty">
+            <span>Nog geen eigen routines</span>
+            <button className="hm-tinybtn" onClick={() => onNavigate('builder', {})}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              NIEUW
+            </button>
+          </div>
         )}
-      </div>
-    </section>
+      </section>
+
+      {/* Per spiergroep */}
+      <section className="hm-section">
+        <div className="hm-rowhead">
+          <span className="hm-lbl">PER SPIERGROEP</span>
+        </div>
+        <div className="hm-chips">
+          {CATS.map(cat => (
+            <button
+              key={cat}
+              className={`hm-chip ${group === cat ? 'on' : ''}`}
+              onClick={() => setGroup(cat)}
+            >{cat.toUpperCase()}</button>
+          ))}
+        </div>
+        <div className="hm-rows" style={{ marginTop: 10 }}>
+          {filtered.map(w => (
+            <HmRoutineRow
+              key={w.id}
+              name={w.name}
+              min={parseMin(w.durationLabel)}
+              ex={w.exercises.length}
+              tags={routineTags(w.exercises)}
+              onClick={() => onNavigate('timer', { routine: w, backTo: 'home' })}
+            />
+          ))}
+        </div>
+      </section>
+    </>
   );
 }
 
@@ -1418,6 +1538,7 @@ function HomeScreen({ dbRef, onNavigate, analytics }) {
           coachIntro={coachIntro}
           onNavigate={onNavigate}
           starterCTA={starterCTA}
+          sessions={sessions}
         />
       )}
       {activeTab === 'plan' && (
@@ -2859,7 +2980,7 @@ function BottomNav({ current, onNavigate }) {
   const tabs = [
     { id: 'home',     label: 'HOME',     icon: Icon.home     },
     { id: 'routines', label: 'ROUTINES', icon: Icon.list     },
-    { id: 'settings', label: 'INST.',    icon: Icon.settings },
+    { id: 'settings', label: 'OPTIES',   icon: Icon.settings },
     { id: 'profile',  label: 'PROFIEL',  icon: Icon.user     },
   ];
   return (
