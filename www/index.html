@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
@@ -69,7 +69,7 @@ const DB_VERSION = 5;
 const DEV_MODE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
 // UI-strings die op meerdere plekken voorkomen
-const MSG_RESET_ONBOARDING = 'Onboarding opnieuw starten? Je profiel blijft bewaard.';
+const MSG_RESET_ONBOARDING = 'Restart onboarding? Your profile will be kept.';
 
 const initDB = () => new Promise((resolve, reject) => {
   const req = indexedDB.open(DB_NAME, DB_VERSION);
@@ -148,9 +148,9 @@ function resolveStarterPlanProfile({ level, trainingGoal, availableDays }) {
 }
 
 // MET-waarden per categorie (Compendium of Physical Activities)
-const MET_BY_CAT = { Core: 4.0, Armen: 5.0, Legs: 5.5, 'Full Body': 8.0 };
+const MET_BY_CAT = { Core: 4.0, Arms: 5.0, Legs: 5.5, 'Full Body': 8.0 };
 const MET_REST = 1.5;
-const MET_SESSION = { Core: 3.5, Armen: 4.0, Legs: 5.0, 'Full Body': 7.0 };
+const MET_SESSION = { Core: 3.5, Arms: 4.0, Legs: 5.0, 'Full Body': 7.0 };
 
 function calcSessionKcal(exercises, durationSec, weightKg) {
   if (!weightKg || !durationSec || !exercises?.length) return 0;
@@ -183,10 +183,10 @@ function calcBMI(weightKg, heightCm) {
   return weightKg / (m * m);
 }
 function bmiCategory(bmi) {
-  if (bmi < 18.5) return { label: 'ONDERGEWICHT', color: '#69A6FF' };
-  if (bmi < 25)   return { label: 'GEZOND',       color: '#6BE89B' };
-  if (bmi < 30)   return { label: 'OVERGEWICHT',  color: '#FFB454' };
-  return            { label: 'OBESITAS',         color: '#FF5A5A' };
+  if (bmi < 18.5) return { label: 'UNDERWEIGHT', color: '#69A6FF' };
+  if (bmi < 25)   return { label: 'HEALTHY',     color: '#6BE89B' };
+  if (bmi < 30)   return { label: 'OVERWEIGHT',  color: '#FFB454' };
+  return            { label: 'OBESE',           color: '#FF5A5A' };
 }
 
 const dbOp = (db, store, mode, fn) => new Promise((resolve, reject) => {
@@ -289,21 +289,21 @@ const MUSCLE_COLORS = {
 };
 
 const MUSCLE_CONFIG = {
-  chest:       { view: 'front', label: 'Borst'       },
-  shoulders:   { view: 'both',  label: 'Schouders'   },
+  chest:       { view: 'front', label: 'Chest'       },
+  shoulders:   { view: 'both',  label: 'Shoulders'   },
   biceps:      { view: 'front', label: 'Biceps'      },
   triceps:     { view: 'back',  label: 'Triceps'     },
-  forearms:    { view: 'both',  label: 'Onderarmen'  },
-  abs:         { view: 'front', label: 'Buik'        },
+  forearms:    { view: 'both',  label: 'Forearms'    },
+  abs:         { view: 'front', label: 'Abs'         },
   obliques:    { view: 'front', label: 'Obliques'    },
-  hip_flexors: { view: 'front', label: 'Heupbuigers' },
+  hip_flexors: { view: 'front', label: 'Hip flexors' },
   traps:       { view: 'back',  label: 'Trapezius'   },
   lats:        { view: 'back',  label: 'Lats'        },
-  lower_back:  { view: 'back',  label: 'Lage rug'    },
-  glutes:      { view: 'back',  label: 'Billen'      },
+  lower_back:  { view: 'back',  label: 'Lower back'  },
+  glutes:      { view: 'back',  label: 'Glutes'      },
   quads:       { view: 'front', label: 'Quadriceps'  },
   hamstrings:  { view: 'back',  label: 'Hamstrings'  },
-  calves:      { view: 'both',  label: 'Kuiten'      },
+  calves:      { view: 'both',  label: 'Calves'      },
 };
 
 function buildHighlighted(ex) {
@@ -476,13 +476,13 @@ function BodyDiagram({ exercise, height = 260 }) {
     <div style={{ display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'flex-start' }}>
       {(views === 'front' || both) && (
         <div style={{ width: figW, flexShrink: 0 }}>
-          <div style={lbl}>VOOR</div>
+          <div style={lbl}>FRONT</div>
           <div style={{ height }}><FrontBody h={h}/></div>
         </div>
       )}
       {(views === 'back' || both) && (
         <div style={{ width: figW, flexShrink: 0 }}>
-          <div style={lbl}>ACHTER</div>
+          <div style={lbl}>BACK</div>
           <div style={{ height }}><BackBody h={h}/></div>
         </div>
       )}
@@ -505,13 +505,13 @@ function MuscleTags({ exercise }) {
     <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
       {primary.length > 0 && (
         <div style={{ marginBottom: 8 }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: C.muted, letterSpacing: '0.12em', marginBottom: 5 }}>PRIMAIR</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: C.muted, letterSpacing: '0.12em', marginBottom: 5 }}>PRIMARY</div>
           <div>{primary.map(m => tag(m, 'primary'))}</div>
         </div>
       )}
       {secondary.length > 0 && (
         <div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: C.muted, letterSpacing: '0.12em', marginBottom: 5 }}>SECUNDAIR</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: C.muted, letterSpacing: '0.12em', marginBottom: 5 }}>SECONDARY</div>
           <div>{secondary.map(m => tag(m, 'secondary'))}</div>
         </div>
       )}
@@ -524,53 +524,53 @@ function MuscleTags({ exercise }) {
 // ================================================================
 const EXERCISES = [
   // CORE
-  { id: 'dead-bug',        cat: 'Core',       name: 'Dead bug',                 desc: 'Op rug, afwisselend arm en tegenovergesteld been langzaam uitstrekken.\nOnderrug plat op vloer houden, langzaam en gecontroleerd bewegen.',            times: [20, 40, 60], muscles: { primary: ['abs'], secondary: ['hip_flexors'] } },
-  { id: 'plank',           cat: 'Core',       name: 'Plank',                    desc: 'Op ellebogen en tenen, lichaam in een rechte lijn vasthouden.\nEllebogen onder schouders, heupen niet laten zakken of omhoog duwen.',            times: [30, 60, 90], muscles: { primary: ['abs', 'lower_back'], secondary: ['shoulders', 'glutes', 'quads'] } },
-  { id: 'side-l',          cat: 'Core',       name: 'Zijplank links',            desc: 'Op linkerelleboog, heupen omhoog, lichaam recht van hoofd tot voeten.\nNiet inzakken in de heup, rechterhand op heup of omhoog.',                   times: [20, 40, 60], muscles: { primary: ['obliques'], secondary: ['abs', 'shoulders', 'glutes'] } },
-  { id: 'side-r',          cat: 'Core',       name: 'Zijplank rechts',           desc: 'Op rechterelleboog, heupen omhoog, lichaam recht van hoofd tot voeten.\nNiet inzakken in de heup, linkerhand op heup of omhoog.',                    times: [20, 40, 60], muscles: { primary: ['obliques'], secondary: ['abs', 'shoulders', 'glutes'] } },
-  { id: 'glute-bridge',    cat: 'Core',       name: 'Glute bridge hold',         desc: 'Op rug, voeten plat op vloer, heupen zo hoog mogelijk omhoog persen.\nBilspieren maximaal aanspannen bovenaan, knieën iets naar buiten.',          times: [20, 45, 60], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back'] } },
-  { id: 'mountain-cl',     cat: 'Core',       name: 'Mountain climbers',         desc: 'In hoge plankpositie, knieën afwisselend explosief naar de borst trekken.\nHeupen laag houden, tempo opbouwen, kern strak houden.',                 times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
-  { id: 'bicycles',        cat: 'Core',       name: 'Bicycle crunches',          desc: 'Op rug, handen achter hoofd, elleboog naar tegenovergestelde knie draaien.\nBeen volledig uitstrekken, langzaam draaien, niet aan de nek trekken.',  times: [20, 40, 60], muscles: { primary: ['abs', 'obliques'], secondary: ['hip_flexors'] } },
-  { id: 'hollow-body',     cat: 'Core',       name: 'Hollow body hold',          desc: 'Op rug, benen en schouders van de vloer, lichaam als een banaan vasthouden.\nKern maximaal aanspannen, lage rug plat op de vloer houden.',         times: [15, 30, 45], muscles: { primary: ['abs'], secondary: ['hip_flexors', 'lower_back'] } },
-  { id: 'leg-raise',       cat: 'Core',       name: 'Beenheffers',               desc: 'Op rug, benen gestrekt omhoog tillen tot 90° en langzaam laten zakken.\nLage rug op de vloer drukken, benen net niet de vloer raken onderaan.',   times: [15, 30, 45], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['lower_back'] } },
-  { id: 'russian-twist',   cat: 'Core',       name: 'Russian twist',             desc: 'Zittend met licht gebogen knieën, romp afwisselend links en rechts draaien.\nVoeten optioneel van de vloer voor meer moeilijkheid, rug recht houden.', times: [20, 35, 50], muscles: { primary: ['obliques'], secondary: ['abs', 'hip_flexors'] } },
-  // ARMEN
-  { id: 'pushup',          cat: 'Armen',      name: 'Push-ups',                  desc: 'Handen schouderbreedte, borst richting vloer zakken en omhoog duwen.\nEllebogen ~45° van het lichaam, lichaam als één rechte plank houden.',       times: [20, 40, 60], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
-  { id: 'incline-pushup',  cat: 'Armen',      name: 'Incline push-ups',          desc: 'Handen op stoel of tafel, lichaam schuin naar voren, push-up beweging.\nMakkelijkere instap, zelfde techniek als een normale push-up.',            times: [20, 40, 60], muscles: { primary: ['chest'], secondary: ['shoulders', 'triceps'] } },
-  { id: 'diamond-pushup',  cat: 'Armen',      name: 'Diamond push-ups',          desc: 'Handen samen in een driehoek direct onder de borst, zakken en omhoog.\nEllebogen langs het lichaam, triceps worden harder aangesproken.',           times: [15, 30, 45], muscles: { primary: ['triceps', 'chest'], secondary: ['shoulders'] } },
-  { id: 'pike-pushup',     cat: 'Armen',      name: 'Pike push-ups',             desc: 'Heupen hoog in omgekeerde V-vorm, hoofd richting de vloer zakken.\nGewicht op de schouders, ellebogen stabiel houden, schouders focus.',          times: [15, 30, 45], muscles: { primary: ['shoulders', 'triceps'], secondary: ['chest', 'traps'] } },
-  { id: 'dips',            cat: 'Armen',      name: 'Dips (stoel)',               desc: 'Handen op stoel achter je, ellebogen buigen en weer strekken.\nRug dicht bij de stoel houden, ellebogen recht naar achteren.',                    times: [20, 40, 60], muscles: { primary: ['triceps'], secondary: ['shoulders', 'chest'] } },
-  { id: 'decline-pushup',  cat: 'Armen',      name: 'Decline push-ups',          desc: 'Voeten op een stoel, handen op de vloer, borst naar beneden zakken.\nHoofd en borst lager dan voeten, hogere borst en schouders aangesproken.',    times: [15, 30, 45], muscles: { primary: ['chest', 'shoulders'], secondary: ['triceps', 'abs'] } },
-  { id: 'slow-pushup',     cat: 'Armen',      name: 'Negatieve push-ups',        desc: 'Push-up waarbij je 4 seconden langzaam naar beneden zakt, dan omhoog.\nExplosief omhoog, geen rust onderaan, volledige controle over de beweging.',  times: [20, 40, 60], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
-  { id: 'inv-row',         cat: 'Armen',      name: 'Australian rows',           desc: 'Liggend onder een tafel, borst naar het tafelblad omhoogtrekken.\nRug recht, schouderbladen samenknijpen bovenaan, langzaam laten zakken.',       times: [20, 40, 60], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
-  { id: 'scap-retract',    cat: 'Armen',      name: 'Scapulaire squeeze',        desc: 'Rechtop staan, schouderbladen maximaal naar elkaar persen en vasthouden.\nArmen langs het lichaam, niet ophalen, focus op de bovenrug.',           times: [20, 40, 60], muscles: { primary: ['traps'], secondary: ['shoulders', 'lower_back'] } },
-  { id: 'door-row',        cat: 'Armen',      name: 'Deurpost rows',             desc: 'Deurpost met beide handen vasthouden, naar achter leunen en omhoogtrekken.\nArmen gebogen, rug recht, schouderbladen naar elkaar trekken.',        times: [20, 40, 60], muscles: { primary: ['lats', 'biceps'], secondary: ['traps', 'forearms'] } },
-  { id: 'rev-snow-angel',  cat: 'Armen',      name: 'Prone snow angels',         desc: 'Op buik liggen, armen langs het lichaam omhoog zwaaien tot boven het hoofd.\nSchouderbladen samenknijpen, armen gestrekt en laag houden.',        times: [20, 40, 60], muscles: { primary: ['traps', 'lower_back'], secondary: ['shoulders'] } },
-  { id: 'table-hold',      cat: 'Armen',      name: 'Australian row hold',       desc: 'Onder tafel, lichaam optrekken tot halverwege en die positie vasthouden.\nArmen 90°, rug recht, schouderbladen samengeknepen houden.',            times: [15, 30, 45], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
-  { id: 'wide-pushup',     cat: 'Armen',      name: 'Brede push-ups',            desc: 'Handen ruim buiten schouderbreedte, borst zakken en duwen.\nMeer nadruk op de buitenste borst dan een normale push-up, ellebogen schuin naar buiten.', times: [20, 40, 60], muscles: { primary: ['chest'], secondary: ['triceps', 'shoulders'] } },
-  { id: 'floor-dip',       cat: 'Armen',      name: 'Triceps dips vloer',        desc: 'Op handen en hielen zitten, heupen omhoog, ellebogen buigen en strekken.\nEllebogen recht naar achteren houden, heupen zo hoog mogelijk houden.',   times: [20, 40, 60], muscles: { primary: ['triceps'], secondary: ['shoulders', 'chest'] } },
-  { id: 'superman-pull',   cat: 'Armen',      name: 'Superman trekbeweging',     desc: 'Op buik, armen voor je uitgestrekt, armen en borst van de vloer tillen en terughalen.\nSchouderbladen samenknijpen bovenaan, langzaam en gecontroleerd.',  times: [20, 40, 60], muscles: { primary: ['lats', 'traps'], secondary: ['lower_back', 'shoulders'] } },
+  { id: 'dead-bug',        cat: 'Core',       name: 'Dead bug',                 desc: 'On your back, slowly extend one arm and the opposite leg in turn.\nKeep your lower back flat on the floor, move slowly and with control.', times: [20, 40, 60], muscles: { primary: ['abs'], secondary: ['hip_flexors'] } },
+  { id: 'plank',           cat: 'Core',       name: 'Plank',                    desc: 'On your elbows and toes, hold your body in a straight line.\nElbows under shoulders, do not let your hips sag or pike up.',                 times: [30, 60, 90], muscles: { primary: ['abs', 'lower_back'], secondary: ['shoulders', 'glutes', 'quads'] } },
+  { id: 'side-l',          cat: 'Core',       name: 'Side plank left',          desc: 'On your left elbow, hips up, body straight from head to feet.\nDo not let your hip drop, right hand on hip or pointed up.',                 times: [20, 40, 60], muscles: { primary: ['obliques'], secondary: ['abs', 'shoulders', 'glutes'] } },
+  { id: 'side-r',          cat: 'Core',       name: 'Side plank right',         desc: 'On your right elbow, hips up, body straight from head to feet.\nDo not let your hip drop, left hand on hip or pointed up.',                 times: [20, 40, 60], muscles: { primary: ['obliques'], secondary: ['abs', 'shoulders', 'glutes'] } },
+  { id: 'glute-bridge',    cat: 'Core',       name: 'Glute bridge hold',        desc: 'On your back, feet flat on the floor, press your hips up as high as possible.\nSqueeze your glutes hard at the top, knees slightly out.', times: [20, 45, 60], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back'] } },
+  { id: 'mountain-cl',     cat: 'Core',       name: 'Mountain climbers',        desc: 'In a high plank, drive your knees explosively toward your chest in turn.\nKeep your hips low, build the tempo, keep your core tight.',     times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
+  { id: 'bicycles',        cat: 'Core',       name: 'Bicycle crunches',        desc: 'On your back, hands behind your head, rotate elbow to opposite knee.\nFully extend the other leg, rotate slowly, do not pull on your neck.',  times: [20, 40, 60], muscles: { primary: ['abs', 'obliques'], secondary: ['hip_flexors'] } },
+  { id: 'hollow-body',     cat: 'Core',       name: 'Hollow body hold',         desc: 'On your back, legs and shoulders off the floor, hold your body like a banana.\nMax tension through the core, keep lower back flat.',       times: [15, 30, 45], muscles: { primary: ['abs'], secondary: ['hip_flexors', 'lower_back'] } },
+  { id: 'leg-raise',       cat: 'Core',       name: 'Leg raises',               desc: 'On your back, lift straight legs to 90° and slowly lower them back down.\nPress your lower back into the floor, legs just above the floor at the bottom.', times: [15, 30, 45], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['lower_back'] } },
+  { id: 'russian-twist',   cat: 'Core',       name: 'Russian twist',            desc: 'Seated with knees slightly bent, rotate your torso left and right in turn.\nFeet off the floor for more difficulty, keep your back straight.', times: [20, 35, 50], muscles: { primary: ['obliques'], secondary: ['abs', 'hip_flexors'] } },
+  // ARMS
+  { id: 'pushup',          cat: 'Arms',       name: 'Push-ups',                 desc: 'Hands shoulder-width, lower your chest toward the floor and press up.\nElbows about 45° from the body, hold your body like a straight plank.',  times: [20, 40, 60], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
+  { id: 'incline-pushup',  cat: 'Arms',       name: 'Incline push-ups',         desc: 'Hands on a chair or table, body angled forward, push-up motion.\nAn easier variant — same technique as a regular push-up.',                  times: [20, 40, 60], muscles: { primary: ['chest'], secondary: ['shoulders', 'triceps'] } },
+  { id: 'diamond-pushup',  cat: 'Arms',       name: 'Diamond push-ups',         desc: 'Hands together in a triangle directly under your chest, lower and press up.\nElbows close to the body — triceps work harder.',              times: [15, 30, 45], muscles: { primary: ['triceps', 'chest'], secondary: ['shoulders'] } },
+  { id: 'pike-pushup',     cat: 'Arms',       name: 'Pike push-ups',            desc: 'Hips high in an inverted V, lower your head toward the floor.\nWeight on your shoulders, keep elbows stable — shoulder focus.',           times: [15, 30, 45], muscles: { primary: ['shoulders', 'triceps'], secondary: ['chest', 'traps'] } },
+  { id: 'dips',            cat: 'Arms',       name: 'Dips (chair)',             desc: 'Hands on a chair behind you, bend and straighten your elbows.\nKeep your back close to the chair, elbows pointing straight back.',         times: [20, 40, 60], muscles: { primary: ['triceps'], secondary: ['shoulders', 'chest'] } },
+  { id: 'decline-pushup',  cat: 'Arms',       name: 'Decline push-ups',         desc: 'Feet on a chair, hands on the floor, lower your chest down.\nHead and chest below your feet — upper chest and shoulders work more.',       times: [15, 30, 45], muscles: { primary: ['chest', 'shoulders'], secondary: ['triceps', 'abs'] } },
+  { id: 'slow-pushup',     cat: 'Arms',       name: 'Negative push-ups',        desc: 'Lower for 4 seconds, then press back up.\nExplosive up, no rest at the bottom, full control of the movement.',                            times: [20, 40, 60], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
+  { id: 'inv-row',         cat: 'Arms',       name: 'Australian rows',          desc: 'Lying under a table, pull your chest up to the tabletop.\nBack straight, squeeze shoulder blades together at the top, lower slowly.',      times: [20, 40, 60], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
+  { id: 'scap-retract',    cat: 'Arms',       name: 'Scapular squeeze',         desc: 'Stand upright and squeeze your shoulder blades together as hard as possible — hold.\nArms by your sides, do not shrug, focus on the upper back.', times: [20, 40, 60], muscles: { primary: ['traps'], secondary: ['shoulders', 'lower_back'] } },
+  { id: 'door-row',        cat: 'Arms',       name: 'Doorway rows',             desc: 'Hold a doorframe with both hands, lean back and pull yourself up.\nArms bent, back straight, pull your shoulder blades together.',         times: [20, 40, 60], muscles: { primary: ['lats', 'biceps'], secondary: ['traps', 'forearms'] } },
+  { id: 'rev-snow-angel',  cat: 'Arms',       name: 'Prone snow angels',        desc: 'Lie face down, sweep your arms from your sides up overhead.\nSqueeze your shoulder blades, keep arms straight and low.',                   times: [20, 40, 60], muscles: { primary: ['traps', 'lower_back'], secondary: ['shoulders'] } },
+  { id: 'table-hold',      cat: 'Arms',       name: 'Australian row hold',      desc: 'Under a table, pull yourself halfway up and hold that position.\nArms at 90°, back straight, keep shoulder blades squeezed together.',     times: [15, 30, 45], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
+  { id: 'wide-pushup',     cat: 'Arms',       name: 'Wide push-ups',            desc: 'Hands well outside shoulder-width, lower your chest and press up.\nMore emphasis on the outer chest — elbows flare slightly.',             times: [20, 40, 60], muscles: { primary: ['chest'], secondary: ['triceps', 'shoulders'] } },
+  { id: 'floor-dip',       cat: 'Arms',       name: 'Triceps floor dips',       desc: 'Sit on your hands and heels, hips up, bend and straighten your elbows.\nKeep elbows pointing straight back, hold hips as high as possible.', times: [20, 40, 60], muscles: { primary: ['triceps'], secondary: ['shoulders', 'chest'] } },
+  { id: 'superman-pull',   cat: 'Arms',       name: 'Superman pull',            desc: 'Face down, arms stretched out in front, lift arms and chest off the floor, then lower.\nSqueeze your shoulder blades at the top, slow and controlled.', times: [20, 40, 60], muscles: { primary: ['lats', 'traps'], secondary: ['lower_back', 'shoulders'] } },
   // LEGS
-  { id: 'squats',          cat: 'Legs',       name: 'Squats',                    desc: 'Voeten schouderbreedte, heupen naar achteren en beneden, dan omhoog duwen.\nRug recht, knieën over tenen, explosief omhoog komen.',                times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'lower_back', 'calves'] } },
-  { id: 'jump-squat',      cat: 'Legs',       name: 'Jump squats',               desc: 'Squat uitvoeren en vanuit de bodem explosief omhoog springen.\nZacht landen met gebogen knieën, direct doorzoeken naar de volgende herhaling.',   times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
-  { id: 'wall-sit',        cat: 'Legs',       name: 'Wall sit',                  desc: 'Rug plat tegen de muur, knieën 90°, bovenbenen parallel aan de vloer.\nKnieën boven enkels houden, niet laten zakken.',                           times: [20, 45, 60], muscles: { primary: ['quads'], secondary: ['glutes', 'calves'] } },
-  { id: 'alt-lunges',      cat: 'Legs',       name: 'Alternerende lunges',       desc: 'Afwisselend been naar voren stappen in een lunge en terugkomen.\nKnie boven enkel houden, rug recht, heupen laag en stabiel.',                  times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
-  { id: 'glute-single-l',  cat: 'Legs',       name: 'Single-leg bridge links',   desc: 'Op rug, rechterbeen omhoog, linker heup zo hoog mogelijk opduwen.\nLinker bilspier maximaal aanspannen, heupen recht houden.',                   times: [15, 30, 45], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
-  { id: 'glute-single-r',  cat: 'Legs',       name: 'Single-leg bridge rechts',  desc: 'Op rug, linkerbeen omhoog, rechter heup zo hoog mogelijk opduwen.\nRechter bilspier maximaal aanspannen, heupen recht houden.',                 times: [15, 30, 45], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
-  { id: 'donkey-kick',     cat: 'Legs',       name: 'Donkey kicks',              desc: 'Op handen en knieën, één been naar achter en omhoog schoppen.\nBilspier aanspannen op het hoogste punt, heup niet kantelen.',                   times: [20, 40, 60], muscles: { primary: ['glutes'], secondary: ['lower_back', 'hamstrings'] } },
-  { id: 'sumo-squat',      cat: 'Legs',       name: 'Sumo squat',                desc: 'Voeten ruim uit elkaar, tenen schuin naar buiten, diep door de knieën zakken.\nRug recht, knieën over de tenen, inner dijen aanspannen bij omhoog.',  times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
-  { id: 'step-up',         cat: 'Legs',       name: 'Step-up (stoel)',            desc: 'Met één voet op een stoel of traptrede stappen en het andere been aanheffen.\nVoet volledig op de verhoging, bovenbeen actief duwen voor de omhoog.',  times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
-  { id: 'calf-raise',      cat: 'Legs',       name: 'Kuitheffen',                desc: 'Rechtop staan, op de tenen omhoog komen en langzaam terug laten zakken.\nOp de rand van een trede voor meer bereik, langzame neerwaartse beweging.', times: [25, 45, 60], muscles: { primary: ['calves'], secondary: [] } },
+  { id: 'squats',          cat: 'Legs',       name: 'Squats',                   desc: 'Feet shoulder-width, hips back and down, then drive up.\nBack straight, knees over toes, come up explosively.',                            times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'lower_back', 'calves'] } },
+  { id: 'jump-squat',      cat: 'Legs',       name: 'Jump squats',              desc: 'Perform a squat and from the bottom jump up explosively.\nLand soft with bent knees, go straight into the next rep.',                       times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
+  { id: 'wall-sit',        cat: 'Legs',       name: 'Wall sit',                 desc: 'Back flat against the wall, knees at 90°, thighs parallel to the floor.\nKeep knees above ankles, do not sag down.',                       times: [20, 45, 60], muscles: { primary: ['quads'], secondary: ['glutes', 'calves'] } },
+  { id: 'alt-lunges',      cat: 'Legs',       name: 'Alternating lunges',       desc: 'Step forward into a lunge and return, alternating legs.\nKeep your knee above your ankle, back straight, hips low and stable.',           times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'glute-single-l',  cat: 'Legs',       name: 'Single-leg bridge left',   desc: 'On your back, right leg up, push your left hip up as high as possible.\nMax tension through the left glute, keep hips level.',           times: [15, 30, 45], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
+  { id: 'glute-single-r',  cat: 'Legs',       name: 'Single-leg bridge right',  desc: 'On your back, left leg up, push your right hip up as high as possible.\nMax tension through the right glute, keep hips level.',          times: [15, 30, 45], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
+  { id: 'donkey-kick',     cat: 'Legs',       name: 'Donkey kicks',             desc: 'On hands and knees, kick one leg back and up.\nSqueeze the glute at the top, do not tilt your hip.',                                       times: [20, 40, 60], muscles: { primary: ['glutes'], secondary: ['lower_back', 'hamstrings'] } },
+  { id: 'sumo-squat',      cat: 'Legs',       name: 'Sumo squat',               desc: 'Feet wide apart, toes angled out, drop deep through the knees.\nBack straight, knees over toes, engage your inner thighs on the way up.', times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'step-up',         cat: 'Legs',       name: 'Step-up (chair)',          desc: 'Step onto a chair or stair with one foot and lift the other leg up.\nFoot fully on the surface, drive up through the working leg.',       times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'calf-raise',      cat: 'Legs',       name: 'Calf raises',              desc: 'Stand upright, rise onto your toes and slowly lower back down.\nUse the edge of a step for more range — slow on the way down.',           times: [25, 45, 60], muscles: { primary: ['calves'], secondary: [] } },
   // FULL BODY
-  { id: 'burpees',         cat: 'Full Body',  name: 'Burpees',                   desc: 'Vanuit staand naar plank zakken, push-up, terug omhoog springen.\nVloeiende beweging, armen boven het hoofd bij de sprong.',                     times: [20, 40, 60], muscles: { primary: ['quads', 'chest'], secondary: ['shoulders', 'triceps', 'abs', 'glutes', 'calves'] } },
-  { id: 'jumping-jacks',   cat: 'Full Body',  name: 'Jumping jacks',             desc: 'Springend de benen spreiden en armen omhoog brengen, dan terug.\nRitmisch tempo houden, armen en benen gelijktijdig bewegen.',                     times: [30, 45, 60], muscles: { primary: ['shoulders', 'calves'], secondary: ['quads', 'glutes'] } },
-  { id: 'high-knees',      cat: 'Full Body',  name: 'High knees',                desc: 'Hardlopen op de plek met knieën zo hoog mogelijk optrekken naar de borst.\nArmen mee bewegen als bij hardlopen, rechtop blijven.',                  times: [20, 40, 60], muscles: { primary: ['hip_flexors', 'quads'], secondary: ['abs', 'calves'] } },
-  { id: 'butt-kicks',      cat: 'Full Body',  name: 'Butt kicks',                desc: 'Hardlopen op de plek, hielen afwisselend naar de billen schoppen.\nRechtop blijven, armen mee bewegen, snel tempo.',                              times: [20, 40, 60], muscles: { primary: ['hamstrings', 'calves'], secondary: ['quads', 'glutes'] } },
-  { id: 'mt-cl-fast',      cat: 'Full Body',  name: 'Mountain climbers snel',    desc: 'Mountain climbers op zo hoog mogelijk tempo uitvoeren.\nKern strak houden, heupen laag houden ook bij hoog tempo.',                           times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
-  { id: 'squat-jump-rep',  cat: 'Full Body',  name: 'Jump squats HIT',           desc: 'Non-stop jump squats uitvoeren op maximaal tempo.\nZacht landen met gebogen knieën, direct doorzoeken, explosief blijven.',                     times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
-  { id: 'bear-crawl',      cat: 'Full Body',  name: 'Bear crawl',                desc: 'Op handen en voeten (knieën net van de vloer), vooruit en achteruit kruipen.\nHeupen laag en stabiel, kern strak houden, kleine gecontroleerde stappen.', times: [20, 35, 50], muscles: { primary: ['shoulders', 'abs'], secondary: ['quads', 'hip_flexors'] } },
-  { id: 'inchworm',        cat: 'Full Body',  name: 'Inchworm',                  desc: 'Vanuit staand handen naar de vloer zakken, tot plank lopen, dan voeten naar handen.\nTempo rustig, volledige strekking aan het begin en einde.',       times: [20, 35, 50], muscles: { primary: ['abs', 'shoulders'], secondary: ['hamstrings', 'chest'] } },
-  { id: 'lateral-jump',    cat: 'Full Body',  name: 'Zijwaartse sprong',         desc: 'Van het ene been op het andere been springen met zijwaartse beweging.\nZacht landen met gebogen knie, direct doorspringen naar de andere kant.',     times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'abs'] } },
+  { id: 'burpees',         cat: 'Full Body',  name: 'Burpees',                  desc: 'From standing, drop into a plank, push-up, jump back up.\nFluid motion, arms above your head on the jump.',                                 times: [20, 40, 60], muscles: { primary: ['quads', 'chest'], secondary: ['shoulders', 'triceps', 'abs', 'glutes', 'calves'] } },
+  { id: 'jumping-jacks',   cat: 'Full Body',  name: 'Jumping jacks',            desc: 'Jump while spreading legs and raising arms overhead, then return.\nKeep a steady tempo, arms and legs moving together.',                  times: [30, 45, 60], muscles: { primary: ['shoulders', 'calves'], secondary: ['quads', 'glutes'] } },
+  { id: 'high-knees',      cat: 'Full Body',  name: 'High knees',               desc: 'Run in place, driving your knees up as high as possible toward your chest.\nSwing your arms as if running, stay upright.',                 times: [20, 40, 60], muscles: { primary: ['hip_flexors', 'quads'], secondary: ['abs', 'calves'] } },
+  { id: 'butt-kicks',      cat: 'Full Body',  name: 'Butt kicks',               desc: 'Run in place, kicking your heels up toward your glutes in turn.\nStay upright, swing your arms, fast tempo.',                              times: [20, 40, 60], muscles: { primary: ['hamstrings', 'calves'], secondary: ['quads', 'glutes'] } },
+  { id: 'mt-cl-fast',      cat: 'Full Body',  name: 'Mountain climbers fast',   desc: 'Perform mountain climbers at the highest sustainable tempo.\nKeep core tight, hips low even at high tempo.',                                times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
+  { id: 'squat-jump-rep',  cat: 'Full Body',  name: 'Jump squats HIT',          desc: 'Non-stop jump squats at maximum tempo.\nLand soft with bent knees, keep going, stay explosive.',                                              times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
+  { id: 'bear-crawl',      cat: 'Full Body',  name: 'Bear crawl',               desc: 'On hands and feet (knees just off the floor), crawl forward and backward.\nHips low and stable, core tight, small controlled steps.',     times: [20, 35, 50], muscles: { primary: ['shoulders', 'abs'], secondary: ['quads', 'hip_flexors'] } },
+  { id: 'inchworm',        cat: 'Full Body',  name: 'Inchworm',                 desc: 'From standing, walk your hands out to a plank, then walk your feet up to your hands.\nSteady tempo, full extension at the start and end.', times: [20, 35, 50], muscles: { primary: ['abs', 'shoulders'], secondary: ['hamstrings', 'chest'] } },
+  { id: 'lateral-jump',    cat: 'Full Body',  name: 'Lateral jumps',            desc: 'Jump sideways from one leg to the other.\nLand soft with bent knee, jump straight back to the other side.',                                times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'abs'] } },
 ];
 const DEFAULT_TARGETS_BY_MODE = {
   time: { beginner: 20, intermediate: 40, expert: 60 },
@@ -595,10 +595,10 @@ const EXERCISES_WITH_MODE = EXERCISES.map(ex => {
   return { ...ex, mode, targets: t, times: ex.times || [t.beginner, t.intermediate, t.expert] };
 });
 
-const CATS = ['Core', 'Armen', 'Legs', 'Full Body'];
+const CATS = ['Core', 'Arms', 'Legs', 'Full Body'];
 const LEVELS = ['BEGINNER', 'INTERMEDIATE', 'EXPERT'];
 const LEVEL_COLORS = ['#6BE89B', '#FFB454', '#FF5A5A'];
-const CAT_COLORS = { Core: '#E8FE3C', Armen: '#FFB454', Legs: '#6BE89B', 'Full Body': '#FF5A5A' };
+const CAT_COLORS = { Core: '#E8FE3C', Arms: '#FFB454', Legs: '#6BE89B', 'Full Body': '#FF5A5A' };
 
 function getRoutineCategories(exerciseIds) {
   const seen = new Set();
@@ -619,7 +619,7 @@ function CatTags({ exerciseIds, count }) {
           ■ {cat.toUpperCase()}
         </span>
       ))}
-      {count != null && <span style={{ color: C.muted, fontSize: 12 }}>· {count} OEF</span>}
+      {count != null && <span style={{ color: C.muted, fontSize: 12 }}>· {count} EX</span>}
     </div>
   );
 }
@@ -637,24 +637,24 @@ const DEFAULT_ROUTINE = {
 // primaryCat levert ~70%, secondaryCat ~30% van de oefeningen.
 const COACH_TEMPLATES = {
   fatloss: [
-    { id: 'fl_a', name: 'Vetverbrander',     primaryCat: 'Full Body', secondaryCat: 'Legs',      count: 8 },
-    { id: 'fl_b', name: 'Benen & Conditie',  primaryCat: 'Legs',      secondaryCat: 'Full Body', count: 7 },
-    { id: 'fl_c', name: 'Totaal Lichaam',    primaryCat: 'Full Body', secondaryCat: 'Core',      count: 8 },
+    { id: 'fl_a', name: 'Fat Burner',        primaryCat: 'Full Body', secondaryCat: 'Legs',      count: 8 },
+    { id: 'fl_b', name: 'Legs & Cardio',     primaryCat: 'Legs',      secondaryCat: 'Full Body', count: 7 },
+    { id: 'fl_c', name: 'Total Body',        primaryCat: 'Full Body', secondaryCat: 'Core',      count: 8 },
   ],
   muscle: [
-    { id: 'ms_a', name: 'Armen & Borst',     primaryCat: 'Armen',     secondaryCat: 'Core',      count: 8 },
-    { id: 'ms_b', name: 'Benen Kracht',      primaryCat: 'Legs',      secondaryCat: 'Core',      count: 7 },
-    { id: 'ms_c', name: 'Push & Pull Mix',   primaryCat: 'Armen',     secondaryCat: 'Full Body', count: 8 },
+    { id: 'ms_a', name: 'Arms & Chest',      primaryCat: 'Arms',      secondaryCat: 'Core',      count: 8 },
+    { id: 'ms_b', name: 'Leg Strength',      primaryCat: 'Legs',      secondaryCat: 'Core',      count: 7 },
+    { id: 'ms_c', name: 'Push & Pull Mix',   primaryCat: 'Arms',      secondaryCat: 'Full Body', count: 8 },
   ],
   core: [
-    { id: 'co_a', name: 'Core Basis',        primaryCat: 'Core',      secondaryCat: null,        count: 7 },
-    { id: 'co_b', name: 'Core & Stabiliteit',primaryCat: 'Core',      secondaryCat: 'Legs',      count: 7 },
+    { id: 'co_a', name: 'Core Basics',       primaryCat: 'Core',      secondaryCat: null,        count: 7 },
+    { id: 'co_b', name: 'Core & Stability',  primaryCat: 'Core',      secondaryCat: 'Legs',      count: 7 },
     { id: 'co_c', name: 'Core Power',        primaryCat: 'Core',      secondaryCat: 'Full Body', count: 8 },
   ],
   fitness: [
-    { id: 'ft_a', name: 'Volledige Sessie',  primaryCat: 'Full Body', secondaryCat: 'Armen',     count: 8 },
-    { id: 'ft_b', name: 'Benen & Core',      primaryCat: 'Legs',      secondaryCat: 'Core',      count: 7 },
-    { id: 'ft_c', name: 'Kracht Mix',        primaryCat: 'Armen',     secondaryCat: 'Legs',      count: 8 },
+    { id: 'ft_a', name: 'Full Session',      primaryCat: 'Full Body', secondaryCat: 'Arms',      count: 8 },
+    { id: 'ft_b', name: 'Legs & Core',       primaryCat: 'Legs',      secondaryCat: 'Core',      count: 7 },
+    { id: 'ft_c', name: 'Strength Mix',      primaryCat: 'Arms',      secondaryCat: 'Legs',      count: 8 },
   ],
 };
 
@@ -665,29 +665,29 @@ const HIGH_IMPACT_IDS = new Set([
 
 const LEVEL_TIME_IDX = { beginner: 0, intermediate: 1, expert: 2 };
 
-const GOAL_LABEL  = { fatloss: 'vetverlies', muscle: 'spieropbouw', core: 'core-stabiliteit', fitness: 'algemene fitheid' };
-const LEVEL_LABEL = { beginner: 'rustig opbouwen', intermediate: 'stabiel doortrainen', expert: 'hoge belasting' };
+const GOAL_LABEL  = { fatloss: 'fat loss', muscle: 'muscle building', core: 'core stability', fitness: 'general fitness' };
+const LEVEL_LABEL = { beginner: 'easing in', intermediate: 'steady training', expert: 'high load' };
 
 const BODY_PART_WORKOUTS = {
   Core: [
-    { id: 'core-s', name: 'Core Start',   durationLabel: '~10 MIN', exercises: ['dead-bug','plank','glute-bridge','side-l'] },
-    { id: 'core-b', name: 'Core Basis',   durationLabel: '~15 MIN', exercises: ['dead-bug','plank','side-l','side-r','glute-bridge','bicycles'] },
-    { id: 'core-k', name: 'Core Kracht',  durationLabel: '~20 MIN', exercises: ['dead-bug','plank','side-l','side-r','glute-bridge','mountain-cl','bicycles','hollow-body'] },
+    { id: 'core-s', name: 'Core Start',    durationLabel: '~10 MIN', exercises: ['dead-bug','plank','glute-bridge','side-l'] },
+    { id: 'core-b', name: 'Core Basics',   durationLabel: '~15 MIN', exercises: ['dead-bug','plank','side-l','side-r','glute-bridge','bicycles'] },
+    { id: 'core-k', name: 'Core Strength', durationLabel: '~20 MIN', exercises: ['dead-bug','plank','side-l','side-r','glute-bridge','mountain-cl','bicycles','hollow-body'] },
   ],
-  Armen: [
-    { id: 'arm-s', name: 'Armen Start',   durationLabel: '~10 MIN', exercises: ['incline-pushup','scap-retract','wide-pushup'] },
-    { id: 'arm-b', name: 'Armen Basis',   durationLabel: '~15 MIN', exercises: ['pushup','incline-pushup','scap-retract','door-row','dips'] },
-    { id: 'arm-t', name: 'Armen Totaal',  durationLabel: '~20 MIN', exercises: ['pushup','diamond-pushup','pike-pushup','dips','inv-row','scap-retract','door-row','floor-dip'] },
+  Arms: [
+    { id: 'arm-s', name: 'Arms Start',   durationLabel: '~10 MIN', exercises: ['incline-pushup','scap-retract','wide-pushup'] },
+    { id: 'arm-b', name: 'Arms Basic',   durationLabel: '~15 MIN', exercises: ['pushup','incline-pushup','scap-retract','door-row','dips'] },
+    { id: 'arm-t', name: 'Arms Total',   durationLabel: '~20 MIN', exercises: ['pushup','diamond-pushup','pike-pushup','dips','inv-row','scap-retract','door-row','floor-dip'] },
   ],
   Legs: [
-    { id: 'leg-s', name: 'Benen Start',   durationLabel: '~10 MIN', exercises: ['squats','alt-lunges','glute-bridge'] },
-    { id: 'leg-b', name: 'Benen Basis',   durationLabel: '~15 MIN', exercises: ['squats','alt-lunges','wall-sit','sumo-squat','step-up'] },
-    { id: 'leg-k', name: 'Benen Kracht',  durationLabel: '~20 MIN', exercises: ['squats','jump-squat','alt-lunges','wall-sit','glute-single-l','glute-single-r','donkey-kick','calf-raise'] },
+    { id: 'leg-s', name: 'Legs Start',    durationLabel: '~10 MIN', exercises: ['squats','alt-lunges','glute-bridge'] },
+    { id: 'leg-b', name: 'Legs Basics',   durationLabel: '~15 MIN', exercises: ['squats','alt-lunges','wall-sit','sumo-squat','step-up'] },
+    { id: 'leg-k', name: 'Legs Strength', durationLabel: '~20 MIN', exercises: ['squats','jump-squat','alt-lunges','wall-sit','glute-single-l','glute-single-r','donkey-kick','calf-raise'] },
   ],
   'Full Body': [
-    { id: 'fb-s',  name: 'Full Body Start', durationLabel: '~12 MIN', exercises: ['jumping-jacks','high-knees','squats','mountain-cl'] },
-    { id: 'fb-b',  name: 'Full Body Basis', durationLabel: '~18 MIN', exercises: ['jumping-jacks','burpees','high-knees','butt-kicks','squats','mountain-cl'] },
-    { id: 'fb-h',  name: 'Full Body HIT',   durationLabel: '~25 MIN', exercises: ['jumping-jacks','burpees','high-knees','butt-kicks','squats','pushup','mountain-cl','lateral-jump','inchworm'] },
+    { id: 'fb-s',  name: 'Full Body Start',  durationLabel: '~12 MIN', exercises: ['jumping-jacks','high-knees','squats','mountain-cl'] },
+    { id: 'fb-b',  name: 'Full Body Basics', durationLabel: '~18 MIN', exercises: ['jumping-jacks','burpees','high-knees','butt-kicks','squats','mountain-cl'] },
+    { id: 'fb-h',  name: 'Full Body HIT',    durationLabel: '~25 MIN', exercises: ['jumping-jacks','burpees','high-knees','butt-kicks','squats','pushup','mountain-cl','lateral-jump','inchworm'] },
   ],
 };
 
@@ -774,7 +774,7 @@ function buildCoachIntro(profile) {
   const goal  = profile?.trainingGoal || 'fitness';
   const level = profile?.level || 'intermediate';
   const days  = profile?.availableDays || '3';
-  return `Voor jouw doel: ${GOAL_LABEL[goal]}. ${days}× per week, ${LEVEL_LABEL[level]}.`;
+  return `For your goal: ${GOAL_LABEL[goal]}. ${days}× per week, ${LEVEL_LABEL[level]}.`;
 }
 
 // ================================================================
@@ -784,8 +784,8 @@ const BUILTIN_PLANS = [
   {
     id: 'consistency-21',
     title: 'Consistency Start',
-    subtitle: '21 DAGEN · BEGINNER CONSISTENCY',
-    goal: 'Consistency en routine opbouwen',
+    subtitle: '21 DAYS · BEGINNER CONSISTENCY',
+    goal: 'Build consistency and routine',
     level: 'beginner',
     focus: 'full-body',
     color: '#69A6FF',
@@ -816,8 +816,8 @@ const BUILTIN_PLANS = [
   {
     id: 'fit-28',
     title: 'General Fitness',
-    subtitle: '28 DAGEN · ALGEMENE FITHEID',
-    goal: 'Conditie en kracht allround verbeteren',
+    subtitle: '28 DAYS · GENERAL FITNESS',
+    goal: 'Improve all-round conditioning and strength',
     level: 'intermediate',
     focus: 'full-body',
     color: '#6BE89B',
@@ -835,8 +835,8 @@ const BUILTIN_PLANS = [
   {
     id: 'core-30',
     title: 'Core Protocol',
-    subtitle: '30 DAGEN · CORE FOCUS',
-    goal: 'Core stabiliteit en houding versterken',
+    subtitle: '30 DAYS · CORE FOCUS',
+    goal: 'Strengthen core stability and posture',
     level: 'intermediate',
     focus: 'core',
     color: '#FFB454',
@@ -948,8 +948,8 @@ function buildSequence(exercises, levelIdx) {
     if (i < exercises.length - 1) {
       const isMid = i === midIdx;
       seq.push({
-        id: `rest-${i}`, name: isMid ? 'Halverwege · rust' : 'Rust',
-        desc: isMid ? 'Goed bezig! Bijna klaar.' : 'Pak even adem.',
+        id: `rest-${i}`, name: isMid ? 'Halfway · rest' : 'Rest',
+        desc: isMid ? 'Great work! Almost done.' : 'Catch your breath.',
         duration: isMid ? 10 : 5, isRest: true, isMid,
       });
     }
@@ -1070,7 +1070,7 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWor
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <CatTags exerciseIds={exerciseIds} />
-        <span style={{ fontFamily: C.mono, fontSize: 12, color: C.secondary, letterSpacing: '0.06em' }}>{exerciseIds.length} OEF</span>
+        <span style={{ fontFamily: C.mono, fontSize: 12, color: C.secondary, letterSpacing: '0.06em' }}>{exerciseIds.length} EX</span>
       </div>
       <div style={{
         gridRow: '1 / span 2', display: 'flex', alignItems: 'center', gap: 6,
@@ -1102,9 +1102,9 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWor
           </div>
         </div>
         <div style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 14px' }}>
-          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted, marginBottom: 6 }}>VANDAAG</div>
+          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted, marginBottom: 6 }}>TODAY</div>
           <div style={{ fontFamily: C.mono, fontSize: todayDone ? 16 : 28, fontWeight: 600, lineHeight: 1, color: todayDone ? C.accent : C.muted }}>
-            {todayDone ? 'KLAAR ✓' : '—'}
+            {todayDone ? 'DONE ✓' : '—'}
           </div>
         </div>
       </div>
@@ -1114,12 +1114,12 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWor
         <section style={{ padding: '0 20px 20px' }}>
           <div style={{ border: `1px solid ${starterCTA.fallback ? C.statusWarn : C.accent}`, borderRadius: 12, background: C.surface, padding: 16 }}>
             <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.1em', color: starterCTA.fallback ? C.statusWarn : C.accent, marginBottom: 8 }}>STARTER PLAN</div>
-            <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Start je eerste training</div>
+            <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Start your first workout</div>
             <div style={{ color: C.secondary, fontSize: 14, marginBottom: 14 }}>
-              Voorstel: {starterCTA.profileId.replaceAll('_', ' ').toUpperCase()}
-              {starterCTA.fallback ? ' · veilige standaard gekozen.' : ''}
+              Suggestion: {starterCTA.profileId.replaceAll('_', ' ').toUpperCase()}
+              {starterCTA.fallback ? ' · safe default chosen.' : ''}
             </div>
-            <Btn onClick={() => onNavigate('timer', { routineId: starterCTA.routineId })}>START EERSTE TRAINING</Btn>
+            <Btn onClick={() => onNavigate('timer', { routineId: starterCTA.routineId })}>START FIRST WORKOUT</Btn>
           </div>
         </section>
       )}
@@ -1133,17 +1133,17 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWor
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
           <div>
-            <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em', color: C.accent, marginBottom: 4 }}>AANGEPAST</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: C.text }}>Maak je eigen routine</div>
+            <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em', color: C.accent, marginBottom: 4 }}>CUSTOM</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.text }}>Build your own routine</div>
           </div>
-          <div style={{ background: C.accent, color: C.accentFg, borderRadius: 999, padding: '10px 16px', fontFamily: C.mono, fontSize: 11, fontWeight: 600, letterSpacing: '0.10em', whiteSpace: 'nowrap' }}>+ NIEUW</div>
+          <div style={{ background: C.accent, color: C.accentFg, borderRadius: 999, padding: '10px 16px', fontFamily: C.mono, fontSize: 11, fontWeight: 600, letterSpacing: '0.10em', whiteSpace: 'nowrap' }}>+ NEW</div>
         </button>
       </section>
 
       {/* Aanbevolen — door coach gepersonaliseerde workouts */}
       <section style={{ paddingBottom: 20 }}>
         <div style={{ padding: '0 20px 6px' }}>
-          <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>AANBEVOLEN</span>
+          <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>RECOMMENDED</span>
         </div>
         {coachIntro && (
           <div style={{ padding: '0 20px 12px', fontFamily: C.mono, fontSize: 12, letterSpacing: '0.04em', color: C.secondary, lineHeight: 1.5 }}>
@@ -1162,7 +1162,7 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWor
       {quickRoutines.length > 0 && (
         <section style={{ paddingBottom: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px 12px' }}>
-            <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>MIJN ROUTINES</span>
+            <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>MY ROUTINES</span>
             <span style={{ fontFamily: C.mono, fontSize: 12, color: C.muted }}>{quickRoutines.length}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '0 20px' }}>
@@ -1186,7 +1186,7 @@ function BodyPartSection({ onNavigate, routineCard }) {
   return (
     <section style={{ paddingBottom: 40 }}>
       <div style={{ padding: '0 20px 12px' }}>
-        <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>PER SPIERGROEP</span>
+        <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>BY MUSCLE GROUP</span>
       </div>
       <div style={{ display: 'flex', gap: 8, padding: '0 20px 16px', overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
         {CATS.map(cat => {
@@ -1228,7 +1228,7 @@ function PlanTab({ sessions, profile, onProfileUpdate, onNavigate }) {
   const startPlanDay = (day) => {
     const routine = {
       id: `plan-${plan.id}-day-${day.day}`,
-      name: `DAG ${day.day} — ${plan.title}`,
+      name: `DAY ${day.day} — ${plan.title}`,
       exercises: day.exercises,
       category: 'Core',
     };
@@ -1269,25 +1269,25 @@ function PlanTab({ sessions, profile, onProfileUpdate, onNavigate }) {
       {needsPlanConfirmation && (
         <div style={{ padding: '0 20px 14px' }}>
           <div style={{ border: `1px solid ${C.borderMd}`, borderRadius: 10, padding: 12, background: C.surface }}>
-            <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted, marginBottom: 10 }}>KIES JE STARTPLAN</div>
+            <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted, marginBottom: 10 }}>CHOOSE YOUR START PLAN</div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {BUILTIN_PLANS.map(p => (
                 <button key={p.id} onClick={() => onProfileUpdate({ selectedPlanId: p.id })} style={{ padding: '8px 10px', borderRadius: 8, border: `1px solid ${selectedPlanId === p.id ? p.color : C.borderMd}`, background: selectedPlanId === p.id ? 'rgba(232,254,60,0.08)' : 'transparent', color: selectedPlanId === p.id ? C.text : C.muted, fontFamily: C.mono, fontSize: 11 }}>{p.title}</button>
               ))}
             </div>
-            <button onClick={() => onProfileUpdate({ selectedPlanId, planConfirmed: true })} style={{ marginTop: 10, width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${C.accent}`, background: C.accent, color: C.accentFg, fontFamily: C.mono, fontSize: 12 }}>BEVESTIG PLAN</button>
+            <button onClick={() => onProfileUpdate({ selectedPlanId, planConfirmed: true })} style={{ marginTop: 10, width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${C.accent}`, background: C.accent, color: C.accentFg, fontFamily: C.mono, fontSize: 12 }}>CONFIRM PLAN</button>
           </div>
         </div>
       )}
       <div style={{ padding: '0 20px 14px', fontFamily: C.mono, fontSize: 12, letterSpacing: '0.06em', color: C.muted }}>
-        Dit plan is gekozen op basis van jouw doel + niveau.
+        This plan was selected based on your goal and level.
       </div>
 
       {/* Progress bar */}
       <div style={{ padding: '0 20px 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted }}>VOORTGANG</div>
-          <div style={{ fontFamily: C.mono, fontSize: 13, color: plan.color }}>{completedCount} / {workDays.length} DAGEN</div>
+          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted }}>PROGRESS</div>
+          <div style={{ fontFamily: C.mono, fontSize: 13, color: plan.color }}>{completedCount} / {workDays.length} DAYS</div>
         </div>
         <div style={{ height: 4, background: C.surface, borderRadius: 2, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${pct}%`, background: plan.color, borderRadius: 2 }} />
@@ -1320,11 +1320,11 @@ function PlanTab({ sessions, profile, onProfileUpdate, onNavigate }) {
                   fontFamily: C.mono, fontSize: 14, letterSpacing: '0.08em', fontWeight: 600,
                   color: completed ? C.muted : day.restDay ? C.muted : isCurrent ? C.accent : C.secondary,
                 }}>
-                  {day.restDay ? `DAG ${day.day} — RUST` : `DAG ${day.day}`}
+                  {day.restDay ? `DAY ${day.day} — REST` : `DAY ${day.day}`}
                 </div>
                 {!day.restDay && !completed && (
                   <div style={{ fontFamily: C.mono, fontSize: 12, color: C.muted, marginTop: 3, letterSpacing: '0.06em' }}>
-                    {day.exercises.length} OEF
+                    {day.exercises.length} EX
                   </div>
                 )}
               </div>
@@ -1381,7 +1381,7 @@ function HomeScreen({ dbRef, onNavigate, analytics }) {
   const today = new Date();
   const todayDone = sessions.some(s => new Date(s.completedAt).toDateString() === today.toDateString());
   const hours = today.getHours();
-  const greeting = hours < 6 ? 'GOEDE NACHT' : hours < 12 ? 'GOEDEMORGEN' : hours < 18 ? 'GOEDEMIDDAG' : 'GOEDENAVOND';
+  const greeting = hours < 6 ? 'GOOD NIGHT' : hours < 12 ? 'GOOD MORNING' : hours < 18 ? 'GOOD AFTERNOON' : 'GOOD EVENING';
 
   const quickRoutines = routines.filter(r => r.quickStart !== false);
   const coachWorkouts = useMemo(() => profile ? buildCoachWorkouts(profile) : [], [profile]);
@@ -1459,17 +1459,17 @@ function RoutinesScreen({ dbRef, onNavigate, params }) {
 
   const del = async (id, e) => {
     e.stopPropagation();
-    if (!confirm('Routine verwijderen?')) return;
+    if (!confirm('Delete routine?')) return;
     await dbOp(dbRef.current, 'routines', 'readwrite', s => s.delete(id));
     load();
   };
 
-  const [filterCatR, setFilterCatR] = useState((params?.filterCat || 'ALLE').toUpperCase());
+  const [filterCatR, setFilterCatR] = useState((params?.filterCat || 'ALL').toUpperCase());
 
   if (!ready) return <Loader />;
 
-  const catFilters = ['ALLE', ...CATS.map(c => c.toUpperCase())];
-  const filteredRoutines = filterCatR === 'ALLE'
+  const catFilters = ['ALL', ...CATS.map(c => c.toUpperCase())];
+  const filteredRoutines = filterCatR === 'ALL'
     ? routines
     : routines.filter(r => {
         const cats = getRoutineCategories(r.exercises).map(c => c.toUpperCase());
@@ -1482,7 +1482,7 @@ function RoutinesScreen({ dbRef, onNavigate, params }) {
       {/* Header */}
       <header style={{ padding: '44px 20px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
-          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>MIJN</div>
+          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>MY</div>
           <h1 style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 0.95 }}>ROUTINES</h1>
         </div>
         <button onClick={() => onNavigate('builder', {})} style={{
@@ -1519,7 +1519,7 @@ function RoutinesScreen({ dbRef, onNavigate, params }) {
       <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {filteredRoutines.length === 0 && (
           <div style={{ textAlign: 'center', padding: '60px 0', color: C.muted, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.1em' }}>
-            Nog geen routines.
+            No routines yet.
           </div>
         )}
         {filteredRoutines.map(r => (
@@ -1530,7 +1530,7 @@ function RoutinesScreen({ dbRef, onNavigate, params }) {
                 <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em', marginBottom: 8 }}>{r.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <CatTags exerciseIds={r.exercises} />
-                  <span style={{ fontFamily: C.mono, fontSize: 13, color: C.secondary }}>{r.exercises.length} OEF</span>
+                  <span style={{ fontFamily: C.mono, fontSize: 13, color: C.secondary }}>{r.exercises.length} EX</span>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginLeft: 12, flexShrink: 0 }}>
@@ -1602,21 +1602,21 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
           width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.muted, background: 'none',
         }}>{Icon.back(18)}</button>
-        <div style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', color: C.text }}>{isEdit ? 'BEWERKEN' : 'NIEUWE ROUTINE'}</div>
+        <div style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', color: C.text }}>{isEdit ? 'EDIT' : 'NEW ROUTINE'}</div>
       </div>
 
       <div style={{ padding: '24px 20px' }}>
         {/* Name */}
         <div style={{ marginBottom: 22 }}>
-          <Label>NAAM</Label>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Bijv. Ochtend core..."
+          <Label>NAME</Label>
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="E.g. Morning core..."
             style={{ width: '100%', background: C.surface, border: `1px solid ${C.borderMd}`, color: C.text,
               padding: '12px 14px', fontSize: 13, fontFamily: C.font, outline: 'none', borderRadius: 8 }} />
         </div>
 
         {/* Category */}
         <div style={{ marginBottom: 24 }}>
-          <Label>CATEGORIE</Label>
+          <Label>CATEGORY</Label>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {CATS.map(c => (
               <button key={c} onClick={() => setCategory(c)} style={{
@@ -1632,7 +1632,7 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
 
         {/* Exercise picker */}
         <div style={{ marginBottom: 24 }}>
-          <Label>OEFENINGEN ({selected.length} geselecteerd)</Label>
+          <Label>EXERCISES ({selected.length} selected)</Label>
           {/* Filter */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto', paddingBottom: 2 }}>
             {CATS.map(c => (
@@ -1671,7 +1671,7 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
         {/* Selected order */}
         {selected.length > 0 && (
           <div style={{ marginBottom: 28 }}>
-            <Label>VOLGORDE ({selected.length})</Label>
+            <Label>ORDER ({selected.length})</Label>
             {selected.map((id, i) => {
               const ex = EXERCISES_WITH_MODE.find(e => e.id === id);
               return (
@@ -1695,7 +1695,7 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
           if (!hasMuscles) return null;
           return (
             <div style={{ border: `1px solid ${C.border}`, padding: '16px 14px', marginBottom: 24 }}>
-              <Label>SPIEREN</Label>
+              <Label>MUSCLES</Label>
               <BodyDiagram exercise={combined} height={220}/>
               <MuscleTags exercise={combined}/>
             </div>
@@ -1713,12 +1713,12 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
             display: 'flex', alignItems: 'center', gap: 10,
           }}>
             <span style={{ color: quickStart ? C.accent : C.muted, fontSize: 14 }}>{quickStart ? '■' : '□'}</span>
-            TONEN OP SNEL STARTEN
+            SHOW ON QUICK START
           </button>
         </div>
 
         <Btn onClick={save} disabled={!name.trim() || selected.length === 0} style={{ width: '100%' }}>
-          {isEdit ? 'OPSLAAN' : 'ROUTINE AANMAKEN'}
+          {isEdit ? 'SAVE' : 'CREATE ROUTINE'}
         </Btn>
       </div>
 
@@ -1964,7 +1964,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
           </div>
 
           <div style={{ fontFamily: C.mono, color: C.secondary, fontSize: 14, letterSpacing: '0.08em', marginBottom: 20, textAlign: 'center' }}>
-            {activeEx.length} OEFENINGEN · {totalMin}:{String(totalSec).padStart(2,'0')} MIN
+            {activeEx.length} EXERCISES · {totalMin}:{String(totalSec).padStart(2,'0')} MIN
           </div>
 
           {activeEx.length > 0 && (() => {
@@ -1973,7 +1973,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
             if (!hasMuscles) return null;
             return (
               <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 14px', marginBottom: 24, background: C.surface }}>
-                <Label>SPIEREN</Label>
+                <Label>MUSCLES</Label>
                 <BodyDiagram exercise={combined} height={220}/>
                 <MuscleTags exercise={combined}/>
               </div>
@@ -1987,7 +1987,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
       {/* COUNTDOWN */}
       {phase === 'countdown' && (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px 40px' }}>
-          <div style={{ fontFamily: C.mono, color: C.secondary, fontSize: 14, letterSpacing: '0.3em', marginBottom: 36 }}>KLAAR VOOR START</div>
+          <div style={{ fontFamily: C.mono, color: C.secondary, fontSize: 14, letterSpacing: '0.3em', marginBottom: 36 }}>READY TO START</div>
           <div style={{ fontFamily: C.mono, color: lvColor, fontSize: 110, fontWeight: 600, lineHeight: 1, letterSpacing: '-0.06em' }}>
             {countdown > 0 ? countdown : 'GO'}
           </div>
@@ -2020,7 +2020,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
               border: `1px solid ${step.isRest ? 'rgba(105,166,255,0.4)' : 'rgba(232,254,60,0.4)'}`,
             }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
-              {step.isRest ? 'RUST' : (step.mode === 'reps' ? 'REPS' : 'EXECUTE')}
+              {step.isRest ? 'REST' : (step.mode === 'reps' ? 'REPS' : 'EXECUTE')}
             </span>
           </div>
 
@@ -2040,7 +2040,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
                 {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? `${step.targetReps}` : String(timeLeft).padStart(2,'0')}
               </div>
               <div style={{ fontFamily: C.mono, fontSize: 13, color: C.muted, letterSpacing: '0.14em', marginTop: 4 }}>
-                {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? 'REPS' : 'SECONDEN'}
+                {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? 'REPS' : 'SECONDS'}
               </div>
             </div>
           </div>
@@ -2051,10 +2051,10 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
               {step.isRest ? 'RECOVERY' : step.name.toUpperCase()}
             </div>
             <p style={{ fontSize: 15, color: C.secondary, lineHeight: 1.5, margin: '0 auto', maxWidth: 300 }}>
-              {step.isRest ? 'Adem diep. Volgende oefening start automatisch.' : ((step.mode === 'reps' || step.mode === 'hybrid') ? `Doe ${step.targetReps} herhalingen en tik op klaar.` : step.desc.split('\n')[0])}
+              {step.isRest ? 'Breathe deep. Next exercise starts automatically.' : ((step.mode === 'reps' || step.mode === 'hybrid') ? `Do ${step.targetReps} reps and tap done.` : step.desc.split('\n')[0])}
             </p>
             {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest && (
-              <input value={actualInput} onChange={e => setActualInput(e.target.value.replace(/[^0-9]/g,''))} placeholder="Behaald (optioneel)"
+              <input value={actualInput} onChange={e => setActualInput(e.target.value.replace(/[^0-9]/g,''))} placeholder="Actual (optional)"
                 style={{ width: '100%', marginTop: 12, padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.borderMd}`, background: C.surface, color: C.text, fontFamily: C.mono }} />
             )}
 
@@ -2071,7 +2071,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
                 border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface,
               }}>
                 <div>
-                  <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted, marginBottom: 4 }}>VOLGENDE</div>
+                  <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted, marginBottom: 4 }}>NEXT</div>
                   <div style={{ fontSize: 16, fontWeight: 500 }}>{next.name}</div>
                 </div>
                 <div style={{ fontFamily: C.mono, fontSize: 15, fontWeight: 500, color: C.accent }}>{next.duration}s</div>
@@ -2083,7 +2083,7 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
                 border: `1px solid ${CAT_COLORS[next.cat] || C.border}`,
                 borderRadius: 12, background: C.surface,
               }}>
-                <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em', color: C.muted, marginBottom: 8 }}>VOLGENDE OEFENING</div>
+                <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em', color: C.muted, marginBottom: 8 }}>NEXT EXERCISE</div>
                 <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 10 }}>{next.name}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: CAT_COLORS[next.cat] || C.muted, fontSize: 12, letterSpacing: '0.12em', fontFamily: C.mono }}>■ {(next.cat || '').toUpperCase()}</span>
@@ -2106,11 +2106,11 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {phase === 'running'
-                ? <button onClick={() => setPhase('paused')} style={{ padding: '14px 0', border: `1px solid ${C.borderMd}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600, color: C.text, background: C.surface }}>❚❚  PAUZE</button>
-                : <button onClick={() => setPhase('running')} style={{ padding: '14px 0', border: `1px solid ${lvColor}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600, color: lvColor, background: 'transparent' }}>▶  VERDER</button>
+                ? <button onClick={() => setPhase('paused')} style={{ padding: '14px 0', border: `1px solid ${C.borderMd}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600, color: C.text, background: C.surface }}>❚❚  PAUSE</button>
+                : <button onClick={() => setPhase('running')} style={{ padding: '14px 0', border: `1px solid ${lvColor}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600, color: lvColor, background: 'transparent' }}>▶  RESUME</button>
               }
               <button onClick={(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? completeRepStep : skip} style={{ padding: '14px 0', background: C.accent, color: C.accentFg, border: `1px solid ${C.accent}`, borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', fontWeight: 600 }}>
-                {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? 'KLAAR ✓' : 'SLA OVER →'}
+                {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? 'DONE ✓' : 'SKIP →'}
               </button>
             </div>
           </div>
@@ -2138,12 +2138,12 @@ function FinishScreen({ dbRef, onNavigate, params }) {
   const hasMuscles = combined.muscles.primary.length > 0 || combined.muscles.secondary.length > 0;
   const fmt = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   const heatColors = ['#1A1A1C','#3A3A1A','#76840F','#C2DF1F','#E8FE3C'];
-  const heatLabels = ['NIET','LICHT','MEDIUM','HOOG','MAX'];
+  const heatLabels = ['NONE','LIGHT','MEDIUM','HIGH','MAX'];
 
-  const rpeDesc = rpe <= 3 ? 'Lichte inspanning. Kun je nog doorgaan.' :
-                  rpe <= 6 ? 'Stevige inspanning. Praten gaat moeilijker.' :
-                  rpe <= 8 ? 'Hard. Je voelt de spieren werken.' :
-                  'Maximaal. Niets meer over in de tank.';
+  const rpeDesc = rpe <= 3 ? 'Light effort. You could keep going.' :
+                  rpe <= 6 ? 'Solid effort. Talking is getting harder.' :
+                  rpe <= 8 ? 'Hard. You feel the muscles working.' :
+                  'Maximum. Nothing left in the tank.';
 
   return (
     <div style={{ background: C.bg, color: C.text, minHeight: '100vh', fontFamily: C.font, overflowY: 'auto', paddingBottom: 32 }}>
@@ -2158,21 +2158,21 @@ function FinishScreen({ dbRef, onNavigate, params }) {
 
       {/* Hero */}
       <div style={{ padding: '8px 20px 0' }}>
-        <div style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.12em', color: C.accent, marginBottom: 12 }}>SESSIE VOLTOOID</div>
+        <div style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.12em', color: C.accent, marginBottom: 12 }}>SESSION COMPLETE</div>
         <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1, margin: '0 0 12px' }}>{routineName.toUpperCase()}</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: C.mono, fontSize: 12, letterSpacing: '0.14em' }}>
           <span style={{ color: C.accent, fontSize: 14 }}>●</span>
-          <span>DAG {streak}</span>
-          <span style={{ color: C.secondary, marginLeft: 4 }}>· streak verlengd</span>
+          <span>DAY {streak}</span>
+          <span style={{ color: C.secondary, marginLeft: 4 }}>· streak extended</span>
         </div>
       </div>
 
       {/* KPI grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: '20px 20px 0' }}>
         {[
-          { num: mode === 'reps' ? `${Object.keys(stepResults || completedReps || {}).length}` : fmt(duration), label: mode === 'reps' ? 'SETS' : 'DUUR', hi: false },
-          { num: calories > 0 ? `${calories}` : '—', label: 'CALORIEËN', hi: true },
-          { num: `${exerciseCount}`, label: 'VOLTOOID', hi: false },
+          { num: mode === 'reps' ? `${Object.keys(stepResults || completedReps || {}).length}` : fmt(duration), label: mode === 'reps' ? 'SETS' : 'TIME', hi: false },
+          { num: calories > 0 ? `${calories}` : '—', label: 'CALORIES', hi: true },
+          { num: `${exerciseCount}`, label: 'COMPLETED', hi: false },
         ].map(({ num, label, hi }) => (
           <div key={label} style={{
             padding: '16px 12px', border: `1px solid ${hi ? C.accent : C.border}`,
@@ -2189,8 +2189,8 @@ function FinishScreen({ dbRef, onNavigate, params }) {
       {hasMuscles && (
         <section style={{ padding: '24px 0 0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 20px 12px' }}>
-            <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>SPIERGROEPEN GETARGET</span>
-            <span style={{ fontFamily: C.mono, fontSize: 12, color: C.muted }}>INTENSITEIT</span>
+            <span style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.08em', color: C.muted }}>MUSCLES TARGETED</span>
+            <span style={{ fontFamily: C.mono, fontSize: 12, color: C.muted }}>INTENSITY</span>
           </div>
           <div style={{ padding: '0 20px 12px', display: 'flex', justifyContent: 'center' }}>
             <BodyDiagram exercise={combined} height={220}/>
@@ -2209,13 +2209,13 @@ function FinishScreen({ dbRef, onNavigate, params }) {
       {/* RPE slider */}
       <section style={{ padding: '24px 20px 0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-          <span style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.08em', color: C.muted }}>HOE VOELDE HET?</span>
+          <span style={{ fontFamily: C.mono, fontSize: 13, letterSpacing: '0.08em', color: C.muted }}>HOW DID IT FEEL?</span>
           <span style={{ fontFamily: C.mono, fontSize: 13, color: C.accent }}>{rpe} / 10</span>
         </div>
         <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 16, background: C.surface }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', marginBottom: 14, fontWeight: 500 }}>
             <span style={{ color: C.statusGo }}>EASY</span>
-            <span style={{ color: C.accent }}>STERK</span>
+            <span style={{ color: C.accent }}>STRONG</span>
             <span style={{ color: C.statusCrit }}>MAX</span>
           </div>
           <div style={{ position: 'relative', height: 4, background: C.elev3, borderRadius: 2, marginBottom: 12 }}>
@@ -2241,7 +2241,7 @@ function FinishScreen({ dbRef, onNavigate, params }) {
             if (s) await dbOp(dbRef.current, 'sessions', 'readwrite', st => st.put({ ...s, rpe }));
           }
           onNavigate('home', {});
-        }} style={{ padding: '16px 0', background: C.accent, color: C.accentFg, border: 'none', borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600 }}>KLAAR →</button>
+        }} style={{ padding: '16px 0', background: C.accent, color: C.accentFg, border: 'none', borderRadius: 12, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600 }}>DONE →</button>
       </div>
     </div>
   );
@@ -2308,9 +2308,9 @@ function ProfileScreen({ dbRef, onNavigate, analytics }) {
       {/* Header */}
       <div style={{ padding: '44px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>PROFIEL</div>
+          <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>PROFILE</div>
           <h1 style={{ fontSize: 38, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1 }}>
-            {hasName ? profile.name.toUpperCase() : 'STEL PROFIEL IN'}
+            {hasName ? profile.name.toUpperCase() : 'SET UP PROFILE'}
           </h1>
         </div>
         <button onClick={() => setEditing(true)} style={{
@@ -2319,29 +2319,29 @@ function ProfileScreen({ dbRef, onNavigate, analytics }) {
           borderRadius: 999, fontFamily: C.mono, fontSize: 11, letterSpacing: '0.14em', cursor: 'pointer',
         }}>
           {Icon.edit(14)}
-          <span>BEWERK</span>
+          <span>EDIT</span>
         </button>
       </div>
 
       {/* Stat tiles — altijd zichtbaar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: '24px 20px 0' }}>
-        <StatTile num={streak} label="DAG STREAK" />
-        <StatTile num={sessions.length} label="SESSIES" />
-        <StatTile num={totalKcal >= 1000 ? `${(totalKcal/1000).toFixed(1)}k` : totalKcal} label="CAL TOTAAL" />
+        <StatTile num={streak} label="DAY STREAK" />
+        <StatTile num={sessions.length} label="SESSIONS" />
+        <StatTile num={totalKcal >= 1000 ? `${(totalKcal/1000).toFixed(1)}k` : totalKcal} label="CAL TOTAL" />
       </div>
 
       {/* CTA als profiel leeg */}
       {!hasName && (
         <div style={{ padding: '24px 20px 0' }}>
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '24px 20px', background: C.surface, textAlign: 'center' }}>
-            <div style={{ fontWeight: 600, fontSize: 17, marginBottom: 8 }}>Stel je profiel in</div>
+            <div style={{ fontWeight: 600, fontSize: 17, marginBottom: 8 }}>Set up your profile</div>
             <div style={{ color: C.secondary, marginBottom: 20, lineHeight: 1.6, fontSize: 14 }}>
-              Voor BMI, gewichtsdoel en calorieën
+              For BMI, weight goal and calories
             </div>
             <button onClick={() => setEditing(true)} style={{
               padding: '14px 24px', background: C.accent, color: C.accentFg, border: 'none', borderRadius: 12,
               fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600, cursor: 'pointer',
-            }}>BEGIN</button>
+            }}>START</button>
           </div>
         </div>
       )}
@@ -2351,7 +2351,7 @@ function ProfileScreen({ dbRef, onNavigate, analytics }) {
         <section style={{ padding: '32px 20px 0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
             <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>BMI</span>
-            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: bmiCat.label === 'GEZOND' ? C.accent : C.text }}>{bmiCat.label}</span>
+            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: bmiCat.label === 'HEALTHY' ? C.accent : C.text }}>{bmiCat.label}</span>
           </div>
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, background: C.surface }}>
             <div style={{ fontSize: 48, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: 16, fontFamily: C.mono }}>
@@ -2378,16 +2378,16 @@ function ProfileScreen({ dbRef, onNavigate, analytics }) {
       {hasGoal && (
         <section style={{ padding: '24px 20px 0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>GEWICHTSDOEL</span>
+            <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.muted }}>WEIGHT GOAL</span>
             <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: goalReached ? C.statusGo : C.accent }}>
-              {goalReached ? 'DOEL BEREIKT 🎯' : `${goalPct}%`}
+              {goalReached ? 'GOAL REACHED 🎯' : `${goalPct}%`}
             </span>
           </div>
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, background: C.surface }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 18 }}>
               <GoalCol label="START" value={`${profile.weightStart}kg`} />
-              <GoalCol label="NU"    value={`${profile.weight}kg`} highlight />
-              <GoalCol label="DOEL"  value={`${profile.weightGoal}kg`} align="right" />
+              <GoalCol label="NOW"   value={`${profile.weight}kg`} highlight />
+              <GoalCol label="GOAL"  value={`${profile.weightGoal}kg`} align="right" />
             </div>
             <div style={{ position: 'relative', height: 6, background: C.elev3, borderRadius: 3, marginBottom: 12 }}>
               <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${goalPct}%`, background: C.accent, borderRadius: 3 }} />
@@ -2395,10 +2395,10 @@ function ProfileScreen({ dbRef, onNavigate, analytics }) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.06em' }}>
               <span style={{ color: C.statusGo }}>
-                -{(profile.weightStart - profile.weight).toFixed(1)} kg afgevallen
+                -{(profile.weightStart - profile.weight).toFixed(1)} kg lost
               </span>
               <span style={{ color: C.muted }}>
-                {Math.max(0, profile.weight - profile.weightGoal).toFixed(1)} kg te gaan
+                {Math.max(0, profile.weight - profile.weightGoal).toFixed(1)} kg to go
               </span>
             </div>
           </div>
@@ -2407,19 +2407,19 @@ function ProfileScreen({ dbRef, onNavigate, analytics }) {
 
       {/* Persoonlijk — altijd zichtbaar */}
       <section style={{ padding: '32px 20px 0' }}>
-          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 12 }}>PERSOONLIJK</div>
+          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 12 }}>PERSONAL</div>
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden' }}>
-            <PersonalRow label="LEEFTIJD" value={profile?.age    ? `${profile.age} jaar`      : '—'} />
-            <PersonalRow label="GESLACHT" value={profile?.gender ? profile.gender.toUpperCase() : '—'} />
-            <PersonalRow label="LENGTE"   value={profile?.height ? `${profile.height} cm` : '—'} />
-            <PersonalRow label="GEWICHT"  value={profile?.weight ? `${profile.weight} kg` : '—'} last />
+            <PersonalRow label="AGE"    value={profile?.age    ? `${profile.age} years`     : '—'} />
+            <PersonalRow label="GENDER" value={profile?.gender ? (({ man: 'MALE', vrouw: 'FEMALE', anders: 'OTHER' }[profile.gender]) || profile.gender.toUpperCase()) : '—'} />
+            <PersonalRow label="HEIGHT" value={profile?.height ? `${profile.height} cm` : '—'} />
+            <PersonalRow label="WEIGHT" value={profile?.weight ? `${profile.weight} kg` : '—'} last />
           </div>
         </section>
-      {/* Sessiegeschiedenis */}
+      {/* Session history */}
       <section style={{ padding: '32px 20px 0' }}>
-        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 12 }}>RECENTE SESSIES</div>
+        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 12 }}>RECENT SESSIONS</div>
         {sessions.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '24px 0', fontFamily: C.mono, color: C.muted, fontSize: 12, letterSpacing: '0.1em' }}>Nog geen sessies afgerond.</div>
+          <div style={{ textAlign: 'center', padding: '24px 0', fontFamily: C.mono, color: C.muted, fontSize: 12, letterSpacing: '0.1em' }}>No sessions completed yet.</div>
         ) : (
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden' }}>
             {sessions
@@ -2430,11 +2430,11 @@ function ProfileScreen({ dbRef, onNavigate, analytics }) {
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 500, marginBottom: 3 }}>{s.routineName}</div>
                   <div style={{ fontFamily: C.mono, color: C.secondary, fontSize: 12, letterSpacing: '0.06em' }}>
-                    {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} OEF · {Math.floor(s.duration / 60)}:{String(s.duration % 60).padStart(2, '0')} MIN
+                    {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} EX · {Math.floor(s.duration / 60)}:{String(s.duration % 60).padStart(2, '0')} MIN
                   </div>
                 </div>
                 <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 11, textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
-                  {new Date(s.completedAt).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}
+                  {new Date(s.completedAt).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
                 </div>
               </div>
             ))}
@@ -2493,7 +2493,7 @@ function PersonalRow({ label, value, last }) {
 function ProfileEditModal({ profile, onSave, onClose }) {
   const [name,         setName]         = useState(profile?.name         || '');
   const [age,          setAge]          = useState(profile?.age          || '');
-  const [gender,       setGender]       = useState(profile?.gender       || 'man');
+  const [gender,       setGender]       = useState(({ man: 'male', vrouw: 'female', anders: 'other' }[profile?.gender]) || profile?.gender || 'male');
   const [height,       setHeight]       = useState(profile?.height      || '');
   const [weight,       setWeight]       = useState(profile?.weight      || '');
   const [startWeight,  setStartWeight]  = useState(profile?.weightStart || '');
@@ -2501,10 +2501,10 @@ function ProfileEditModal({ profile, onSave, onClose }) {
   const [error,        setError]        = useState('');
 
   const handleSave = () => {
-    if (!name.trim())                      { setError('Naam is verplicht.');             return; }
-    if (!age || parseInt(age) <= 0)        { setError('Leeftijd is verplicht.');         return; }
-    if (!height || parseInt(height) <= 0)  { setError('Lengte is verplicht.');           return; }
-    if (!weight || parseFloat(weight) <= 0){ setError('Gewicht is verplicht.');          return; }
+    if (!name.trim())                      { setError('Name is required.');   return; }
+    if (!age || parseInt(age) <= 0)        { setError('Age is required.');    return; }
+    if (!height || parseInt(height) <= 0)  { setError('Height is required.'); return; }
+    if (!weight || parseFloat(weight) <= 0){ setError('Weight is required.'); return; }
     setError('');
     onSave({
       name: name.trim(),
@@ -2538,7 +2538,7 @@ function ProfileEditModal({ profile, onSave, onClose }) {
         border: `1px solid ${C.border}`, padding: '20px 20px 32px',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <h2 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>PROFIEL BEWERKEN</h2>
+          <h2 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>EDIT PROFILE</h2>
           <button onClick={onClose} style={{
             width: 36, height: 36, borderRadius: '50%', border: `1px solid ${C.border}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.secondary, background: 'none',
@@ -2547,46 +2547,46 @@ function ProfileEditModal({ profile, onSave, onClose }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <label style={labelStyle}>NAAM</label>
-            <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Je naam" />
+            <label style={labelStyle}>NAME</label>
+            <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Your name" />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
-              <label style={labelStyle}>LEEFTIJD</label>
+              <label style={labelStyle}>AGE</label>
               <input style={inputStyle} type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="34" />
             </div>
             <div>
-              <label style={labelStyle}>GESLACHT</label>
+              <label style={labelStyle}>GENDER</label>
               <select style={{ ...inputStyle, appearance: 'auto' }} value={gender} onChange={e => setGender(e.target.value)}>
-                <option value="man">Man</option>
-                <option value="vrouw">Vrouw</option>
-                <option value="anders">Anders</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
               </select>
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
-              <label style={labelStyle}>LENGTE (CM)</label>
+              <label style={labelStyle}>HEIGHT (CM)</label>
               <input style={inputStyle} type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="198" />
             </div>
             <div>
-              <label style={labelStyle}>GEWICHT (KG)</label>
+              <label style={labelStyle}>WEIGHT (KG)</label>
               <input style={inputStyle} type="number" step="0.1" value={weight} onChange={e => setWeight(e.target.value)} placeholder="110" />
             </div>
           </div>
 
           <div style={{ height: 1, background: C.border, margin: '4px 0' }} />
-          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted }}>GEWICHTSDOEL (OPTIONEEL)</div>
+          <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.12em', color: C.muted }}>WEIGHT GOAL (OPTIONAL)</div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
-              <label style={labelStyle}>STARTGEWICHT</label>
+              <label style={labelStyle}>START WEIGHT</label>
               <input style={inputStyle} type="number" step="0.1" value={startWeight} onChange={e => setStartWeight(e.target.value)} placeholder="110" />
             </div>
             <div>
-              <label style={labelStyle}>DOELGEWICHT</label>
+              <label style={labelStyle}>TARGET WEIGHT</label>
               <input style={inputStyle} type="number" step="0.1" value={targetWeight} onChange={e => setTargetWeight(e.target.value)} placeholder="95" />
             </div>
           </div>
@@ -2598,7 +2598,7 @@ function ProfileEditModal({ profile, onSave, onClose }) {
             border: 'none', borderRadius: 12,
             fontFamily: C.mono, fontSize: 13, letterSpacing: '0.16em', fontWeight: 600,
             cursor: 'pointer',
-          }}>OPSLAAN</button>
+          }}>SAVE</button>
         </div>
       </div>
     </div>
@@ -2630,16 +2630,16 @@ function HistoryScreen({ dbRef }) {
 
       {/* Header */}
       <header style={{ padding: '44px 20px 20px' }}>
-        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>MIJN</div>
+        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>MY</div>
         <h1 style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 0.95 }}>STATS</h1>
       </header>
 
       {/* Stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, padding: '0 20px 24px' }}>
         {[
-          { label: 'SESSIES', value: sessions.length },
+          { label: 'SESSIONS', value: sessions.length },
           { label: 'STREAK', value: `${streak}d` },
-          { label: 'TOTAAL', value: `${Math.floor(totalTime/60)}m` },
+          { label: 'TOTAL', value: `${Math.floor(totalTime/60)}m` },
         ].map(({ label, value }) => (
           <div key={label} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '14px 10px', textAlign: 'center' }}>
             <div style={{ fontFamily: C.mono, fontSize: 26, fontWeight: 600, letterSpacing: '-0.03em', color: C.accent, lineHeight: 1, marginBottom: 6 }}>{value}</div>
@@ -2649,7 +2649,7 @@ function HistoryScreen({ dbRef }) {
       </div>
 
       {sessions.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '60px 0', fontFamily: C.mono, color: C.muted, fontSize: 12, letterSpacing: '0.1em' }}>Nog geen sessies afgerond.</div>
+        <div style={{ textAlign: 'center', padding: '60px 0', fontFamily: C.mono, color: C.muted, fontSize: 12, letterSpacing: '0.1em' }}>No sessions completed yet.</div>
       )}
 
       <div style={{ padding: '0 20px' }}>
@@ -2658,11 +2658,11 @@ function HistoryScreen({ dbRef }) {
             <div>
               <div style={{ fontSize: 17, fontWeight: 500, marginBottom: 4 }}>{s.routineName}</div>
               <div style={{ fontFamily: C.mono, color: C.secondary, fontSize: 14, letterSpacing: '0.06em' }}>
-                {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} OEF · {s.mode === 'reps' ? `${Object.keys(s.stepResults || s.completedReps || {}).length} sets` : `${Math.floor(s.duration/60)}:${String(s.duration%60).padStart(2,'0')} MIN`} · {(s.mode || 'time').toUpperCase()}
+                {LEVELS[s.levelIdx]} · {s.exercises?.length || 0} EX · {s.mode === 'reps' ? `${Object.keys(s.stepResults || s.completedReps || {}).length} sets` : `${Math.floor(s.duration/60)}:${String(s.duration%60).padStart(2,'0')} MIN`} · {(s.mode || 'time').toUpperCase()}
               </div>
             </div>
             <div style={{ fontFamily: C.mono, color: C.muted, fontSize: 12, textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
-              {new Date(s.completedAt).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}
+              {new Date(s.completedAt).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
             </div>
           </div>
         ))}
@@ -2677,7 +2677,7 @@ function HistoryScreen({ dbRef }) {
 function Loader() {
   return (
     <div style={{ color: C.muted, textAlign: 'center', paddingTop: 100, fontSize: 11, letterSpacing: '0.3em', fontFamily: C.mono }}>
-      LADEN...
+      LOADING...
     </div>
   );
 }
@@ -2733,8 +2733,8 @@ function SettingsScreen({ dbRef, onNavigate }) {
   };
 
   const handleClearData = async () => {
-    if (!window.confirm('Alle data verwijderen? Dit kan NIET ongedaan worden gemaakt.')) return;
-    if (!window.confirm('Laatste waarschuwing: alle sessies, routines en profiel worden gewist.')) return;
+    if (!window.confirm('Delete all data? This CANNOT be undone.')) return;
+    if (!window.confirm('Final warning: all sessions, routines and profile will be erased.')) return;
     const db = dbRef.current;
     for (const store of ['routines', 'sessions', 'profile', 'events']) {
       await new Promise((res, rej) => {
@@ -2746,7 +2746,7 @@ function SettingsScreen({ dbRef, onNavigate }) {
     window.location.reload();
   };
 
-  const DAYS_NL = { mon: 'MA', tue: 'DI', wed: 'WO', thu: 'DO', fri: 'VR', sat: 'ZA', sun: 'ZO' };
+  const DAYS_EN = { mon: 'MON', tue: 'TUE', wed: 'WED', thu: 'THU', fri: 'FRI', sat: 'SAT', sun: 'SUN' };
 
   const sectionLabel = (txt) => (
     <div style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted, marginBottom: 10 }}>{txt}</div>
@@ -2779,14 +2779,14 @@ function SettingsScreen({ dbRef, onNavigate }) {
     <div style={{ background: C.bg, color: C.text, minHeight: '100vh', paddingBottom: 'calc(var(--tab-h) + 24px)', fontFamily: C.font }}>
       <header style={{ padding: '44px 20px 28px' }}>
         <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.16em', color: C.muted, marginBottom: 8 }}>APP</div>
-        <h1 style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 0.95 }}>INSTELLINGEN</h1>
+        <h1 style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 0.95 }}>SETTINGS</h1>
       </header>
 
       <div style={{ padding: '0 20px' }}>
 
         {sectionLabel('TRAINING')}
         {card(<>
-          {row('TRAININGSNIVEAU', (
+          {row('TRAINING LEVEL', (
             <div style={{ display: 'flex', gap: 6 }}>
               {[['beginner','BEG'], ['intermediate','MID'], ['expert','EXP']].map(([key, short]) => (
                 <button key={key} onClick={() => save({ level: key })} style={{
@@ -2799,22 +2799,22 @@ function SettingsScreen({ dbRef, onNavigate }) {
               ))}
             </div>
           ))}
-          {row('GELUID', toggle(soundOn, () => save({ sound: !soundOn })))}
-          {row('SCHERM AAN HOUDEN', toggle(wakeLock, () => save({ wakelock: !wakeLock })), true)}
+          {row('SOUND', toggle(soundOn, () => save({ sound: !soundOn })))}
+          {row('KEEP SCREEN ON', toggle(wakeLock, () => save({ wakelock: !wakeLock })), true)}
         </>)}
 
-        {sectionLabel('NOTIFICATIES')}
+        {sectionLabel('NOTIFICATIONS')}
         {card(<>
-          {row('HERINNERINGEN', toggle(notifEnabled, () => save({ notificationsEnabled: !notifEnabled })), !notifEnabled)}
-          {notifEnabled && row('TIJD', (
+          {row('REMINDERS', toggle(notifEnabled, () => save({ notificationsEnabled: !notifEnabled })), !notifEnabled)}
+          {notifEnabled && row('TIME', (
             <input type="time" value={notifTime} onChange={e => save({ notificationTime: e.target.value })} style={{
               background: C.elev2, border: `1px solid ${C.border}`, color: C.text,
               padding: '6px 10px', borderRadius: 6, fontFamily: C.mono, fontSize: 13,
             }} />
           ))}
-          {notifEnabled && row('DAGEN', (
+          {notifEnabled && row('DAYS', (
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-              {Object.entries(DAYS_NL).map(([d, label]) => (
+              {Object.entries(DAYS_EN).map(([d, label]) => (
                 <button key={d} onClick={() => {
                   const days = notifDays.includes(d) ? notifDays.filter(x => x !== d) : [...notifDays, d];
                   save({ notificationDays: days });
@@ -2832,21 +2832,21 @@ function SettingsScreen({ dbRef, onNavigate }) {
 
         {sectionLabel('DATA')}
         {card(<>
-          {row('EXPORTEER SESSIES', (
+          {row('EXPORT SESSIONS', (
             <button onClick={handleExportData} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.borderMd}`, background: 'transparent', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.text, cursor: 'pointer' }}>DOWNLOAD</button>
           ))}
-          {row('WIS ALLE DATA', (
-            <button onClick={handleClearData} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.statusCrit}`, background: 'transparent', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.statusCrit, cursor: 'pointer' }}>VERWIJDER</button>
+          {row('CLEAR ALL DATA', (
+            <button onClick={handleClearData} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.statusCrit}`, background: 'transparent', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.statusCrit, cursor: 'pointer' }}>DELETE</button>
           ), true)}
         </>)}
 
         {sectionLabel('ACCOUNT')}
         {card(<>
-          {row('ONBOARDING OPNIEUW', (
+          {row('RESTART ONBOARDING', (
             <button onClick={handleResetOnboarding} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.borderMd}`, background: 'transparent', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.secondary, cursor: 'pointer' }}>START</button>
           ), !DEV_MODE)}
           {DEV_MODE && row('DEBUG MODE', (
-            <span style={{ fontFamily: C.mono, fontSize: 11, color: C.accent }}>ACTIEF</span>
+            <span style={{ fontFamily: C.mono, fontSize: 11, color: C.accent }}>ACTIVE</span>
           ), true)}
         </>)}
 
@@ -2859,8 +2859,8 @@ function BottomNav({ current, onNavigate }) {
   const tabs = [
     { id: 'home',     label: 'HOME',     icon: Icon.home     },
     { id: 'routines', label: 'ROUTINES', icon: Icon.list     },
-    { id: 'settings', label: 'INST.',    icon: Icon.settings },
-    { id: 'profile',  label: 'PROFIEL',  icon: Icon.user     },
+    { id: 'settings', label: 'SETTINGS', icon: Icon.settings },
+    { id: 'profile',  label: 'PROFILE',  icon: Icon.user     },
   ];
   return (
     <div style={{
@@ -2972,10 +2972,10 @@ function OnboardingScreen({ dbRef, onComplete }) {
       <div style={{ padding: '52px 20px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         {step > 1 ? (
           <button onClick={goBack} style={{ background: 'none', border: 'none', color: C.muted, display: 'flex', alignItems: 'center', gap: 6, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.10em', cursor: 'pointer', padding: 0 }}>
-            {Icon.back(16)} TERUG
+            {Icon.back(16)} BACK
           </button>
         ) : <div />}
-        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.22em', color: C.muted }}>STAP {step} / 10</div>
+        <div style={{ fontFamily: C.mono, fontSize: 12, letterSpacing: '0.22em', color: C.muted }}>STEP {step} / 10</div>
       </div>
 
       {/* Progress bar */}
@@ -2990,115 +2990,115 @@ function OnboardingScreen({ dbRef, onComplete }) {
 
         {step === 1 && (
           <>
-            <h1 style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 16 }}>Welkom bij TrainR.</h1>
-            <p style={{ fontSize: 16, color: C.secondary, lineHeight: 1.6, flex: 1 }}>Stel je profiel in. Duurt 1 minuut.</p>
-            <div style={{ paddingBottom: 40 }}>{ctaBtn('STARTEN →', goNext)}</div>
+            <h1 style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 16 }}>Welcome to TrainR.</h1>
+            <p style={{ fontSize: 16, color: C.secondary, lineHeight: 1.6, flex: 1 }}>Set up your profile. Takes about 1 minute.</p>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('START →', goNext)}</div>
           </>
         )}
 
         {step === 2 && (
           <>
-            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Hoe heet je?</h1>
-            <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Voornaam" />
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>What's your name?</h1>
+            <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="First name" />
             <div style={{ flex: 1 }} />
-            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !name.trim())}</div>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !name.trim())}</div>
           </>
         )}
 
         {step === 3 && (
           <>
-            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Wat is je geslacht?</h1>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>What's your gender?</h1>
             <div style={{ display: 'flex', gap: 12 }}>
-              {tileBtn(gender === 'man', () => setGender('man'), 'MAN')}
-              {tileBtn(gender === 'vrouw', () => setGender('vrouw'), 'VROUW')}
+              {tileBtn(gender === 'male', () => setGender('male'), 'MALE')}
+              {tileBtn(gender === 'female', () => setGender('female'), 'FEMALE')}
             </div>
             <div style={{ flex: 1 }} />
-            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !gender)}</div>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !gender)}</div>
           </>
         )}
 
         {step === 4 && (
           <>
-            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Hoe oud ben je?</h1>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>How old are you?</h1>
             <input style={inputStyle} type="number" min="10" max="99" value={age} onChange={e => setAge(e.target.value)} placeholder="34" />
             <div style={{ flex: 1 }} />
-            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !age || parseInt(age) < 10 || parseInt(age) > 99)}</div>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !age || parseInt(age) < 10 || parseInt(age) > 99)}</div>
           </>
         )}
 
         {step === 5 && (
           <>
-            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Hoe lang ben je?</h1>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>How tall are you?</h1>
             <div style={{ position: 'relative' }}>
               <input style={{ ...inputStyle, paddingRight: 60 }} type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="180" />
               <span style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', fontFamily: C.mono, color: C.muted, fontSize: 16 }}>cm</span>
             </div>
             <div style={{ flex: 1 }} />
-            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !height || parseInt(height) <= 0)}</div>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !height || parseInt(height) <= 0)}</div>
           </>
         )}
 
         {step === 6 && (
           <>
-            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 12 }}>Wat weeg je nu?</h1>
-            <p style={{ fontSize: 14, color: C.muted, marginBottom: 28 }}>Wordt gebruikt voor calorieënberekening.</p>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 12 }}>What do you weigh now?</h1>
+            <p style={{ fontSize: 14, color: C.muted, marginBottom: 28 }}>Used to calculate calories burned.</p>
             <div style={{ position: 'relative' }}>
               <input style={{ ...inputStyle, paddingRight: 60 }} type="number" step="0.1" value={weight} onChange={e => setWeight(e.target.value)} placeholder="80" />
               <span style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', fontFamily: C.mono, color: C.muted, fontSize: 16 }}>kg</span>
             </div>
             <div style={{ flex: 1 }} />
-            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !weight || parseFloat(weight) <= 0)}</div>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !weight || parseFloat(weight) <= 0)}</div>
           </>
         )}
 
         {step === 7 && (
           <>
-            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 12 }}>Wat is je doelgewicht?</h1>
-            <p style={{ fontSize: 14, color: C.muted, marginBottom: 28 }}>Geen doel? Vul hetzelfde in als huidig gewicht.</p>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 12 }}>What's your target weight?</h1>
+            <p style={{ fontSize: 14, color: C.muted, marginBottom: 28 }}>No goal? Enter the same as your current weight.</p>
             <div style={{ position: 'relative' }}>
               <input style={{ ...inputStyle, paddingRight: 60 }} type="number" step="0.1" value={weightGoal} onChange={e => setWeightGoal(e.target.value)} placeholder={weight || '75'} />
               <span style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', fontFamily: C.mono, color: C.muted, fontSize: 16 }}>kg</span>
             </div>
             <div style={{ flex: 1 }} />
-            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !weightGoal)}</div>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !weightGoal)}</div>
           </>
         )}
 
         {step === 8 && (
           <>
-            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Wat is je trainingsdoel?</h1>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>What's your training goal?</h1>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {[
-                { key: 'fatloss', label: 'AFVALLEN' },
-                { key: 'muscle',  label: 'SPIEROPBOUW' },
+                { key: 'fatloss', label: 'FAT LOSS' },
+                { key: 'muscle',  label: 'MUSCLE BUILDING' },
                 { key: 'core',    label: 'CORE' },
-                { key: 'fitness', label: 'ALGEMENE FITHEID' },
+                { key: 'fitness', label: 'GENERAL FITNESS' },
               ].map(({ key, label }) => tileBtn(trainingGoal === key, () => setTrainingGoal(key), label))}
             </div>
             <div style={{ flex: 1 }} />
-            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !trainingGoal)}</div>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !trainingGoal)}</div>
           </>
         )}
 
         {step === 9 && (
           <>
-            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Hoeveel dagen per week heb je?</h1>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>How many days per week?</h1>
             <div style={{ display: 'flex', gap: 10 }}>
-              {['3', '4', '5'].map(days => tileBtn(availableDays === days, () => setAvailableDays(days), `${days} DAGEN`))}
+              {['3', '4', '5'].map(days => tileBtn(availableDays === days, () => setAvailableDays(days), `${days} DAYS`))}
             </div>
             <div style={{ flex: 1 }} />
-            <div style={{ paddingBottom: 40 }}>{ctaBtn('VOLGENDE →', goNext, !availableDays)}</div>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('NEXT →', goNext, !availableDays)}</div>
           </>
         )}
 
         {step === 10 && (
           <>
-            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>Wat is je trainingsniveau?</h1>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 32 }}>What's your training level?</h1>
             <div style={{ display: 'flex', gap: 10 }}>
               {[
-                { key: 'beginner',     label: 'BEGINNER',      desc: 'Net begonnen of lang gestopt.' },
-                { key: 'intermediate', label: 'INTER-\nMEDIATE', desc: 'Regelmatig actief, basisconditie aanwezig.' },
-                { key: 'expert',       label: 'EXPERT',        desc: 'Dagelijks sportief, hoge belasting aankunnen.' },
+                { key: 'beginner',     label: 'BEGINNER',      desc: 'Just starting, or back after a long break.' },
+                { key: 'intermediate', label: 'INTER-\nMEDIATE', desc: 'Regularly active, base fitness in place.' },
+                { key: 'expert',       label: 'EXPERT',        desc: 'Active daily, can handle high training loads.' },
               ].map(({ key, label, desc }) => (
                 tileBtn(level === key, () => setLevel(key), (
                   <>
@@ -3109,7 +3109,7 @@ function OnboardingScreen({ dbRef, onComplete }) {
               ))}
             </div>
             <div style={{ flex: 1 }} />
-            <div style={{ paddingBottom: 40 }}>{ctaBtn('KLAAR → STARTEN', finish, !level)}</div>
+            <div style={{ paddingBottom: 40 }}>{ctaBtn('DONE → START', finish, !level)}</div>
           </>
         )}
 
@@ -3155,14 +3155,14 @@ function ExerciseDetailScreen({ exercise, onBack, dbRef }) {
 
         {/* Spiergroepen */}
         <div style={{ marginBottom: 28 }}>
-          <Label>SPIERGROEPEN</Label>
+          <Label>MUSCLE GROUPS</Label>
           <BodyDiagram exercise={exercise} height={200} />
           <MuscleTags exercise={exercise} />
         </div>
 
         {/* Hoe uitvoeren */}
         <div style={{ marginBottom: 28 }}>
-          <Label>HOE UITVOEREN</Label>
+          <Label>HOW TO PERFORM</Label>
           <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 18px', background: C.surface }}>
             <p style={{ fontSize: 15, color: C.text, lineHeight: 1.65, marginBottom: line2 ? 12 : 0 }}>{line1}</p>
             {line2 && <p style={{ fontSize: 14, color: C.secondary, lineHeight: 1.65 }}>{line2}</p>}
@@ -3171,7 +3171,7 @@ function ExerciseDetailScreen({ exercise, onBack, dbRef }) {
 
         {/* Niveau tiles */}
         <div style={{ marginBottom: 28 }}>
-          <Label>NIVEAU</Label>
+          <Label>LEVEL</Label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
             {LEVELS.map((lv, i) => (
               <div key={lv} style={{ padding: '16px 10px', border: `1px solid ${C.border}`, borderRadius: 12, textAlign: 'center', background: C.surface }}>
@@ -3186,10 +3186,10 @@ function ExerciseDetailScreen({ exercise, onBack, dbRef }) {
 
         {/* Gebruik in routines */}
         <div style={{ marginBottom: 28 }}>
-          <Label>GEBRUIK IN ROUTINES</Label>
+          <Label>USED IN ROUTINES</Label>
           {usedIn.length === 0 ? (
             <div style={{ color: C.muted, fontFamily: C.mono, fontSize: 13, letterSpacing: '0.08em', padding: '12px 0' }}>
-              Nog niet gebruikt in een routine
+              Not used in any routine yet
             </div>
           ) : (
             <div style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.surface, overflow: 'hidden' }}>
@@ -3277,16 +3277,16 @@ function App() {
         const req = await Notification.requestPermission();
         await setProfileField(dbRef.current, 'notificationPermissionState', req);
         await trackEvent('reminder_permission_state', { state: req });
-        if (req === 'denied') alert('Notificaties zijn geweigerd. Zet permissie aan in je browserinstellingen.');
+        if (req === 'denied') alert('Notifications are blocked. Enable permission in your browser settings.');
       } else if (permission === 'denied') {
-        alert('Notificaties zijn geweigerd. Zet permissie aan in je browserinstellingen.');
+        alert('Notifications are blocked. Enable permission in your browser settings.');
         return;
       }
       if (Notification.permission !== 'granted') return;
-      new Notification('TRAINR reminder', { body: `Training gepland om ${prof.notificationTime || '19:00'}.` });
+      new Notification('TRAINR reminder', { body: `Workout scheduled at ${prof.notificationTime || '19:00'}.` });
       await trackEvent('reminder_scheduled', { time: prof.notificationTime || '19:00', days: prof.notificationDays || [] });
       setTimeout(async () => {
-        new Notification('Sessie gemist?', { body: 'Doe alsnog een korte sessie vandaag.' });
+        new Notification('Missed your session?', { body: 'Still time for a short workout today.' });
         await trackEvent('reminder_opened', { type: 'followup_missed_session' });
       }, 4000);
     })();

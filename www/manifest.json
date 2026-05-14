@@ -2,7 +2,7 @@
   "id": "/",
   "name": "TrainR",
   "short_name": "TrainR",
-  "description": "Thuistraining zonder materiaal. Bouw routines, volg je voortgang.",
+  "description": "Home training without equipment. Build routines, track your progress.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
