@@ -5,6 +5,27 @@ Nieuwste bovenaan.
 
 ---
 
+## 2026-05-14
+
+### UI volledig vertaald naar Engels
+**Bestanden:** `www/index.html`, `www/manifest.json`
+
+Alle gebruikerszichtbare teksten omgezet van Nederlands naar Engels. Directe vervangingen op de plek waar ze staan, geen i18n-laag toegevoegd.
+
+**Scope:**
+- `<html lang>` `nl` → `en`; `manifest.json` description vertaald.
+- `EXERCISES`: 40 namen en 47 beschrijvingen handmatig vertaald, elke zin nagelopen op vakterm en spelling.
+- `BUILTIN_PLANS`, `COACH_TEMPLATES`, `BODY_PART_WORKOUTS`, `GOAL_LABEL`/`LEVEL_LABEL`, `MET_BY_CAT`/`MET_SESSION`/`CAT_COLORS`: categoriekey `Armen` → `Arms` (door hele bestand), workoutnamen en goal/level-labels vertaald.
+- BMI-labels: `ONDERGEWICHT`/`GEZOND`/`OVERGEWICHT`/`OBESITAS` → `UNDERWEIGHT`/`HEALTHY`/`OVERWEIGHT`/`OBESE`.
+- Spierlabels in `MUSCLE_CONFIG`, `VOOR`/`ACHTER` → `FRONT`/`BACK`, `PRIMAIR`/`SECUNDAIR` → `PRIMARY`/`SECONDARY`.
+- Alle schermen: Home, Plan, Routines, Builder, Timer (idle/countdown/running/paused), Finish, Profile, History, Settings, Onboarding (10 stappen), ExerciseDetail, BottomNav.
+- `toLocaleDateString('nl-NL')` → `'en-US'`.
+- `MSG_RESET_ONBOARDING` + alle confirm/alert-strings vertaald.
+- Gender-waardes in onboarding/profile-edit: `man`/`vrouw`/`anders` → `male`/`female`/`other`.
+- Notification reminder body en follow-up vertaald.
+
+---
+
 ## 2026-05-12
 
 ### 21:35 — Coach-gepersonaliseerde 3 home-trainingen
