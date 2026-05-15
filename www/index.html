@@ -596,6 +596,8 @@ const EXERCISES = [
   { id: 'hollow-body',     cat: 'Core',       name: 'Hollow body hold',         desc: 'On your back, legs and shoulders off the floor, hold your body like a banana.\nMax tension through the core, keep lower back flat.',       times: [15, 30, 45], muscles: { primary: ['abs'], secondary: ['hip_flexors', 'lower_back'] } },
   { id: 'leg-raise',       cat: 'Core',       name: 'Leg raises',               desc: 'On your back, lift straight legs to 90° and slowly lower them back down.\nPress your lower back into the floor, legs just above the floor at the bottom.', times: [25, 40, 55], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['lower_back'] } },
   { id: 'russian-twist',   cat: 'Core',       name: 'Russian twist',            desc: 'Seated with knees slightly bent, rotate your torso left and right in turn.\nFeet off the floor for more difficulty, keep your back straight.', times: [25, 40, 55], muscles: { primary: ['obliques'], secondary: ['abs', 'hip_flexors'] } },
+  { id: 'copenhagen-plank',cat: 'Core',       name: 'Copenhagen plank',         desc: 'On your side, top foot resting on a chair, bottom leg lifted toward the top foot.\nKeep hips up and stacked, hold the line from head to feet.',          times: [20, 30, 45], muscles: { primary: ['quads'], secondary: ['obliques', 'glutes', 'abs'] } },
+  { id: 'hollow-rock',     cat: 'Core',       name: 'Hollow rocks',             desc: 'In a hollow-body position, rock back and forth from shoulders to hips.\nKeep lower back glued to the floor and the rocking motion small and tight.', times: [20, 30, 45], muscles: { primary: ['abs'], secondary: ['hip_flexors', 'lower_back'] } },
   // ARMS
   { id: 'pushup',          cat: 'Arms',       name: 'Push-ups',                 desc: 'Hands shoulder-width, lower your chest toward the floor and press up.\nElbows about 45° from the body, hold your body like a straight plank.',  times: [25, 45, 70], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
   { id: 'incline-pushup',  cat: 'Arms',       name: 'Incline push-ups',         desc: 'Hands on a chair or table, body angled forward, push-up motion.\nAn easier variant — same technique as a regular push-up.',                  times: [30, 45, 65], muscles: { primary: ['chest'], secondary: ['shoulders', 'triceps'] } },
@@ -612,6 +614,7 @@ const EXERCISES = [
   { id: 'wide-pushup',     cat: 'Arms',       name: 'Wide push-ups',            desc: 'Hands well outside shoulder-width, lower your chest and press up.\nMore emphasis on the outer chest — elbows flare slightly.',             times: [25, 40, 55], muscles: { primary: ['chest'], secondary: ['triceps', 'shoulders'] } },
   { id: 'floor-dip',       cat: 'Arms',       name: 'Triceps floor dips',       desc: 'Sit on your hands and heels, hips up, bend and straighten your elbows.\nKeep elbows pointing straight back, hold hips as high as possible.', times: [25, 40, 55], muscles: { primary: ['triceps'], secondary: ['shoulders', 'chest'] } },
   { id: 'superman-pull',   cat: 'Arms',       name: 'Superman pull',            desc: 'Face down, arms stretched out in front, lift arms and chest off the floor, then lower.\nSqueeze your shoulder blades at the top, slow and controlled.', times: [25, 35, 50], muscles: { primary: ['lats', 'traps'], secondary: ['lower_back', 'shoulders'] } },
+  { id: 'archer-pushup',   cat: 'Arms',       name: 'Archer push-ups',          desc: 'In a wide push-up, shift your weight onto one arm while the other stays straight to the side.\nAlternate sides each rep, control the descent — a step toward the one-arm push-up.', times: [25, 35, 55], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs', 'lats'] } },
   // LEGS
   { id: 'squats',          cat: 'Legs',       name: 'Squats',                   desc: 'Feet shoulder-width, hips back and down, then drive up.\nBack straight, knees over toes, come up explosively.',                            times: [30, 45, 65], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'lower_back', 'calves'] } },
   { id: 'jump-squat',      cat: 'Legs',       name: 'Jump squats',              desc: 'Perform a squat and from the bottom jump up explosively.\nLand soft with bent knees, go straight into the next rep.',                       times: [20, 35, 50], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
@@ -623,6 +626,10 @@ const EXERCISES = [
   { id: 'sumo-squat',      cat: 'Legs',       name: 'Sumo squat',               desc: 'Feet wide apart, toes angled out, drop deep through the knees.\nBack straight, knees over toes, engage your inner thighs on the way up.', times: [25, 45, 65], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
   { id: 'step-up',         cat: 'Legs',       name: 'Step-up (chair)',          desc: 'Step onto a chair or stair with one foot and lift the other leg up.\nFoot fully on the surface, drive up through the working leg.',       times: [25, 45, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
   { id: 'calf-raise',      cat: 'Legs',       name: 'Calf raises',              desc: 'Stand upright, rise onto your toes and slowly lower back down.\nUse the edge of a step for more range — slow on the way down.',           times: [25, 40, 60], muscles: { primary: ['calves'], secondary: [] } },
+  { id: 'reverse-lunge',   cat: 'Legs',       name: 'Reverse lunges',           desc: 'Step backward into a lunge, alternating legs each rep.\nFront knee over ankle, back knee just off the floor — easier on the knees than forward lunges.', times: [25, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'hip-thrust',      cat: 'Legs',       name: 'Hip thrust (floor)',       desc: 'Shoulders on a chair or couch, feet flat, drive your hips up high.\nSqueeze your glutes hard at the top, lower with control — heavier glute load than a bridge.', times: [25, 45, 60], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'quads'] } },
+  { id: 'nordic-curl-neg', cat: 'Legs',       name: 'Nordic curl negatives',    desc: 'Kneel with your feet anchored under a couch, lower your torso forward slowly.\nUse your hands to push yourself back up — fight the descent with your hamstrings.',  times: [25, 45, 65], muscles: { primary: ['hamstrings'], secondary: ['glutes', 'lower_back', 'calves'] } },
+  { id: 'cossack-squat',   cat: 'Legs',       name: 'Cossack squats',           desc: 'Stand wide, shift weight onto one leg and squat low while the other leg stays straight.\nKeep chest up, alternate sides — opens the hips and inner thighs.',          times: [30, 45, 65], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves', 'lower_back'] } },
   // FULL BODY
   { id: 'burpees',         cat: 'Full Body',  name: 'Burpees',                  desc: 'From standing, drop into a plank, push-up, jump back up.\nFluid motion, arms above your head on the jump.',                                 times: [25, 40, 60], muscles: { primary: ['quads', 'chest'], secondary: ['shoulders', 'triceps', 'abs', 'glutes', 'calves'] } },
   { id: 'jumping-jacks',   cat: 'Full Body',  name: 'Jumping jacks',            desc: 'Jump while spreading legs and raising arms overhead, then return.\nKeep a steady tempo, arms and legs moving together.',                  times: [30, 45, 60], muscles: { primary: ['shoulders', 'calves'], secondary: ['quads', 'glutes'] } },
@@ -633,6 +640,7 @@ const EXERCISES = [
   { id: 'bear-crawl',      cat: 'Full Body',  name: 'Bear crawl',               desc: 'On hands and feet (knees just off the floor), crawl forward and backward.\nHips low and stable, core tight, small controlled steps.',     times: [20, 35, 50], muscles: { primary: ['shoulders', 'abs'], secondary: ['quads', 'hip_flexors'] } },
   { id: 'inchworm',        cat: 'Full Body',  name: 'Inchworm',                 desc: 'From standing, walk your hands out to a plank, then walk your feet up to your hands.\nSteady tempo, full extension at the start and end.', times: [25, 40, 60], muscles: { primary: ['abs', 'shoulders'], secondary: ['hamstrings', 'chest'] } },
   { id: 'lateral-jump',    cat: 'Full Body',  name: 'Lateral jumps',            desc: 'Jump sideways from one leg to the other.\nLand soft with bent knee, jump straight back to the other side.',                                times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'abs'] } },
+  { id: 'wall-walk',       cat: 'Full Body',  name: 'Wall walks',               desc: 'From a plank with your feet facing a wall, walk your feet up and your hands back toward the wall.\nGo as high as you can hold, then walk back down with control.', times: [30, 50, 70], muscles: { primary: ['shoulders', 'abs'], secondary: ['triceps', 'lower_back', 'lats'] } },
 ];
 const DEFAULT_TARGETS_BY_MODE = {
   time: { beginner: 20, intermediate: 40, expert: 60 },
@@ -640,7 +648,9 @@ const DEFAULT_TARGETS_BY_MODE = {
 };
 const EXERCISE_CONFIGS = {
   // CORE
-  'dead-bug':       { mode: 'reps', targets: { beginner: 8,  intermediate: 12, expert: 16 } },
+  'dead-bug':         { mode: 'reps', targets: { beginner: 8,  intermediate: 12, expert: 16 } },
+  'copenhagen-plank': { mode: 'time', targets: { beginner: 20, intermediate: 30, expert: 45 } },
+  'hollow-rock':      { mode: 'time', targets: { beginner: 20, intermediate: 30, expert: 45 } },
   plank:            { mode: 'time', targets: { beginner: 30, intermediate: 60, expert: 90 } },
   'side-l':         { mode: 'time', targets: { beginner: 20, intermediate: 40, expert: 60 } },
   'side-r':         { mode: 'time', targets: { beginner: 20, intermediate: 40, expert: 60 } },
@@ -666,6 +676,7 @@ const EXERCISE_CONFIGS = {
   'wide-pushup':    { mode: 'reps', targets: { beginner: 8,  intermediate: 12, expert: 18 } },
   'floor-dip':      { mode: 'reps', targets: { beginner: 8,  intermediate: 12, expert: 18 } },
   'superman-pull':  { mode: 'reps', targets: { beginner: 12, intermediate: 15, expert: 20 } },
+  'archer-pushup':  { mode: 'reps', targets: { beginner: 6,  intermediate: 8,  expert: 12 } },
   // LEGS
   squats:           { mode: 'reps', targets: { beginner: 12, intermediate: 20, expert: 30 } },
   'jump-squat':     { mode: 'reps', targets: { beginner: 8,  intermediate: 12, expert: 18 } },
@@ -677,6 +688,10 @@ const EXERCISE_CONFIGS = {
   'sumo-squat':     { mode: 'reps', targets: { beginner: 12, intermediate: 18, expert: 25 } },
   'step-up':        { mode: 'reps', targets: { beginner: 10, intermediate: 16, expert: 22 } },
   'calf-raise':     { mode: 'reps', targets: { beginner: 15, intermediate: 25, expert: 40 } },
+  'reverse-lunge':  { mode: 'reps', targets: { beginner: 10, intermediate: 16, expert: 24 } },
+  'hip-thrust':     { mode: 'reps', targets: { beginner: 10, intermediate: 15, expert: 20 } },
+  'nordic-curl-neg':{ mode: 'reps', targets: { beginner: 4,  intermediate: 6,  expert: 8  } },
+  'cossack-squat':  { mode: 'reps', targets: { beginner: 8,  intermediate: 10, expert: 14 } },
   // FULL BODY
   burpees:          { mode: 'hybrid', targets: { beginner: 6,  intermediate: 10, expert: 15 } },
   'jumping-jacks':  { mode: 'time',   targets: { beginner: 30, intermediate: 45, expert: 60 } },
@@ -687,6 +702,7 @@ const EXERCISE_CONFIGS = {
   'bear-crawl':     { mode: 'time',   targets: { beginner: 20, intermediate: 35, expert: 50 } },
   inchworm:         { mode: 'reps',   targets: { beginner: 4,  intermediate: 6,  expert: 10 } },
   'lateral-jump':   { mode: 'time',   targets: { beginner: 20, intermediate: 40, expert: 60 } },
+  'wall-walk':      { mode: 'reps',   targets: { beginner: 3,  intermediate: 4,  expert: 6  } },
 };
 const EXERCISES_WITH_MODE = EXERCISES.map(ex => {
   const cfg = EXERCISE_CONFIGS[ex.id] || {};

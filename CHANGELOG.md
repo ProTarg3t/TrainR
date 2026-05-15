@@ -7,6 +7,18 @@ Nieuwste bovenaan.
 
 ## 2026-05-15
 
+### Library-uitbreiding 2025-2026: 8 nieuwe oefeningen
+**Bestanden:** `www/index.html`
+
+8 oefeningen toegevoegd om gaten in de progressie te vullen (knie-vriendelijker varianten, glute-progressies boven bridge, hamstring zonder equipment, push-progressie naar 1-arm). Library staat nu op **52 oefeningen totaal** (10 → 12 Core, 15 → 16 Arms, 10 → 14 Legs, 9 → 10 Full Body).
+
+- **Core**: `copenhagen-plank` (adductor-isolatie), `hollow-rock` (dynamische hollow-body).
+- **Arms**: `archer-pushup` (push-progressie richting 1-arm).
+- **Legs**: `reverse-lunge` (knie-vriendelijker), `hip-thrust` (glute-progressie boven bridge), `nordic-curl-neg` (hamstring negatief zonder equipment), `cossack-squat` (mobility + unilateraal).
+- **Full Body**: `wall-walk` (schouder/core/mobility).
+
+`EXERCISE_CONFIGS` aangevuld voor alle 8 (6 reps, 2 time). Spier-mapping volgt `MUSCLE_CONFIG`; adductors heeft geen aparte muscle-key dus copenhagen-plank toont `quads` primair met `obliques`/`glutes` secundair.
+
 ### Reps-mode telt automatisch af + brede herclassificatie reps/time
 **Bestanden:** `www/index.html`
 
