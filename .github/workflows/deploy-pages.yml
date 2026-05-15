@@ -1,0 +1,34 @@
+name: Deploy to GitHub Pages
+
+# Synchroniseert www/ naar de gh-pages branch zodat trainr.jeshua.eu
+# elke main-merge meekrijgt. De gh-pages branch is een deploy-artefact —
+# niet handmatig committen.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'www/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish www/ to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./www
+          publish_branch: gh-pages
+          cname: trainr.jeshua.eu
+          commit_message: "deploy: ${{ github.event.head_commit.message }}"
