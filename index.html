@@ -126,7 +126,7 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 // ================================================================
 // DB LAYER
 // ================================================================
-const VERSION = '0.3';
+const VERSION = '0.4';
 const DB_NAME = 'trainr_v1';
 const DB_VERSION = 5;
 const DEV_MODE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
@@ -1093,15 +1093,18 @@ function buildSequence(exercises, levelIdx) {
 
 function calcStreak(sessions) {
   if (!sessions.length) return 0;
-  const days = new Set(sessions.map(s => new Date(s.completedAt).toDateString()));
+  // UTC-dag i.p.v. local toDateString(): voorkomt streak-fouten bij reizen
+  // over tijdzones en bij sessies rond middernacht in een afwijkende TZ.
+  const dayKey = ts => new Date(ts).toISOString().slice(0, 10);
+  const days = new Set(sessions.map(s => dayKey(s.completedAt)));
   let count = 0;
   const d = new Date();
   // check from today
-  while (days.has(d.toDateString())) { count++; d.setDate(d.getDate() - 1); }
+  while (days.has(dayKey(d))) { count++; d.setUTCDate(d.getUTCDate() - 1); }
   // if today not done, check from yesterday
   if (count === 0) {
-    d.setDate(d.getDate() - 1);
-    while (days.has(d.toDateString())) { count++; d.setDate(d.getDate() - 1); }
+    d.setUTCDate(d.getUTCDate() - 1);
+    while (days.has(dayKey(d))) { count++; d.setUTCDate(d.getUTCDate() - 1); }
   }
   return count;
 }
@@ -1999,6 +2002,9 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
   const intervalRef = useRef(null);
   const audioCtxRef = useRef(null);
   const wakeLockRef = useRef(null);
+  // Mirror van stepResults zodat de interval-callback de actuele waarde leest
+  // i.p.v. de stale closure-snapshot (race met completeRepStep op laatste step).
+  const stepResultsRef = useRef({});
 
   useEffect(() => {
     if (params?.routine) { setRoutine(params.routine); return; }
@@ -2063,11 +2069,14 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
     intervalRef.current = setInterval(() => {
       setTimeLeft(t => {
         if (t <= 1) {
-          // Reps/hybrid timeout: default-record bevat target reps (auto-completion)
-          let finalResults = stepResults;
-          if (step && !step.isRest && (step.mode === 'reps' || step.mode === 'hybrid') && !stepResults[step.id]) {
+          // Reps/hybrid timeout: default-record bevat target reps (auto-completion).
+          // Lees via ref zodat een net daarvoor uitgevoerde completeRepStep niet wordt
+          // overschreven door een stale closure-snapshot.
+          let finalResults = stepResultsRef.current;
+          if (step && !step.isRest && (step.mode === 'reps' || step.mode === 'hybrid') && !finalResults[step.id]) {
             const target = step.targetReps || step.duration;
-            finalResults = { ...stepResults, [step.id]: { mode: step.mode, target, actual: target, completed: true } };
+            finalResults = { ...finalResults, [step.id]: { mode: step.mode, target, actual: target, completed: true } };
+            stepResultsRef.current = finalResults;
             setStepResults(finalResults);
           }
           const next = stepIdx + 1;
@@ -2141,11 +2150,16 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
     if (!step || step.isRest || (step.mode !== 'reps' && step.mode !== 'hybrid')) return;
     const actual = Number(actualInput || step.targetReps || 0);
     const record = { mode: step.mode, target: step.targetReps || step.duration, actual, completed: actual > 0 };
-    const finalResults = { ...stepResults, [step.id]: record };
+    const finalResults = { ...stepResultsRef.current, [step.id]: record };
+    stepResultsRef.current = finalResults;
     setStepResults(finalResults);
     setActualInput('');
     const next = stepIdx + 1;
     if (next >= sequence.length) {
+      // Stop het interval direct: anders kan de eerstvolgende tick met t<=1
+      // nogmaals saveSession aanroepen met auto-completion-defaults en deze
+      // record overschrijven (race-fix).
+      clearInterval(intervalRef.current);
       const dur = Math.floor((Date.now() - startTs) / 1000);
       saveSession(dur, finalResults); return;
     }
@@ -2765,19 +2779,45 @@ function ProfileEditModal({ profile, onSave, onClose }) {
   const [error,        setError]        = useState('');
 
   const handleSave = () => {
-    if (!name.trim())                      { setError('Name is required.');   return; }
-    if (!age || parseInt(age) <= 0)        { setError('Age is required.');    return; }
-    if (!height || parseInt(height) <= 0)  { setError('Height is required.'); return; }
-    if (!weight || parseFloat(weight) <= 0){ setError('Weight is required.'); return; }
+    if (!name.trim()) { setError('Name is required.'); return; }
+
+    const ageNum = parseInt(age);
+    if (!age || isNaN(ageNum) || ageNum < 10 || ageNum > 120) {
+      setError('Age must be between 10 and 120.'); return;
+    }
+    const heightNum = parseInt(height);
+    if (!height || isNaN(heightNum) || heightNum < 100 || heightNum > 250) {
+      setError('Height must be between 100 and 250 cm.'); return;
+    }
+    const weightNum = parseFloat(weight);
+    if (!weight || isNaN(weightNum) || weightNum < 30 || weightNum > 250) {
+      setError('Weight must be between 30 and 250 kg.'); return;
+    }
+
+    let startWeightNum = null;
+    if (startWeight) {
+      startWeightNum = parseFloat(startWeight);
+      if (isNaN(startWeightNum) || startWeightNum < 30 || startWeightNum > 250) {
+        setError('Start weight must be between 30 and 250 kg.'); return;
+      }
+    }
+    let targetWeightNum = null;
+    if (targetWeight) {
+      targetWeightNum = parseFloat(targetWeight);
+      if (isNaN(targetWeightNum) || targetWeightNum < 30 || targetWeightNum > 250) {
+        setError('Target weight must be between 30 and 250 kg.'); return;
+      }
+    }
+
     setError('');
     onSave({
       name: name.trim(),
-      age: parseInt(age),
+      age: ageNum,
       gender,
-      height:      parseInt(height),
-      weight:      parseFloat(weight),
-      weightStart: startWeight  ? parseFloat(startWeight)  : null,
-      weightGoal:  targetWeight ? parseFloat(targetWeight) : null,
+      height: heightNum,
+      weight: weightNum,
+      weightStart: startWeightNum,
+      weightGoal:  targetWeightNum,
     });
   };
 
