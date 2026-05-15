@@ -7,6 +7,15 @@ Nieuwste bovenaan.
 
 ## 2026-05-15
 
+### Werkwijze-docs + smoke-CI
+**Bestanden:** `~/.claude/CLAUDE.md` (nieuw, buiten repo), `CLAUDE.md`, `.github/workflows/smoke.yml` (nieuw)
+
+Na de incidenten van vandaag (verweesde commits op gemerged branch PR #34 + ontdekte gh-pages deploy-disconnect) structureel vastgelegd:
+
+- **Globaal `~/.claude/CLAUDE.md`** (universeel, alle projecten): pre-flight checklist (status / fetch / open PR's / live URL), in-flight regels (commit-msg ≠ diff, één ding per branch, verifiëren-niet-aannemen), post-merge verificatie (CI / deploy-run / live VERSION / device), anti-pattern-tabel met bewijs uit echte sessies, tool-conventies (MCP-GitHub pull_request_read vóór push, dubbele-VERSION grep).
+- **Project `CLAUDE.md`**: nieuwe sectie **Deploy-pijplijn** documenteert `main → deploy-pages.yml → gh-pages → trainr.jeshua.eu` als enige weg, met curl-snippet voor live VERSION-check. Nieuwe sectie **Bekende issues** lijst 8 open audit-bevindingen (kritiek: stepResults-race in interval-pad, hoog: calcStreak-tz / input-validation onboarding / SW-reload mid-workout) met file:line + aanpak. Verwijzing bovenaan naar het globale bestand.
+- **`.github/workflows/smoke.yml`**: nieuwe CI op elke PR + main-push. Twee checks: (1) `VERSION` in `www/index.html` == `VERSION` in `www/sw.js` (anders blijft de SW-update-cyclus stuk zonder dat het opvalt), (2) JSX-block uit `index.html` parseert via `esbuild --loader=jsx` (vangt typo-fouten die anders pas runtime op het toestel zichtbaar zijn). Geen unit-tests — past niet bij alpha zonder build-step.
+
 ### v0.3 — Handmatige CHECK FOR UPDATE in Settings
 **Bestanden:** `www/index.html`, `www/sw.js`
 
