@@ -7,6 +7,11 @@ Nieuwste bovenaan.
 
 ## 2026-05-15
 
+### v0.3 — Handmatige CHECK FOR UPDATE in Settings
+**Bestanden:** `www/index.html`, `www/sw.js`
+
+Nieuwe sectie **APP** in Settings (boven ACCOUNT) met een rij `CHECK FOR UPDATE` → knop `RELOAD`. Roept `reg.update()` aan op de SW-registratie en doet daarna een `window.location.reload()`. Handig voor de alpha-fase als je niet wilt wachten op de 30-min auto-check of een visibility-trigger. Werkt ook als noodknop als de auto-update mechaniek ooit faalt.
+
 ### v0.2 — Toggle-labels AAN/UIT → ON/OFF
 **Bestanden:** `www/index.html`, `www/sw.js`
 
