@@ -7,6 +7,27 @@ Nieuwste bovenaan.
 
 ## 2026-05-15
 
+### v0.3 — Handmatige CHECK FOR UPDATE in Settings
+**Bestanden:** `www/index.html`, `www/sw.js`
+
+Nieuwe sectie **APP** in Settings (boven ACCOUNT) met een rij `CHECK FOR UPDATE` → knop `RELOAD`. Roept `reg.update()` aan op de SW-registratie en doet daarna een `window.location.reload()`. Handig voor de alpha-fase als je niet wilt wachten op de 30-min auto-check of een visibility-trigger. Werkt ook als noodknop als de auto-update mechaniek ooit faalt.
+
+### v0.2 — Toggle-labels AAN/UIT → ON/OFF
+**Bestanden:** `www/index.html`, `www/sw.js`
+
+Op Settings stonden de toggles (SOUND, KEEP SCREEN ON, REMINDERS) nog op `AAN`/`UIT`. Overgeslagen bij de eerdere full-translate. Nu `ON`/`OFF`. VERSION → 0.2 in zowel `index.html` als `sw.js` zodat de auto-update mechaniek 'm direct naar het toestel pusht.
+
+### SW auto-update echt automatisch (periodieke check + visibility + VERSION-tag)
+**Bestanden:** `www/sw.js`, `www/index.html`, `CLAUDE.md`
+
+Vorige iteratie (`2026-05-14`) zette auto-update op, maar miste twee haken: (1) `reg.update()` werd alleen op `window.load` aangeroepen → een geïnstalleerde PWA die uren openblijft checkt nooit; (2) als enkel `index.html` byte-verandert blijft `sw.js` gelijk, dus geen `updatefound` event en geen reload.
+
+**Fix:**
+- `sw.js`: introductie van `const VERSION = '0.1'`; `CACHE_NAME = 'trainr-v' + VERSION`. Bij elke release bumpt `VERSION` ook hier (gedocumenteerd in CLAUDE.md release-flow), waardoor `sw.js` gegarandeerd byte-verandert en Chrome de nieuwe SW detecteert.
+- `index.html`: `reg.update()` nu ook periodiek (elke 30 min) én op `visibilitychange` als de app weer voorgrond krijgt. Vangt langlopende open sessies en PWA-resume.
+
+Eerste transitie naar deze nieuwe SW: éénmalig handmatig de app sluiten en opnieuw openen op het toestel. Daarna volledig automatisch (elke deploy waarbij `VERSION` is gebumpt).
+
 ### Versie 0.1 (alpha) + race-fix workout-save + DB-load fallbacks
 **Bestanden:** `www/index.html`, `CHANGELOG.md`
 

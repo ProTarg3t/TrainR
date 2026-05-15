@@ -108,6 +108,17 @@ Vaste volgorde — nieuwe code op de juiste plek plaatsen, niet onderaan plakken
 
 Banner-comment-stijl: `// ===` (64×), hoofdsecties alleen. Sub-secties → één-regel comment, geen banner.
 
+## Release-flow (versie-bump)
+
+Bij elke gebruiker-zichtbare release (nieuwe feature of fix die naar gebruikers gaat) **moet** `VERSION` op twee plekken gebumpt worden:
+
+1. `www/index.html` → `const VERSION = 'x.y'` (bovenaan DB LAYER).
+2. `www/sw.js` → `const VERSION = 'x.y'` (regel 4).
+
+Waarom op twee plekken: zonder build-step kan de versie niet automatisch geïnjecteerd worden. Doordat `sw.js` byte-verandert (via `CACHE_NAME = 'trainr-v' + VERSION`), detecteert Chrome de nieuwe SW → `updatefound` → SKIP_WAITING → `controllerchange` → automatische reload op het toestel. Vergeet je `sw.js` te bumpen, dan blijft de geïnstalleerde PWA op de oude versie hangen tot de gebruiker de app sluit en opnieuw opent.
+
+Versie-schema: simpele `0.x` notatie. Alpha-fase tot 1.0. Footer in Settings toont `TRAINR · v{VERSION} · ALPHA`.
+
 ## Wanneer welk docs-bestand updaten
 
 - **`DECISIONS.md`** — alleen bij architectuur- of productkeuzes met afweging (Wat / Waarom / Alternatief / Impact). Niet voor bugfixes of cosmetische changes.

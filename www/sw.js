@@ -1,6 +1,8 @@
-// Bump CACHE_NAME alleen als je icons of manifest verandert.
-// index.html wordt altijd netwerk-first opgehaald — deploy = direct live.
-const CACHE_NAME = 'trainr-2026-05-14';
+// Bump VERSION in zowel www/index.html als www/sw.js bij elke release.
+// Doordat sw.js byte-verandert, detecteert Chrome de nieuwe SW en triggert
+// updatefound → SKIP_WAITING → controllerchange → automatische reload.
+const VERSION = '0.3';
+const CACHE_NAME = 'trainr-v' + VERSION;
 const STATIC_FILES = ['./manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e =>

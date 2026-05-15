@@ -126,7 +126,7 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 // ================================================================
 // DB LAYER
 // ================================================================
-const VERSION = '0.1';
+const VERSION = '0.3';
 const DB_NAME = 'trainr_v1';
 const DB_VERSION = 5;
 const DEV_MODE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
@@ -2982,6 +2982,18 @@ function SettingsScreen({ dbRef, onNavigate }) {
     onNavigate('onboarding', {});
   };
 
+  const handleCheckForUpdate = async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) await reg.update();
+      }
+    } catch (e) {
+      console.warn('Update check failed', e);
+    }
+    window.location.reload();
+  };
+
   const handleExportData = async () => {
     const [sessions, routines] = await Promise.all([
       dbGetAll(dbRef.current, 'sessions'),
@@ -3036,7 +3048,7 @@ function SettingsScreen({ dbRef, onNavigate }) {
       background: on ? 'rgba(232,254,60,0.10)' : 'transparent',
       fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em', fontWeight: 600,
       color: on ? C.accent : C.secondary, cursor: 'pointer', minWidth: 46,
-    }}>{on ? 'AAN' : 'UIT'}</button>
+    }}>{on ? 'ON' : 'OFF'}</button>
   );
 
   return (
@@ -3101,6 +3113,13 @@ function SettingsScreen({ dbRef, onNavigate }) {
           ))}
           {row('CLEAR ALL DATA', (
             <button onClick={handleClearData} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.statusCrit}`, background: 'transparent', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.statusCrit, cursor: 'pointer' }}>DELETE</button>
+          ), true)}
+        </>)}
+
+        {sectionLabel('APP')}
+        {card(<>
+          {row('CHECK FOR UPDATE', (
+            <button onClick={handleCheckForUpdate} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.borderMd}`, background: 'transparent', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.10em', color: C.text, cursor: 'pointer' }}>RELOAD</button>
           ), true)}
         </>)}
 
@@ -3591,7 +3610,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').then(reg => {
-      reg.update();
+      const tryUpdate = () => reg.update().catch(() => {});
+      tryUpdate();
+      // Periodieke check: geïnstalleerde PWA's blijven uren open zonder reload
+      setInterval(tryUpdate, 30 * 60 * 1000);
+      // Bij terugkeer naar app (tab focus / PWA voorgrond)
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) tryUpdate();
+      });
       reg.addEventListener('updatefound', () => {
         const sw = reg.installing;
         if (!sw) return;
