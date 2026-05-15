@@ -3591,7 +3591,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').then(reg => {
-      reg.update();
+      const tryUpdate = () => reg.update().catch(() => {});
+      tryUpdate();
+      // Periodieke check: geïnstalleerde PWA's blijven uren open zonder reload
+      setInterval(tryUpdate, 30 * 60 * 1000);
+      // Bij terugkeer naar app (tab focus / PWA voorgrond)
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) tryUpdate();
+      });
       reg.addEventListener('updatefound', () => {
         const sw = reg.installing;
         if (!sw) return;
