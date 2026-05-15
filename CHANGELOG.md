@@ -7,6 +7,11 @@ Nieuwste bovenaan.
 
 ## 2026-05-15
 
+### v0.2 — Toggle-labels AAN/UIT → ON/OFF
+**Bestanden:** `www/index.html`, `www/sw.js`
+
+Op Settings stonden de toggles (SOUND, KEEP SCREEN ON, REMINDERS) nog op `AAN`/`UIT`. Overgeslagen bij de eerdere full-translate. Nu `ON`/`OFF`. VERSION → 0.2 in zowel `index.html` als `sw.js` zodat de auto-update mechaniek 'm direct naar het toestel pusht.
+
 ### SW auto-update echt automatisch (periodieke check + visibility + VERSION-tag)
 **Bestanden:** `www/sw.js`, `www/index.html`, `CLAUDE.md`
 
