@@ -126,6 +126,7 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 // ================================================================
 // DB LAYER
 // ================================================================
+const VERSION = '0.1';
 const DB_NAME = 'trainr_v1';
 const DB_VERSION = 5;
 const DEV_MODE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
@@ -586,69 +587,123 @@ function MuscleTags({ exercise }) {
 // ================================================================
 const EXERCISES = [
   // CORE
-  { id: 'dead-bug',        cat: 'Core',       name: 'Dead bug',                 desc: 'On your back, slowly extend one arm and the opposite leg in turn.\nKeep your lower back flat on the floor, move slowly and with control.', times: [20, 40, 60], muscles: { primary: ['abs'], secondary: ['hip_flexors'] } },
+  { id: 'dead-bug',        cat: 'Core',       name: 'Dead bug',                 desc: 'On your back, slowly extend one arm and the opposite leg in turn.\nKeep your lower back flat on the floor, move slowly and with control.', times: [30, 40, 55], muscles: { primary: ['abs'], secondary: ['hip_flexors'] } },
   { id: 'plank',           cat: 'Core',       name: 'Plank',                    desc: 'On your elbows and toes, hold your body in a straight line.\nElbows under shoulders, do not let your hips sag or pike up.',                 times: [30, 60, 90], muscles: { primary: ['abs', 'lower_back'], secondary: ['shoulders', 'glutes', 'quads'] } },
   { id: 'side-l',          cat: 'Core',       name: 'Side plank left',          desc: 'On your left elbow, hips up, body straight from head to feet.\nDo not let your hip drop, right hand on hip or pointed up.',                 times: [20, 40, 60], muscles: { primary: ['obliques'], secondary: ['abs', 'shoulders', 'glutes'] } },
   { id: 'side-r',          cat: 'Core',       name: 'Side plank right',         desc: 'On your right elbow, hips up, body straight from head to feet.\nDo not let your hip drop, left hand on hip or pointed up.',                 times: [20, 40, 60], muscles: { primary: ['obliques'], secondary: ['abs', 'shoulders', 'glutes'] } },
-  { id: 'glute-bridge',    cat: 'Core',       name: 'Glute bridge hold',        desc: 'On your back, feet flat on the floor, press your hips up as high as possible.\nSqueeze your glutes hard at the top, knees slightly out.', times: [20, 45, 60], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back'] } },
+  { id: 'glute-bridge',    cat: 'Core',       name: 'Glute bridge hold',        desc: 'On your back, feet flat on the floor, press your hips up as high as possible.\nSqueeze your glutes hard at the top, knees slightly out.', times: [25, 40, 55], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back'] } },
   { id: 'mountain-cl',     cat: 'Core',       name: 'Mountain climbers',        desc: 'In a high plank, drive your knees explosively toward your chest in turn.\nKeep your hips low, build the tempo, keep your core tight.',     times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
-  { id: 'bicycles',        cat: 'Core',       name: 'Bicycle crunches',        desc: 'On your back, hands behind your head, rotate elbow to opposite knee.\nFully extend the other leg, rotate slowly, do not pull on your neck.',  times: [20, 40, 60], muscles: { primary: ['abs', 'obliques'], secondary: ['hip_flexors'] } },
+  { id: 'bicycles',        cat: 'Core',       name: 'Bicycle crunches',        desc: 'On your back, hands behind your head, rotate elbow to opposite knee.\nFully extend the other leg, rotate slowly, do not pull on your neck.',  times: [30, 40, 60], muscles: { primary: ['abs', 'obliques'], secondary: ['hip_flexors'] } },
   { id: 'hollow-body',     cat: 'Core',       name: 'Hollow body hold',         desc: 'On your back, legs and shoulders off the floor, hold your body like a banana.\nMax tension through the core, keep lower back flat.',       times: [15, 30, 45], muscles: { primary: ['abs'], secondary: ['hip_flexors', 'lower_back'] } },
-  { id: 'leg-raise',       cat: 'Core',       name: 'Leg raises',               desc: 'On your back, lift straight legs to 90° and slowly lower them back down.\nPress your lower back into the floor, legs just above the floor at the bottom.', times: [15, 30, 45], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['lower_back'] } },
-  { id: 'russian-twist',   cat: 'Core',       name: 'Russian twist',            desc: 'Seated with knees slightly bent, rotate your torso left and right in turn.\nFeet off the floor for more difficulty, keep your back straight.', times: [20, 35, 50], muscles: { primary: ['obliques'], secondary: ['abs', 'hip_flexors'] } },
+  { id: 'leg-raise',       cat: 'Core',       name: 'Leg raises',               desc: 'On your back, lift straight legs to 90° and slowly lower them back down.\nPress your lower back into the floor, legs just above the floor at the bottom.', times: [25, 40, 55], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['lower_back'] } },
+  { id: 'russian-twist',   cat: 'Core',       name: 'Russian twist',            desc: 'Seated with knees slightly bent, rotate your torso left and right in turn.\nFeet off the floor for more difficulty, keep your back straight.', times: [25, 40, 55], muscles: { primary: ['obliques'], secondary: ['abs', 'hip_flexors'] } },
+  { id: 'copenhagen-plank',cat: 'Core',       name: 'Copenhagen plank',         desc: 'On your side, top foot resting on a chair, bottom leg lifted toward the top foot.\nKeep hips up and stacked, hold the line from head to feet.',          times: [20, 30, 45], muscles: { primary: ['quads'], secondary: ['obliques', 'glutes', 'abs'] } },
+  { id: 'hollow-rock',     cat: 'Core',       name: 'Hollow rocks',             desc: 'In a hollow-body position, rock back and forth from shoulders to hips.\nKeep lower back glued to the floor and the rocking motion small and tight.', times: [20, 30, 45], muscles: { primary: ['abs'], secondary: ['hip_flexors', 'lower_back'] } },
   // ARMS
-  { id: 'pushup',          cat: 'Arms',       name: 'Push-ups',                 desc: 'Hands shoulder-width, lower your chest toward the floor and press up.\nElbows about 45° from the body, hold your body like a straight plank.',  times: [20, 40, 60], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
-  { id: 'incline-pushup',  cat: 'Arms',       name: 'Incline push-ups',         desc: 'Hands on a chair or table, body angled forward, push-up motion.\nAn easier variant — same technique as a regular push-up.',                  times: [20, 40, 60], muscles: { primary: ['chest'], secondary: ['shoulders', 'triceps'] } },
-  { id: 'diamond-pushup',  cat: 'Arms',       name: 'Diamond push-ups',         desc: 'Hands together in a triangle directly under your chest, lower and press up.\nElbows close to the body — triceps work harder.',              times: [15, 30, 45], muscles: { primary: ['triceps', 'chest'], secondary: ['shoulders'] } },
-  { id: 'pike-pushup',     cat: 'Arms',       name: 'Pike push-ups',            desc: 'Hips high in an inverted V, lower your head toward the floor.\nWeight on your shoulders, keep elbows stable — shoulder focus.',           times: [15, 30, 45], muscles: { primary: ['shoulders', 'triceps'], secondary: ['chest', 'traps'] } },
+  { id: 'pushup',          cat: 'Arms',       name: 'Push-ups',                 desc: 'Hands shoulder-width, lower your chest toward the floor and press up.\nElbows about 45° from the body, hold your body like a straight plank.',  times: [25, 45, 70], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
+  { id: 'incline-pushup',  cat: 'Arms',       name: 'Incline push-ups',         desc: 'Hands on a chair or table, body angled forward, push-up motion.\nAn easier variant — same technique as a regular push-up.',                  times: [30, 45, 65], muscles: { primary: ['chest'], secondary: ['shoulders', 'triceps'] } },
+  { id: 'diamond-pushup',  cat: 'Arms',       name: 'Diamond push-ups',         desc: 'Hands together in a triangle directly under your chest, lower and press up.\nElbows close to the body — triceps work harder.',              times: [20, 35, 50], muscles: { primary: ['triceps', 'chest'], secondary: ['shoulders'] } },
+  { id: 'pike-pushup',     cat: 'Arms',       name: 'Pike push-ups',            desc: 'Hips high in an inverted V, lower your head toward the floor.\nWeight on your shoulders, keep elbows stable — shoulder focus.',           times: [25, 40, 55], muscles: { primary: ['shoulders', 'triceps'], secondary: ['chest', 'traps'] } },
   { id: 'dips',            cat: 'Arms',       name: 'Dips (chair)',             desc: 'Hands on a chair behind you, bend and straighten your elbows.\nKeep your back close to the chair, elbows pointing straight back.',         times: [20, 40, 60], muscles: { primary: ['triceps'], secondary: ['shoulders', 'chest'] } },
-  { id: 'decline-pushup',  cat: 'Arms',       name: 'Decline push-ups',         desc: 'Feet on a chair, hands on the floor, lower your chest down.\nHead and chest below your feet — upper chest and shoulders work more.',       times: [15, 30, 45], muscles: { primary: ['chest', 'shoulders'], secondary: ['triceps', 'abs'] } },
-  { id: 'slow-pushup',     cat: 'Arms',       name: 'Negative push-ups',        desc: 'Lower for 4 seconds, then press back up.\nExplosive up, no rest at the bottom, full control of the movement.',                            times: [20, 40, 60], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
-  { id: 'inv-row',         cat: 'Arms',       name: 'Australian rows',          desc: 'Lying under a table, pull your chest up to the tabletop.\nBack straight, squeeze shoulder blades together at the top, lower slowly.',      times: [20, 40, 60], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
-  { id: 'scap-retract',    cat: 'Arms',       name: 'Scapular squeeze',         desc: 'Stand upright and squeeze your shoulder blades together as hard as possible — hold.\nArms by your sides, do not shrug, focus on the upper back.', times: [20, 40, 60], muscles: { primary: ['traps'], secondary: ['shoulders', 'lower_back'] } },
-  { id: 'door-row',        cat: 'Arms',       name: 'Doorway rows',             desc: 'Hold a doorframe with both hands, lean back and pull yourself up.\nArms bent, back straight, pull your shoulder blades together.',         times: [20, 40, 60], muscles: { primary: ['lats', 'biceps'], secondary: ['traps', 'forearms'] } },
-  { id: 'rev-snow-angel',  cat: 'Arms',       name: 'Prone snow angels',        desc: 'Lie face down, sweep your arms from your sides up overhead.\nSqueeze your shoulder blades, keep arms straight and low.',                   times: [20, 40, 60], muscles: { primary: ['traps', 'lower_back'], secondary: ['shoulders'] } },
-  { id: 'table-hold',      cat: 'Arms',       name: 'Australian row hold',      desc: 'Under a table, pull yourself halfway up and hold that position.\nArms at 90°, back straight, keep shoulder blades squeezed together.',     times: [15, 30, 45], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
-  { id: 'wide-pushup',     cat: 'Arms',       name: 'Wide push-ups',            desc: 'Hands well outside shoulder-width, lower your chest and press up.\nMore emphasis on the outer chest — elbows flare slightly.',             times: [20, 40, 60], muscles: { primary: ['chest'], secondary: ['triceps', 'shoulders'] } },
-  { id: 'floor-dip',       cat: 'Arms',       name: 'Triceps floor dips',       desc: 'Sit on your hands and heels, hips up, bend and straighten your elbows.\nKeep elbows pointing straight back, hold hips as high as possible.', times: [20, 40, 60], muscles: { primary: ['triceps'], secondary: ['shoulders', 'chest'] } },
-  { id: 'superman-pull',   cat: 'Arms',       name: 'Superman pull',            desc: 'Face down, arms stretched out in front, lift arms and chest off the floor, then lower.\nSqueeze your shoulder blades at the top, slow and controlled.', times: [20, 40, 60], muscles: { primary: ['lats', 'traps'], secondary: ['lower_back', 'shoulders'] } },
+  { id: 'decline-pushup',  cat: 'Arms',       name: 'Decline push-ups',         desc: 'Feet on a chair, hands on the floor, lower your chest down.\nHead and chest below your feet — upper chest and shoulders work more.',       times: [25, 35, 50], muscles: { primary: ['chest', 'shoulders'], secondary: ['triceps', 'abs'] } },
+  { id: 'slow-pushup',     cat: 'Arms',       name: 'Negative push-ups',        desc: 'Lower for 4 seconds, then press back up.\nExplosive up, no rest at the bottom, full control of the movement.',                            times: [25, 45, 65], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs'] } },
+  { id: 'inv-row',         cat: 'Arms',       name: 'Australian rows',          desc: 'Lying under a table, pull your chest up to the tabletop.\nBack straight, squeeze shoulder blades together at the top, lower slowly.',      times: [25, 40, 60], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
+  { id: 'scap-retract',    cat: 'Arms',       name: 'Scapular squeeze',         desc: 'Stand upright and squeeze your shoulder blades together as hard as possible — hold.\nArms by your sides, do not shrug, focus on the upper back.', times: [20, 35, 50], muscles: { primary: ['traps'], secondary: ['shoulders', 'lower_back'] } },
+  { id: 'door-row',        cat: 'Arms',       name: 'Doorway rows',             desc: 'Hold a doorframe with both hands, lean back and pull yourself up.\nArms bent, back straight, pull your shoulder blades together.',         times: [25, 40, 55], muscles: { primary: ['lats', 'biceps'], secondary: ['traps', 'forearms'] } },
+  { id: 'rev-snow-angel',  cat: 'Arms',       name: 'Prone snow angels',        desc: 'Lie face down, sweep your arms from your sides up overhead.\nSqueeze your shoulder blades, keep arms straight and low.',                   times: [25, 35, 50], muscles: { primary: ['traps', 'lower_back'], secondary: ['shoulders'] } },
+  { id: 'table-hold',      cat: 'Arms',       name: 'Australian row hold',      desc: 'Under a table, pull yourself halfway up and hold that position.\nArms at 90°, back straight, keep shoulder blades squeezed together.',     times: [20, 40, 60], muscles: { primary: ['lats', 'traps'], secondary: ['biceps', 'lower_back', 'forearms'] } },
+  { id: 'wide-pushup',     cat: 'Arms',       name: 'Wide push-ups',            desc: 'Hands well outside shoulder-width, lower your chest and press up.\nMore emphasis on the outer chest — elbows flare slightly.',             times: [25, 40, 55], muscles: { primary: ['chest'], secondary: ['triceps', 'shoulders'] } },
+  { id: 'floor-dip',       cat: 'Arms',       name: 'Triceps floor dips',       desc: 'Sit on your hands and heels, hips up, bend and straighten your elbows.\nKeep elbows pointing straight back, hold hips as high as possible.', times: [25, 40, 55], muscles: { primary: ['triceps'], secondary: ['shoulders', 'chest'] } },
+  { id: 'superman-pull',   cat: 'Arms',       name: 'Superman pull',            desc: 'Face down, arms stretched out in front, lift arms and chest off the floor, then lower.\nSqueeze your shoulder blades at the top, slow and controlled.', times: [25, 35, 50], muscles: { primary: ['lats', 'traps'], secondary: ['lower_back', 'shoulders'] } },
+  { id: 'archer-pushup',   cat: 'Arms',       name: 'Archer push-ups',          desc: 'In a wide push-up, shift your weight onto one arm while the other stays straight to the side.\nAlternate sides each rep, control the descent — a step toward the one-arm push-up.', times: [25, 35, 55], muscles: { primary: ['chest', 'triceps'], secondary: ['shoulders', 'abs', 'lats'] } },
   // LEGS
-  { id: 'squats',          cat: 'Legs',       name: 'Squats',                   desc: 'Feet shoulder-width, hips back and down, then drive up.\nBack straight, knees over toes, come up explosively.',                            times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'lower_back', 'calves'] } },
-  { id: 'jump-squat',      cat: 'Legs',       name: 'Jump squats',              desc: 'Perform a squat and from the bottom jump up explosively.\nLand soft with bent knees, go straight into the next rep.',                       times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
-  { id: 'wall-sit',        cat: 'Legs',       name: 'Wall sit',                 desc: 'Back flat against the wall, knees at 90°, thighs parallel to the floor.\nKeep knees above ankles, do not sag down.',                       times: [20, 45, 60], muscles: { primary: ['quads'], secondary: ['glutes', 'calves'] } },
-  { id: 'alt-lunges',      cat: 'Legs',       name: 'Alternating lunges',       desc: 'Step forward into a lunge and return, alternating legs.\nKeep your knee above your ankle, back straight, hips low and stable.',           times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
-  { id: 'glute-single-l',  cat: 'Legs',       name: 'Single-leg bridge left',   desc: 'On your back, right leg up, push your left hip up as high as possible.\nMax tension through the left glute, keep hips level.',           times: [15, 30, 45], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
-  { id: 'glute-single-r',  cat: 'Legs',       name: 'Single-leg bridge right',  desc: 'On your back, left leg up, push your right hip up as high as possible.\nMax tension through the right glute, keep hips level.',          times: [15, 30, 45], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
-  { id: 'donkey-kick',     cat: 'Legs',       name: 'Donkey kicks',             desc: 'On hands and knees, kick one leg back and up.\nSqueeze the glute at the top, do not tilt your hip.',                                       times: [20, 40, 60], muscles: { primary: ['glutes'], secondary: ['lower_back', 'hamstrings'] } },
-  { id: 'sumo-squat',      cat: 'Legs',       name: 'Sumo squat',               desc: 'Feet wide apart, toes angled out, drop deep through the knees.\nBack straight, knees over toes, engage your inner thighs on the way up.', times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
-  { id: 'step-up',         cat: 'Legs',       name: 'Step-up (chair)',          desc: 'Step onto a chair or stair with one foot and lift the other leg up.\nFoot fully on the surface, drive up through the working leg.',       times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
-  { id: 'calf-raise',      cat: 'Legs',       name: 'Calf raises',              desc: 'Stand upright, rise onto your toes and slowly lower back down.\nUse the edge of a step for more range — slow on the way down.',           times: [25, 45, 60], muscles: { primary: ['calves'], secondary: [] } },
+  { id: 'squats',          cat: 'Legs',       name: 'Squats',                   desc: 'Feet shoulder-width, hips back and down, then drive up.\nBack straight, knees over toes, come up explosively.',                            times: [30, 45, 65], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'lower_back', 'calves'] } },
+  { id: 'jump-squat',      cat: 'Legs',       name: 'Jump squats',              desc: 'Perform a squat and from the bottom jump up explosively.\nLand soft with bent knees, go straight into the next rep.',                       times: [20, 35, 50], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
+  { id: 'wall-sit',        cat: 'Legs',       name: 'Wall sit',                 desc: 'Back flat against the wall, knees at 90°, thighs parallel to the floor.\nKeep knees above ankles, do not sag down.',                       times: [30, 60, 90], muscles: { primary: ['quads'], secondary: ['glutes', 'calves'] } },
+  { id: 'alt-lunges',      cat: 'Legs',       name: 'Alternating lunges',       desc: 'Step forward into a lunge and return, alternating legs.\nKeep your knee above your ankle, back straight, hips low and stable.',           times: [25, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'glute-single-l',  cat: 'Legs',       name: 'Single-leg bridge left',   desc: 'On your back, right leg up, push your left hip up as high as possible.\nMax tension through the left glute, keep hips level.',           times: [25, 40, 55], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
+  { id: 'glute-single-r',  cat: 'Legs',       name: 'Single-leg bridge right',  desc: 'On your back, left leg up, push your right hip up as high as possible.\nMax tension through the right glute, keep hips level.',          times: [25, 40, 55], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'abs'] } },
+  { id: 'donkey-kick',     cat: 'Legs',       name: 'Donkey kicks',             desc: 'On hands and knees, kick one leg back and up.\nSqueeze the glute at the top, do not tilt your hip.',                                       times: [25, 40, 55], muscles: { primary: ['glutes'], secondary: ['lower_back', 'hamstrings'] } },
+  { id: 'sumo-squat',      cat: 'Legs',       name: 'Sumo squat',               desc: 'Feet wide apart, toes angled out, drop deep through the knees.\nBack straight, knees over toes, engage your inner thighs on the way up.', times: [25, 45, 65], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'step-up',         cat: 'Legs',       name: 'Step-up (chair)',          desc: 'Step onto a chair or stair with one foot and lift the other leg up.\nFoot fully on the surface, drive up through the working leg.',       times: [25, 45, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'calf-raise',      cat: 'Legs',       name: 'Calf raises',              desc: 'Stand upright, rise onto your toes and slowly lower back down.\nUse the edge of a step for more range — slow on the way down.',           times: [25, 40, 60], muscles: { primary: ['calves'], secondary: [] } },
+  { id: 'reverse-lunge',   cat: 'Legs',       name: 'Reverse lunges',           desc: 'Step backward into a lunge, alternating legs each rep.\nFront knee over ankle, back knee just off the floor — easier on the knees than forward lunges.', times: [25, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves'] } },
+  { id: 'hip-thrust',      cat: 'Legs',       name: 'Hip thrust (floor)',       desc: 'Shoulders on a chair or couch, feet flat, drive your hips up high.\nSqueeze your glutes hard at the top, lower with control — heavier glute load than a bridge.', times: [25, 45, 60], muscles: { primary: ['glutes'], secondary: ['hamstrings', 'lower_back', 'quads'] } },
+  { id: 'nordic-curl-neg', cat: 'Legs',       name: 'Nordic curl negatives',    desc: 'Kneel with your feet anchored under a couch, lower your torso forward slowly.\nUse your hands to push yourself back up — fight the descent with your hamstrings.',  times: [25, 45, 65], muscles: { primary: ['hamstrings'], secondary: ['glutes', 'lower_back', 'calves'] } },
+  { id: 'cossack-squat',   cat: 'Legs',       name: 'Cossack squats',           desc: 'Stand wide, shift weight onto one leg and squat low while the other leg stays straight.\nKeep chest up, alternate sides — opens the hips and inner thighs.',          times: [30, 45, 65], muscles: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves', 'lower_back'] } },
   // FULL BODY
-  { id: 'burpees',         cat: 'Full Body',  name: 'Burpees',                  desc: 'From standing, drop into a plank, push-up, jump back up.\nFluid motion, arms above your head on the jump.',                                 times: [20, 40, 60], muscles: { primary: ['quads', 'chest'], secondary: ['shoulders', 'triceps', 'abs', 'glutes', 'calves'] } },
+  { id: 'burpees',         cat: 'Full Body',  name: 'Burpees',                  desc: 'From standing, drop into a plank, push-up, jump back up.\nFluid motion, arms above your head on the jump.',                                 times: [25, 40, 60], muscles: { primary: ['quads', 'chest'], secondary: ['shoulders', 'triceps', 'abs', 'glutes', 'calves'] } },
   { id: 'jumping-jacks',   cat: 'Full Body',  name: 'Jumping jacks',            desc: 'Jump while spreading legs and raising arms overhead, then return.\nKeep a steady tempo, arms and legs moving together.',                  times: [30, 45, 60], muscles: { primary: ['shoulders', 'calves'], secondary: ['quads', 'glutes'] } },
   { id: 'high-knees',      cat: 'Full Body',  name: 'High knees',               desc: 'Run in place, driving your knees up as high as possible toward your chest.\nSwing your arms as if running, stay upright.',                 times: [20, 40, 60], muscles: { primary: ['hip_flexors', 'quads'], secondary: ['abs', 'calves'] } },
   { id: 'butt-kicks',      cat: 'Full Body',  name: 'Butt kicks',               desc: 'Run in place, kicking your heels up toward your glutes in turn.\nStay upright, swing your arms, fast tempo.',                              times: [20, 40, 60], muscles: { primary: ['hamstrings', 'calves'], secondary: ['quads', 'glutes'] } },
   { id: 'mt-cl-fast',      cat: 'Full Body',  name: 'Mountain climbers fast',   desc: 'Perform mountain climbers at the highest sustainable tempo.\nKeep core tight, hips low even at high tempo.',                                times: [20, 40, 60], muscles: { primary: ['abs', 'hip_flexors'], secondary: ['shoulders', 'quads'] } },
-  { id: 'squat-jump-rep',  cat: 'Full Body',  name: 'Jump squats HIT',          desc: 'Non-stop jump squats at maximum tempo.\nLand soft with bent knees, keep going, stay explosive.',                                              times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
+  { id: 'squat-jump-rep',  cat: 'Full Body',  name: 'Jump squats HIT',          desc: 'Non-stop jump squats at maximum tempo.\nLand soft with bent knees, keep going, stay explosive.',                                              times: [20, 35, 50], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'hamstrings'] } },
   { id: 'bear-crawl',      cat: 'Full Body',  name: 'Bear crawl',               desc: 'On hands and feet (knees just off the floor), crawl forward and backward.\nHips low and stable, core tight, small controlled steps.',     times: [20, 35, 50], muscles: { primary: ['shoulders', 'abs'], secondary: ['quads', 'hip_flexors'] } },
-  { id: 'inchworm',        cat: 'Full Body',  name: 'Inchworm',                 desc: 'From standing, walk your hands out to a plank, then walk your feet up to your hands.\nSteady tempo, full extension at the start and end.', times: [20, 35, 50], muscles: { primary: ['abs', 'shoulders'], secondary: ['hamstrings', 'chest'] } },
+  { id: 'inchworm',        cat: 'Full Body',  name: 'Inchworm',                 desc: 'From standing, walk your hands out to a plank, then walk your feet up to your hands.\nSteady tempo, full extension at the start and end.', times: [25, 40, 60], muscles: { primary: ['abs', 'shoulders'], secondary: ['hamstrings', 'chest'] } },
   { id: 'lateral-jump',    cat: 'Full Body',  name: 'Lateral jumps',            desc: 'Jump sideways from one leg to the other.\nLand soft with bent knee, jump straight back to the other side.',                                times: [20, 40, 60], muscles: { primary: ['quads', 'glutes'], secondary: ['calves', 'abs'] } },
+  { id: 'wall-walk',       cat: 'Full Body',  name: 'Wall walks',               desc: 'From a plank with your feet facing a wall, walk your feet up and your hands back toward the wall.\nGo as high as you can hold, then walk back down with control.', times: [30, 50, 70], muscles: { primary: ['shoulders', 'abs'], secondary: ['triceps', 'lower_back', 'lats'] } },
 ];
 const DEFAULT_TARGETS_BY_MODE = {
   time: { beginner: 20, intermediate: 40, expert: 60 },
   reps: { beginner: 8, intermediate: 12, expert: 16 },
 };
 const EXERCISE_CONFIGS = {
-  plank: { mode: 'time', targets: { beginner: 30, intermediate: 60, expert: 90 } },
-  'side-l': { mode: 'time', targets: { beginner: 20, intermediate: 40, expert: 60 } },
-  'side-r': { mode: 'time', targets: { beginner: 20, intermediate: 40, expert: 60 } },
-  pushup: { mode: 'reps', targets: { beginner: 8, intermediate: 15, expert: 25 } },
-  squats: { mode: 'reps', targets: { beginner: 12, intermediate: 20, expert: 35 } },
-  'alt-lunges': { mode: 'reps', targets: { beginner: 8, intermediate: 12, expert: 20 } },
-  dips: { mode: 'reps', targets: { beginner: 6, intermediate: 12, expert: 20 } },
-  burpees: { mode: 'hybrid', targets: { beginner: 8, intermediate: 12, expert: 18 } },
-  'mountain-cl': { mode: 'time', targets: { beginner: 20, intermediate: 35, expert: 50 } },
-  'mt-cl-fast': { mode: 'time', targets: { beginner: 20, intermediate: 35, expert: 50 } },
+  // CORE
+  'dead-bug':         { mode: 'reps', targets: { beginner: 8,  intermediate: 12, expert: 16 } },
+  'copenhagen-plank': { mode: 'time', targets: { beginner: 20, intermediate: 30, expert: 45 } },
+  'hollow-rock':      { mode: 'time', targets: { beginner: 20, intermediate: 30, expert: 45 } },
+  plank:            { mode: 'time', targets: { beginner: 30, intermediate: 60, expert: 90 } },
+  'side-l':         { mode: 'time', targets: { beginner: 20, intermediate: 40, expert: 60 } },
+  'side-r':         { mode: 'time', targets: { beginner: 20, intermediate: 40, expert: 60 } },
+  'glute-bridge':   { mode: 'reps', targets: { beginner: 12, intermediate: 15, expert: 20 } },
+  'mountain-cl':    { mode: 'time', targets: { beginner: 20, intermediate: 40, expert: 60 } },
+  bicycles:         { mode: 'reps', targets: { beginner: 15, intermediate: 20, expert: 30 } },
+  'hollow-body':    { mode: 'time', targets: { beginner: 15, intermediate: 30, expert: 45 } },
+  'leg-raise':      { mode: 'reps', targets: { beginner: 10, intermediate: 15, expert: 20 } },
+  'russian-twist':  { mode: 'reps', targets: { beginner: 20, intermediate: 30, expert: 40 } },
+  // ARMS
+  pushup:           { mode: 'reps', targets: { beginner: 8,  intermediate: 15, expert: 25 } },
+  'incline-pushup': { mode: 'reps', targets: { beginner: 10, intermediate: 15, expert: 22 } },
+  'diamond-pushup': { mode: 'reps', targets: { beginner: 5,  intermediate: 10, expert: 15 } },
+  'pike-pushup':    { mode: 'reps', targets: { beginner: 6,  intermediate: 10, expert: 15 } },
+  dips:             { mode: 'reps', targets: { beginner: 6,  intermediate: 12, expert: 20 } },
+  'decline-pushup': { mode: 'reps', targets: { beginner: 6,  intermediate: 10, expert: 15 } },
+  'slow-pushup':    { mode: 'reps', targets: { beginner: 5,  intermediate: 8,  expert: 12 } },
+  'inv-row':        { mode: 'reps', targets: { beginner: 6,  intermediate: 10, expert: 15 } },
+  'scap-retract':   { mode: 'reps', targets: { beginner: 10, intermediate: 15, expert: 20 } },
+  'door-row':       { mode: 'reps', targets: { beginner: 10, intermediate: 12, expert: 18 } },
+  'rev-snow-angel': { mode: 'reps', targets: { beginner: 12, intermediate: 15, expert: 20 } },
+  'table-hold':     { mode: 'time', targets: { beginner: 20, intermediate: 40, expert: 60 } },
+  'wide-pushup':    { mode: 'reps', targets: { beginner: 8,  intermediate: 12, expert: 18 } },
+  'floor-dip':      { mode: 'reps', targets: { beginner: 8,  intermediate: 12, expert: 18 } },
+  'superman-pull':  { mode: 'reps', targets: { beginner: 12, intermediate: 15, expert: 20 } },
+  'archer-pushup':  { mode: 'reps', targets: { beginner: 6,  intermediate: 8,  expert: 12 } },
+  // LEGS
+  squats:           { mode: 'reps', targets: { beginner: 12, intermediate: 20, expert: 30 } },
+  'jump-squat':     { mode: 'reps', targets: { beginner: 8,  intermediate: 12, expert: 18 } },
+  'wall-sit':       { mode: 'time', targets: { beginner: 30, intermediate: 60, expert: 90 } },
+  'alt-lunges':     { mode: 'reps', targets: { beginner: 10, intermediate: 16, expert: 24 } },
+  'glute-single-l': { mode: 'reps', targets: { beginner: 8,  intermediate: 12, expert: 16 } },
+  'glute-single-r': { mode: 'reps', targets: { beginner: 8,  intermediate: 12, expert: 16 } },
+  'donkey-kick':    { mode: 'reps', targets: { beginner: 12, intermediate: 15, expert: 20 } },
+  'sumo-squat':     { mode: 'reps', targets: { beginner: 12, intermediate: 18, expert: 25 } },
+  'step-up':        { mode: 'reps', targets: { beginner: 10, intermediate: 16, expert: 22 } },
+  'calf-raise':     { mode: 'reps', targets: { beginner: 15, intermediate: 25, expert: 40 } },
+  'reverse-lunge':  { mode: 'reps', targets: { beginner: 10, intermediate: 16, expert: 24 } },
+  'hip-thrust':     { mode: 'reps', targets: { beginner: 10, intermediate: 15, expert: 20 } },
+  'nordic-curl-neg':{ mode: 'reps', targets: { beginner: 4,  intermediate: 6,  expert: 8  } },
+  'cossack-squat':  { mode: 'reps', targets: { beginner: 8,  intermediate: 10, expert: 14 } },
+  // FULL BODY
+  burpees:          { mode: 'hybrid', targets: { beginner: 6,  intermediate: 10, expert: 15 } },
+  'jumping-jacks':  { mode: 'time',   targets: { beginner: 30, intermediate: 45, expert: 60 } },
+  'high-knees':     { mode: 'time',   targets: { beginner: 20, intermediate: 40, expert: 60 } },
+  'butt-kicks':     { mode: 'time',   targets: { beginner: 20, intermediate: 40, expert: 60 } },
+  'mt-cl-fast':     { mode: 'time',   targets: { beginner: 20, intermediate: 40, expert: 60 } },
+  'squat-jump-rep': { mode: 'reps',   targets: { beginner: 6,  intermediate: 10, expert: 15 } },
+  'bear-crawl':     { mode: 'time',   targets: { beginner: 20, intermediate: 35, expert: 50 } },
+  inchworm:         { mode: 'reps',   targets: { beginner: 4,  intermediate: 6,  expert: 10 } },
+  'lateral-jump':   { mode: 'time',   targets: { beginner: 20, intermediate: 40, expert: 60 } },
+  'wall-walk':      { mode: 'reps',   targets: { beginner: 3,  intermediate: 4,  expert: 6  } },
 };
 const EXERCISES_WITH_MODE = EXERCISES.map(ex => {
   const cfg = EXERCISE_CONFIGS[ex.id] || {};
@@ -752,6 +807,23 @@ const BODY_PART_WORKOUTS = {
     { id: 'fb-h',  name: 'Full Body HIT',    durationLabel: '~25 MIN', exercises: ['jumping-jacks','burpees','high-knees','butt-kicks','squats','pushup','mountain-cl','lateral-jump','inchworm'] },
   ],
 };
+
+// Vaste preset-routines op Home, 5/10/15/20/25/30 min op intermediate. Op
+// beginner/expert worden de minuten dynamisch herberekend via presetMin.
+const PRESET_ROUTINES = [
+  { id: 'preset-5',  name: 'Core Express',        durationLabel: '~5 MIN',
+    exercises: ['mountain-cl','dead-bug','plank','hollow-rock','bicycles'] },
+  { id: 'preset-10', name: 'Arms Push Pump',      durationLabel: '~10 MIN',
+    exercises: ['pushup','incline-pushup','wide-pushup','pike-pushup','diamond-pushup','archer-pushup','slow-pushup','dips','scap-retract'] },
+  { id: 'preset-15', name: 'Legs Builder',        durationLabel: '~15 MIN',
+    exercises: ['squats','reverse-lunge','sumo-squat','jump-squat','wall-sit','hip-thrust','glute-single-l','glute-single-r','cossack-squat','calf-raise','donkey-kick','step-up','nordic-curl-neg'] },
+  { id: 'preset-20', name: 'Full Body Flow',      durationLabel: '~20 MIN',
+    exercises: ['jumping-jacks','squats','pushup','plank','alt-lunges','mountain-cl','burpees','reverse-lunge','pike-pushup','hip-thrust','bicycles','high-knees','diamond-pushup','sumo-squat','hollow-rock','lateral-jump','glute-bridge'] },
+  { id: 'preset-25', name: 'Full Body Power',     durationLabel: '~25 MIN',
+    exercises: ['jumping-jacks','squats','pushup','burpees','plank','wall-sit','mountain-cl','reverse-lunge','pike-pushup','hip-thrust','bicycles','high-knees','diamond-pushup','sumo-squat','mt-cl-fast','lateral-jump','archer-pushup','cossack-squat','hollow-rock','russian-twist','wall-walk'] },
+  { id: 'preset-30', name: 'Full Body Endurance', durationLabel: '~30 MIN',
+    exercises: ['jumping-jacks','squats','pushup','burpees','plank','high-knees','wall-sit','pike-pushup','reverse-lunge','sumo-squat','diamond-pushup','mountain-cl','lateral-jump','hip-thrust','bicycles','butt-kicks','wide-pushup','cossack-squat','glute-bridge','calf-raise','russian-twist','mt-cl-fast','hollow-rock','wall-walk','bear-crawl'] },
+];
 
 // Dag-van-jaar (1-366). Gebruikt als seed voor dagelijkse coach-selectie.
 function dayOfYear(d = new Date()) {
@@ -1004,7 +1076,7 @@ function buildSequence(exercises, levelIdx) {
       mode,
       target: ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || ex.times?.[levelIdx] || 0,
       targetReps: (mode === 'reps' || mode === 'hybrid') ? (ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || 10) : null,
-      duration: mode === 'time' ? (ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || ex.times[levelIdx]) : 0,
+      duration: mode === 'time' ? (ex.targets?.[['beginner','intermediate','expert'][levelIdx]] || ex.times[levelIdx]) : (ex.times?.[levelIdx] || 30),
       isRest: false
     });
     if (i < exercises.length - 1) {
@@ -1146,6 +1218,17 @@ function parseMin(v) {
   const m = String(v || '').match(/\d+/);
   return m ? parseInt(m[0], 10) : 0;
 }
+// Schaalt de minuten van een preset (intermediate als ijkpunt) naar het
+// werkelijke level van het profiel. Som van times[idx] + 30s rust ertussen.
+function presetMin(preset, level) {
+  const idx = LEVEL_TIME_IDX[level || 'intermediate'] ?? 1;
+  const work = (preset.exercises || []).reduce((s, id) => {
+    const ex = EXERCISES_WITH_MODE.find(e => e.id === id);
+    return s + (ex?.times?.[idx] || 0);
+  }, 0);
+  const rests = Math.max(0, (preset.exercises?.length || 0) - 1) * 30;
+  return Math.max(1, Math.round((work + rests) / 60));
+}
 function routineTags(exerciseIds) {
   return getRoutineCategories(exerciseIds).map(c => CAT_TO_TAG[c]).filter(Boolean);
 }
@@ -1235,11 +1318,11 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWor
         </section>
       )}
 
-      {/* Quick start — horizontal scroll */}
+      {/* Coach picks — horizontal scroll, gepersonaliseerd op profiel */}
       {(coachWorkouts || []).length > 0 && (
         <section className="hm-section">
           <div className="hm-rowhead">
-            <span className="hm-lbl">QUICK START</span>
+            <span className="hm-lbl">COACH PICKS</span>
             <span className="hm-lbl" style={{ color: 'var(--fg-tertiary)' }}>SWIPE →</span>
           </div>
           <div className="hm-hscroll">
@@ -1268,6 +1351,38 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWor
           </div>
         </section>
       )}
+
+      {/* Presets — vaste routines 5/10/15/20/25/30 min, schalen met profile.level */}
+      <section className="hm-section">
+        <div className="hm-rowhead">
+          <span className="hm-lbl">PRESETS</span>
+          <span className="hm-lbl" style={{ color: 'var(--fg-tertiary)' }}>SWIPE →</span>
+        </div>
+        <div className="hm-hscroll">
+          {PRESET_ROUTINES.map(p => {
+            const tags = routineTags(p.exercises);
+            const min = presetMin(p, profile?.level);
+            return (
+              <button key={p.id} className="qc" onClick={() => onNavigate('timer', { routine: p, backTo: 'home' })}>
+                <div className="qc-meta">
+                  {tags.map(t => <HmTag key={t} t={t} />)}
+                </div>
+                <div className="qc-name">{p.name}</div>
+                <div className="qc-foot">
+                  <div className="qc-stat">
+                    <span className="qc-big">{min}</span>
+                    <span className="qc-unit">MIN</span>
+                    <span className="qc-sep">·</span>
+                    <span className="qc-big">{p.exercises.length}</span>
+                    <span className="qc-unit">EX</span>
+                  </div>
+                  <span className="qc-play" aria-hidden>{Icon.play(13)}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       {/* My routines */}
       <section className="hm-section">
@@ -1689,10 +1804,15 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
 
   useEffect(() => {
     if (!isEdit || !dbRef.current) return;
-    dbOp(dbRef.current, 'routines', 'readonly', s => s.get(params.routineId)).then(r => {
-      if (r) { setName(r.name); setCategory(r.category); setSelected(r.exercises); setFilterCat(r.category); setQuickStart(r.quickStart !== false); }
-      setReady(true);
-    });
+    dbOp(dbRef.current, 'routines', 'readonly', s => s.get(params.routineId))
+      .then(r => {
+        if (r) { setName(r.name); setCategory(r.category); setSelected(r.exercises); setFilterCat(r.category); setQuickStart(r.quickStart !== false); }
+        setReady(true);
+      })
+      .catch(err => {
+        console.warn('Routine load failed', err);
+        setReady(true);
+      });
   }, []);
 
   const toggleEx = id => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -1834,7 +1954,7 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
             display: 'flex', alignItems: 'center', gap: 10,
           }}>
             <span style={{ color: quickStart ? C.accent : C.muted, fontSize: 14 }}>{quickStart ? '■' : '□'}</span>
-            SHOW ON QUICK START
+            SHOW IN MY ROUTINES
           </button>
         </div>
 
@@ -1883,7 +2003,16 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
   useEffect(() => {
     if (params?.routine) { setRoutine(params.routine); return; }
     if (!params?.routineId || !dbRef.current) return;
-    dbOp(dbRef.current, 'routines', 'readonly', s => s.get(params.routineId)).then(r => setRoutine(r));
+    dbOp(dbRef.current, 'routines', 'readonly', s => s.get(params.routineId))
+      .then(r => {
+        if (r) { setRoutine(r); return; }
+        analytics.trackEvent('routine_load_failed', { routineId: params.routineId, reason: 'not_found' });
+        onNavigate(params?.backTo || 'routines', {});
+      })
+      .catch(err => {
+        analytics.trackEvent('routine_load_failed', { routineId: params.routineId, reason: 'db_error', error: String(err?.message || err) });
+        onNavigate(params?.backTo || 'routines', {});
+      });
   }, []);
 
   const exercises = useMemo(() => {
@@ -1933,13 +2062,19 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
     if (phase !== 'running') return;
     intervalRef.current = setInterval(() => {
       setTimeLeft(t => {
-        if (step && !step.isRest && (step.mode === 'reps' || step.mode === 'hybrid')) return 0;
         if (t <= 1) {
+          // Reps/hybrid timeout: default-record bevat target reps (auto-completion)
+          let finalResults = stepResults;
+          if (step && !step.isRest && (step.mode === 'reps' || step.mode === 'hybrid') && !stepResults[step.id]) {
+            const target = step.targetReps || step.duration;
+            finalResults = { ...stepResults, [step.id]: { mode: step.mode, target, actual: target, completed: true } };
+            setStepResults(finalResults);
+          }
           const next = stepIdx + 1;
           if (next >= sequence.length) {
             const dur = Math.floor((Date.now() - startTs) / 1000);
             clearInterval(intervalRef.current);
-            saveSession(dur);
+            saveSession(dur, finalResults);
             return 0;
           }
           setStepIdx(next);
@@ -1952,8 +2087,9 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
     return () => clearInterval(intervalRef.current);
   }, [phase, stepIdx, sequence.length]);
 
-  const saveSession = async dur => {
+  const saveSession = async (dur, finalResults) => {
     if (!dbRef.current || !routine) return;
+    const results = finalResults || stepResults;
     const prof = await getProfile(dbRef.current);
     const calories = calcSessionKcal(activeEx, dur, prof?.weight);
     const sessionId = `s-${Date.now()}`;
@@ -1961,16 +2097,16 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
       id: sessionId, routineId: routine.id, routineName: routine.name,
       levelIdx, duration: dur, exercises: activeEx.map(e => e.name), completedAt: Date.now(),
       mode: activeEx.every(e => e.mode === 'reps') ? 'reps' : (activeEx.every(e => e.mode === 'time') ? 'time' : 'mixed'),
-      stepResults,
+      stepResults: results,
       setCount: activeEx.length,
       calories,
     };
     if (params?.planId)  sessionData.planId  = params.planId;
     if (params?.planDay) sessionData.planDay = params.planDay;
     await dbOp(dbRef.current, 'sessions', 'readwrite', s => s.put(sessionData));
-    await analytics.trackEvent('workout_completed', { routineId: routine.id, duration: dur, exerciseCount: activeEx.length, stepResults }, { sessionId, planId: params?.planId || null });
+    await analytics.trackEvent('workout_completed', { routineId: routine.id, duration: dur, exerciseCount: activeEx.length, stepResults: results }, { sessionId, planId: params?.planId || null });
     relWake();
-    onNavigate('finish', { sessionId, routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx, calories, mode: sessionData.mode, stepResults });
+    onNavigate('finish', { sessionId, routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx, calories, mode: sessionData.mode, stepResults: results });
   };
 
   const startWorkout = () => {
@@ -2004,12 +2140,14 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
   const completeRepStep = () => {
     if (!step || step.isRest || (step.mode !== 'reps' && step.mode !== 'hybrid')) return;
     const actual = Number(actualInput || step.targetReps || 0);
-    setStepResults(prev => ({ ...prev, [step.id]: { mode: step.mode, target: step.targetReps || step.duration, actual, completed: actual > 0 } }));
+    const record = { mode: step.mode, target: step.targetReps || step.duration, actual, completed: actual > 0 };
+    const finalResults = { ...stepResults, [step.id]: record };
+    setStepResults(finalResults);
     setActualInput('');
     const next = stepIdx + 1;
     if (next >= sequence.length) {
       const dur = Math.floor((Date.now() - startTs) / 1000);
-      saveSession(dur); return;
+      saveSession(dur, finalResults); return;
     }
     setStepIdx(next);
     setTimeLeft(sequence[next].duration || 0);
@@ -2163,6 +2301,11 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
               <div style={{ fontFamily: C.mono, fontSize: 13, color: C.muted, letterSpacing: '0.14em', marginTop: 4 }}>
                 {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest ? 'REPS' : 'SECONDS'}
               </div>
+              {(step.mode === 'reps' || step.mode === 'hybrid') && !step.isRest && (
+                <div style={{ fontFamily: C.mono, fontSize: 14, color: C.secondary, marginTop: 6, letterSpacing: '0.08em' }}>
+                  {Math.floor(timeLeft/60)}:{String(timeLeft%60).padStart(2,'0')}
+                </div>
+              )}
             </div>
           </div>
 
@@ -2970,6 +3113,10 @@ function SettingsScreen({ dbRef, onNavigate }) {
             <span style={{ fontFamily: C.mono, fontSize: 11, color: C.accent }}>ACTIVE</span>
           ), true)}
         </>)}
+
+        <div style={{ textAlign: 'center', padding: '24px 0 8px', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted }}>
+          TRAINR · v{VERSION} · ALPHA
+        </div>
 
       </div>
     </div>

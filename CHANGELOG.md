@@ -5,6 +5,72 @@ Nieuwste bovenaan.
 
 ---
 
+## 2026-05-15
+
+### Versie 0.1 (alpha) + race-fix workout-save + DB-load fallbacks
+**Bestanden:** `www/index.html`, `CHANGELOG.md`
+
+Eerste officiële versie-tag: **v0.1 (alpha)**. Zichtbaar als footer onder Settings (`TRAINR · v0.1 · ALPHA`), `const VERSION = '0.1'` bovenaan de DB-layer. Geen SW-cache bump nodig: `index.html` is netwerk-first dus de bump zou alleen statische assets (manifest/icons) flushen, en die zijn niet veranderd.
+
+**P1 race-fix — `stepResults` werd niet opgeslagen bij auto-advance en op laatste step:**
+
+Twee paden in `TimerScreen` schreven sets niet (of stale) naar `stepResults` voordat `saveSession` ze persisteerde:
+
+1. **Timer auto-advance bij `t <= 1`** (door Codex op PR #34 gemeld): nu reps/hybrid ook door dit pad lopen (zie eerdere reps-revisie), miste een default-record als de gebruiker de countdown liet aflopen zonder DONE te tikken. Gevolg: Finish-scherm toonde 0 SETS, `workout_completed` analytics-event verloor rep-data.
+2. **`completeRepStep` op de laatste step**: schreef synchroon `setStepResults(...)` maar riep direct daarna `saveSession(dur)` aan, die `stepResults` uit closure las — React-state is async, dus de laatste rep ging verloren.
+
+**Fix**: `saveSession(dur, finalResults)` signatuur uitgebreid; beide paden bouwen het record nu synchroon en geven het mee. Default-record bij auto-advance: `actual = targetReps, completed: true` (de gebruiker zat de hele geschatte tijd uit, dus aanname dat target is gehaald). Wie meer/minder deed kan nog steeds DONE tikken met een eigen `actualInput`.
+
+**P2 graceful failure bij routine-load:**
+
+- `TimerScreen` regel ~2000: `dbOp.get(routineId)` had geen `.catch`. Bij DB-error of onbekend ID bleef `routine === null` en het scherm hing op de Loader. Nu: bij ontbrekende routine of DB-error → analytics-event `routine_load_failed` (reason: `not_found` of `db_error`) en automatische nav-back naar `params.backTo` (default 'routines').
+- `RoutineBuilderScreen` regel ~1806: idem zonder catch — `setReady(true)` werd niet aangeroepen bij failure, builder bleef leeg met loader. Nu `setReady(true)` ook in catch, lege builder is zichtbaar zodat de gebruiker wegnavigeren kan.
+
+### 6 vaste presets op Home + coach-strip hernoemd
+**Bestanden:** `www/index.html`
+
+Op Home staat nu een tweede horizontale strip **PRESETS** met 6 vaste routines van 5/10/15/20/25/30 minuten (intermediate als ijkpunt; minuten schalen automatisch met `profile.level`). De bestaande gepersonaliseerde coach-strip is hernoemd `QUICK START` → **`COACH PICKS`** om verwarring met de vaste presets te voorkomen.
+
+**Presets** (alle uit de uitgebreide library van 52 oefeningen):
+1. Core Express · ~5 MIN · 5 oef.
+2. Arms Push Pump · ~10 MIN · 9 oef.
+3. Legs Builder · ~15 MIN · 13 oef.
+4. Full Body Flow · ~20 MIN · 17 oef.
+5. Full Body Power · ~25 MIN · 21 oef.
+6. Full Body Endurance · ~30 MIN · 25 oef.
+
+**Implementatie:**
+- `PRESET_ROUTINES`-constante na `BODY_PART_WORKOUTS`.
+- `presetMin(preset, level)`-helper: `SUM(ex.times[idx]) + (n-1)·30s` → minuten op het profiel-level.
+- Volgorde top-to-bottom op Home: `COACH PICKS` → `PRESETS` → `MY ROUTINES` → `BY MUSCLE GROUP`.
+- Builder-toggle label `SHOW ON QUICK START` hernoemd naar `SHOW IN MY ROUTINES` (functie ongewijzigd — `routine.quickStart`-flag stuurt sinds vroeger eigenlijk de MY ROUTINES-strip aan).
+
+### Library-uitbreiding 2025-2026: 8 nieuwe oefeningen
+**Bestanden:** `www/index.html`
+
+8 oefeningen toegevoegd om gaten in de progressie te vullen (knie-vriendelijker varianten, glute-progressies boven bridge, hamstring zonder equipment, push-progressie naar 1-arm). Library staat nu op **52 oefeningen totaal** (10 → 12 Core, 15 → 16 Arms, 10 → 14 Legs, 9 → 10 Full Body).
+
+- **Core**: `copenhagen-plank` (adductor-isolatie), `hollow-rock` (dynamische hollow-body).
+- **Arms**: `archer-pushup` (push-progressie richting 1-arm).
+- **Legs**: `reverse-lunge` (knie-vriendelijker), `hip-thrust` (glute-progressie boven bridge), `nordic-curl-neg` (hamstring negatief zonder equipment), `cossack-squat` (mobility + unilateraal).
+- **Full Body**: `wall-walk` (schouder/core/mobility).
+
+`EXERCISE_CONFIGS` aangevuld voor alle 8 (6 reps, 2 time). Spier-mapping volgt `MUSCLE_CONFIG`; adductors heeft geen aparte muscle-key dus copenhagen-plank toont `quads` primair met `obliques`/`glutes` secundair.
+
+### Reps-mode telt automatisch af + brede herclassificatie reps/time
+**Bestanden:** `www/index.html`
+
+Reps-oefeningen bleven hangen op `timeLeft = 0` en vroegen om een handmatige DONE-tap, waardoor de workout-flow stokte. Daarnaast viel 26 van de 44 oefeningen impliciet terug op time-mode terwijl ze natuurlijker reps zijn (incline-pushup, jump-squat, glute-single, calf-raise, inchworm, sumo-squat, etc.).
+
+**Wijzigingen:**
+- `EXERCISE_CONFIGS` van 10 → **44 entries** (één per bestaande oefening). Resultaat: **30 reps, 13 time, 1 hybrid** (was: 4/5/1 expliciet + 26 fallback-time).
+- `EXERCISES` `times`-arrays bijgesteld naar `targets × seconds-per-rep` voor reps-oefeningen (~3s strict / ~5s slow / ~2.5s alternerend / ~2-3s plyo).
+- `buildSequence()`: voor reps/hybrid is `duration` nu `times[levelIdx]` i.p.v. `0` → progress-bar en totaal-tijd kloppen, timer ring vult lineair.
+- Timer-loop: short-circuit `return 0` voor reps/hybrid verwijderd; aftellen + auto-advance werkt nu in alle modes.
+- Display: onder het grote `REPS`-getal staat nu een kleine `M:SS`-countdown (Geist mono) zodat de gebruiker ziet hoeveel tijd er nog is — DONE-knop blijft beschikbaar voor early-exit.
+
+---
+
 ## 2026-05-14
 
 ### Service worker auto-update bij nieuwe deploy
