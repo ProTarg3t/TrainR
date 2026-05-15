@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TrainR is a Dutch-language PWA fitness app for home training (no equipment needed). It is intentionally minimalist: **no build step, no bundler, no npm install** — just a single HTML file served directly.
+TrainR is an English-language PWA fitness app for home training (no equipment needed). It is intentionally minimalist: **no build step, no bundler, no npm install** — just a single HTML file served directly.
 
 ## Running the App
 
@@ -117,7 +117,7 @@ Banner-comment-stijl: `// ===` (64×), hoofdsecties alleen. Sub-secties → éé
 
 ## Key Conventions
 
-- **Language**: All UI text is Dutch.
+- **Language**: All UI text is English. Docs (CHANGELOG, DECISIONS) and PR titles/bodies stay Dutch — see Git Workflow.
 - **Mobile-first**: No desktop layout; designed for Android/iOS PWA install.
 - **Offline-first**: Service worker (`sw.js`) uses cache-first strategy.
 - **No splitting**: Keep production code in `www/index.html`. Do not extract to separate JS files unless the architecture is intentionally changed.
