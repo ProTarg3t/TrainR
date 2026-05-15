@@ -1093,15 +1093,18 @@ function buildSequence(exercises, levelIdx) {
 
 function calcStreak(sessions) {
   if (!sessions.length) return 0;
-  const days = new Set(sessions.map(s => new Date(s.completedAt).toDateString()));
+  // UTC-dag i.p.v. local toDateString(): voorkomt streak-fouten bij reizen
+  // over tijdzones en bij sessies rond middernacht in een afwijkende TZ.
+  const dayKey = ts => new Date(ts).toISOString().slice(0, 10);
+  const days = new Set(sessions.map(s => dayKey(s.completedAt)));
   let count = 0;
   const d = new Date();
   // check from today
-  while (days.has(d.toDateString())) { count++; d.setDate(d.getDate() - 1); }
+  while (days.has(dayKey(d))) { count++; d.setUTCDate(d.getUTCDate() - 1); }
   // if today not done, check from yesterday
   if (count === 0) {
-    d.setDate(d.getDate() - 1);
-    while (days.has(d.toDateString())) { count++; d.setDate(d.getDate() - 1); }
+    d.setUTCDate(d.getUTCDate() - 1);
+    while (days.has(dayKey(d))) { count++; d.setUTCDate(d.getUTCDate() - 1); }
   }
   return count;
 }
