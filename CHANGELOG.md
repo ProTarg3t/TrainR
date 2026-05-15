@@ -7,6 +7,25 @@ Nieuwste bovenaan.
 
 ## 2026-05-15
 
+### 6 vaste presets op Home + coach-strip hernoemd
+**Bestanden:** `www/index.html`
+
+Op Home staat nu een tweede horizontale strip **PRESETS** met 6 vaste routines van 5/10/15/20/25/30 minuten (intermediate als ijkpunt; minuten schalen automatisch met `profile.level`). De bestaande gepersonaliseerde coach-strip is hernoemd `QUICK START` → **`COACH PICKS`** om verwarring met de vaste presets te voorkomen.
+
+**Presets** (alle uit de uitgebreide library van 52 oefeningen):
+1. Core Express · ~5 MIN · 5 oef.
+2. Arms Push Pump · ~10 MIN · 9 oef.
+3. Legs Builder · ~15 MIN · 13 oef.
+4. Full Body Flow · ~20 MIN · 17 oef.
+5. Full Body Power · ~25 MIN · 21 oef.
+6. Full Body Endurance · ~30 MIN · 25 oef.
+
+**Implementatie:**
+- `PRESET_ROUTINES`-constante na `BODY_PART_WORKOUTS`.
+- `presetMin(preset, level)`-helper: `SUM(ex.times[idx]) + (n-1)·30s` → minuten op het profiel-level.
+- Volgorde top-to-bottom op Home: `COACH PICKS` → `PRESETS` → `MY ROUTINES` → `BY MUSCLE GROUP`.
+- Builder-toggle label `SHOW ON QUICK START` hernoemd naar `SHOW IN MY ROUTINES` (functie ongewijzigd — `routine.quickStart`-flag stuurt sinds vroeger eigenlijk de MY ROUTINES-strip aan).
+
 ### Library-uitbreiding 2025-2026: 8 nieuwe oefeningen
 **Bestanden:** `www/index.html`
 

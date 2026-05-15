@@ -807,6 +807,23 @@ const BODY_PART_WORKOUTS = {
   ],
 };
 
+// Vaste preset-routines op Home, 5/10/15/20/25/30 min op intermediate. Op
+// beginner/expert worden de minuten dynamisch herberekend via presetMin.
+const PRESET_ROUTINES = [
+  { id: 'preset-5',  name: 'Core Express',        durationLabel: '~5 MIN',
+    exercises: ['mountain-cl','dead-bug','plank','hollow-rock','bicycles'] },
+  { id: 'preset-10', name: 'Arms Push Pump',      durationLabel: '~10 MIN',
+    exercises: ['pushup','incline-pushup','wide-pushup','pike-pushup','diamond-pushup','archer-pushup','slow-pushup','dips','scap-retract'] },
+  { id: 'preset-15', name: 'Legs Builder',        durationLabel: '~15 MIN',
+    exercises: ['squats','reverse-lunge','sumo-squat','jump-squat','wall-sit','hip-thrust','glute-single-l','glute-single-r','cossack-squat','calf-raise','donkey-kick','step-up','nordic-curl-neg'] },
+  { id: 'preset-20', name: 'Full Body Flow',      durationLabel: '~20 MIN',
+    exercises: ['jumping-jacks','squats','pushup','plank','alt-lunges','mountain-cl','burpees','reverse-lunge','pike-pushup','hip-thrust','bicycles','high-knees','diamond-pushup','sumo-squat','hollow-rock','lateral-jump','glute-bridge'] },
+  { id: 'preset-25', name: 'Full Body Power',     durationLabel: '~25 MIN',
+    exercises: ['jumping-jacks','squats','pushup','burpees','plank','wall-sit','mountain-cl','reverse-lunge','pike-pushup','hip-thrust','bicycles','high-knees','diamond-pushup','sumo-squat','mt-cl-fast','lateral-jump','archer-pushup','cossack-squat','hollow-rock','russian-twist','wall-walk'] },
+  { id: 'preset-30', name: 'Full Body Endurance', durationLabel: '~30 MIN',
+    exercises: ['jumping-jacks','squats','pushup','burpees','plank','high-knees','wall-sit','pike-pushup','reverse-lunge','sumo-squat','diamond-pushup','mountain-cl','lateral-jump','hip-thrust','bicycles','butt-kicks','wide-pushup','cossack-squat','glute-bridge','calf-raise','russian-twist','mt-cl-fast','hollow-rock','wall-walk','bear-crawl'] },
+];
+
 // Dag-van-jaar (1-366). Gebruikt als seed voor dagelijkse coach-selectie.
 function dayOfYear(d = new Date()) {
   const start = new Date(d.getFullYear(), 0, 0);
@@ -1200,6 +1217,17 @@ function parseMin(v) {
   const m = String(v || '').match(/\d+/);
   return m ? parseInt(m[0], 10) : 0;
 }
+// Schaalt de minuten van een preset (intermediate als ijkpunt) naar het
+// werkelijke level van het profiel. Som van times[idx] + 30s rust ertussen.
+function presetMin(preset, level) {
+  const idx = LEVEL_TIME_IDX[level || 'intermediate'] ?? 1;
+  const work = (preset.exercises || []).reduce((s, id) => {
+    const ex = EXERCISES_WITH_MODE.find(e => e.id === id);
+    return s + (ex?.times?.[idx] || 0);
+  }, 0);
+  const rests = Math.max(0, (preset.exercises?.length || 0) - 1) * 30;
+  return Math.max(1, Math.round((work + rests) / 60));
+}
 function routineTags(exerciseIds) {
   return getRoutineCategories(exerciseIds).map(c => CAT_TO_TAG[c]).filter(Boolean);
 }
@@ -1289,11 +1317,11 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWor
         </section>
       )}
 
-      {/* Quick start — horizontal scroll */}
+      {/* Coach picks — horizontal scroll, gepersonaliseerd op profiel */}
       {(coachWorkouts || []).length > 0 && (
         <section className="hm-section">
           <div className="hm-rowhead">
-            <span className="hm-lbl">QUICK START</span>
+            <span className="hm-lbl">COACH PICKS</span>
             <span className="hm-lbl" style={{ color: 'var(--fg-tertiary)' }}>SWIPE →</span>
           </div>
           <div className="hm-hscroll">
@@ -1322,6 +1350,38 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWor
           </div>
         </section>
       )}
+
+      {/* Presets — vaste routines 5/10/15/20/25/30 min, schalen met profile.level */}
+      <section className="hm-section">
+        <div className="hm-rowhead">
+          <span className="hm-lbl">PRESETS</span>
+          <span className="hm-lbl" style={{ color: 'var(--fg-tertiary)' }}>SWIPE →</span>
+        </div>
+        <div className="hm-hscroll">
+          {PRESET_ROUTINES.map(p => {
+            const tags = routineTags(p.exercises);
+            const min = presetMin(p, profile?.level);
+            return (
+              <button key={p.id} className="qc" onClick={() => onNavigate('timer', { routine: p, backTo: 'home' })}>
+                <div className="qc-meta">
+                  {tags.map(t => <HmTag key={t} t={t} />)}
+                </div>
+                <div className="qc-name">{p.name}</div>
+                <div className="qc-foot">
+                  <div className="qc-stat">
+                    <span className="qc-big">{min}</span>
+                    <span className="qc-unit">MIN</span>
+                    <span className="qc-sep">·</span>
+                    <span className="qc-big">{p.exercises.length}</span>
+                    <span className="qc-unit">EX</span>
+                  </div>
+                  <span className="qc-play" aria-hidden>{Icon.play(13)}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       {/* My routines */}
       <section className="hm-section">
@@ -1888,7 +1948,7 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
             display: 'flex', alignItems: 'center', gap: 10,
           }}>
             <span style={{ color: quickStart ? C.accent : C.muted, fontSize: 14 }}>{quickStart ? '■' : '□'}</span>
-            SHOW ON QUICK START
+            SHOW IN MY ROUTINES
           </button>
         </div>
 
