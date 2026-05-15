@@ -126,7 +126,7 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 // ================================================================
 // DB LAYER
 // ================================================================
-const VERSION = '0.1';
+const VERSION = '0.2';
 const DB_NAME = 'trainr_v1';
 const DB_VERSION = 5;
 const DEV_MODE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
@@ -3036,7 +3036,7 @@ function SettingsScreen({ dbRef, onNavigate }) {
       background: on ? 'rgba(232,254,60,0.10)' : 'transparent',
       fontFamily: C.mono, fontSize: 11, letterSpacing: '0.12em', fontWeight: 600,
       color: on ? C.accent : C.secondary, cursor: 'pointer', minWidth: 46,
-    }}>{on ? 'AAN' : 'UIT'}</button>
+    }}>{on ? 'ON' : 'OFF'}</button>
   );
 
   return (
