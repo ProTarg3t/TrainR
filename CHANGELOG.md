@@ -5,6 +5,22 @@ Nieuwste bovenaan.
 
 ---
 
+## 2026-05-15
+
+### Reps-mode telt automatisch af + brede herclassificatie reps/time
+**Bestanden:** `www/index.html`
+
+Reps-oefeningen bleven hangen op `timeLeft = 0` en vroegen om een handmatige DONE-tap, waardoor de workout-flow stokte. Daarnaast viel 26 van de 44 oefeningen impliciet terug op time-mode terwijl ze natuurlijker reps zijn (incline-pushup, jump-squat, glute-single, calf-raise, inchworm, sumo-squat, etc.).
+
+**Wijzigingen:**
+- `EXERCISE_CONFIGS` van 10 → **44 entries** (één per bestaande oefening). Resultaat: **30 reps, 13 time, 1 hybrid** (was: 4/5/1 expliciet + 26 fallback-time).
+- `EXERCISES` `times`-arrays bijgesteld naar `targets × seconds-per-rep` voor reps-oefeningen (~3s strict / ~5s slow / ~2.5s alternerend / ~2-3s plyo).
+- `buildSequence()`: voor reps/hybrid is `duration` nu `times[levelIdx]` i.p.v. `0` → progress-bar en totaal-tijd kloppen, timer ring vult lineair.
+- Timer-loop: short-circuit `return 0` voor reps/hybrid verwijderd; aftellen + auto-advance werkt nu in alle modes.
+- Display: onder het grote `REPS`-getal staat nu een kleine `M:SS`-countdown (Geist mono) zodat de gebruiker ziet hoeveel tijd er nog is — DONE-knop blijft beschikbaar voor early-exit.
+
+---
+
 ## 2026-05-14
 
 ### Service worker auto-update bij nieuwe deploy

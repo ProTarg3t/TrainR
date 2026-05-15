@@ -41,6 +41,12 @@ Doel: over 3 maanden weten waarom iets is zoals het is — voor jezelf én voor 
 
 ## Beslissingen
 
+## 2026-05-15 — Reps-mode telt mee in de workout-klok
+**Wat:** Reps- en hybrid-oefeningen krijgen een geschatte werkduur (`times[levelIdx]`) als `duration` in `buildSequence()`. De timer loopt door tijdens reps, en bij `timeLeft=0` springt de workout automatisch door naar de rust. Een `DONE ✓`-knop blijft voor wie eerder klaar is.
+**Waarom:** Eerder zette `buildSequence` `duration: 0` voor reps, en short-circuited de timer-loop naar `return 0`. De workout stokte tot de gebruiker handmatig tapte; progress-bar en totaal-tijd waren onjuist omdat reps niet meetelden in `totalDur`. De flow voelt nu continu en de totaal-tijd op de idle-screen klopt met de werkelijkheid.
+**Alternatief:** (a) Reps blijven puur input-gedreven met expliciete DONE-tap — afgewezen omdat het de workout onderbrak. (b) Aparte rep-counter zonder timer — afgewezen omdat het de UI verdeelde en kcal/totale-duur niet werkten. (c) Hybrid-mode breder uitrollen i.p.v. reps+tijd combineren — afgewezen omdat één extra mode (reps-met-timer) eenvoudiger is dan een derde tussenvorm.
+**Impact:** `EXERCISE_CONFIGS` (10 → 44 entries, breed herclassificeerd), `EXERCISES.times` (32 entries bijgesteld), `buildSequence`, WorkoutScreen timer-loop en het rep-display (kleine secundaire countdown onder `REPS`). Geen DB-migratie nodig — alle data zit in-code.
+
 ## 2026-05-07 — Eén HTML-bestand voor productie
 **Wat:** Productie-app blijft als één `www/index.html`, geen build-step, geen npm install.
 **Waarom:** Snelle iteratie, geen tooling-overhead, ik (projectleider) kan zonder bundler-kennis werken. React via CDN is genoeg voor deze schaal.
