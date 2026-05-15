@@ -7,6 +7,25 @@ Nieuwste bovenaan.
 
 ## 2026-05-15
 
+### Versie 0.1 (alpha) + race-fix workout-save + DB-load fallbacks
+**Bestanden:** `www/index.html`, `CHANGELOG.md`
+
+Eerste officiële versie-tag: **v0.1 (alpha)**. Zichtbaar als footer onder Settings (`TRAINR · v0.1 · ALPHA`), `const VERSION = '0.1'` bovenaan de DB-layer. Geen SW-cache bump nodig: `index.html` is netwerk-first dus de bump zou alleen statische assets (manifest/icons) flushen, en die zijn niet veranderd.
+
+**P1 race-fix — `stepResults` werd niet opgeslagen bij auto-advance en op laatste step:**
+
+Twee paden in `TimerScreen` schreven sets niet (of stale) naar `stepResults` voordat `saveSession` ze persisteerde:
+
+1. **Timer auto-advance bij `t <= 1`** (door Codex op PR #34 gemeld): nu reps/hybrid ook door dit pad lopen (zie eerdere reps-revisie), miste een default-record als de gebruiker de countdown liet aflopen zonder DONE te tikken. Gevolg: Finish-scherm toonde 0 SETS, `workout_completed` analytics-event verloor rep-data.
+2. **`completeRepStep` op de laatste step**: schreef synchroon `setStepResults(...)` maar riep direct daarna `saveSession(dur)` aan, die `stepResults` uit closure las — React-state is async, dus de laatste rep ging verloren.
+
+**Fix**: `saveSession(dur, finalResults)` signatuur uitgebreid; beide paden bouwen het record nu synchroon en geven het mee. Default-record bij auto-advance: `actual = targetReps, completed: true` (de gebruiker zat de hele geschatte tijd uit, dus aanname dat target is gehaald). Wie meer/minder deed kan nog steeds DONE tikken met een eigen `actualInput`.
+
+**P2 graceful failure bij routine-load:**
+
+- `TimerScreen` regel ~2000: `dbOp.get(routineId)` had geen `.catch`. Bij DB-error of onbekend ID bleef `routine === null` en het scherm hing op de Loader. Nu: bij ontbrekende routine of DB-error → analytics-event `routine_load_failed` (reason: `not_found` of `db_error`) en automatische nav-back naar `params.backTo` (default 'routines').
+- `RoutineBuilderScreen` regel ~1806: idem zonder catch — `setReady(true)` werd niet aangeroepen bij failure, builder bleef leeg met loader. Nu `setReady(true)` ook in catch, lege builder is zichtbaar zodat de gebruiker wegnavigeren kan.
+
 ### 6 vaste presets op Home + coach-strip hernoemd
 **Bestanden:** `www/index.html`
 

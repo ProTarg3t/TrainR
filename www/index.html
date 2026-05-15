@@ -126,6 +126,7 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 // ================================================================
 // DB LAYER
 // ================================================================
+const VERSION = '0.1';
 const DB_NAME = 'trainr_v1';
 const DB_VERSION = 5;
 const DEV_MODE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
@@ -1803,10 +1804,15 @@ function RoutineBuilderScreen({ dbRef, onNavigate, params }) {
 
   useEffect(() => {
     if (!isEdit || !dbRef.current) return;
-    dbOp(dbRef.current, 'routines', 'readonly', s => s.get(params.routineId)).then(r => {
-      if (r) { setName(r.name); setCategory(r.category); setSelected(r.exercises); setFilterCat(r.category); setQuickStart(r.quickStart !== false); }
-      setReady(true);
-    });
+    dbOp(dbRef.current, 'routines', 'readonly', s => s.get(params.routineId))
+      .then(r => {
+        if (r) { setName(r.name); setCategory(r.category); setSelected(r.exercises); setFilterCat(r.category); setQuickStart(r.quickStart !== false); }
+        setReady(true);
+      })
+      .catch(err => {
+        console.warn('Routine load failed', err);
+        setReady(true);
+      });
   }, []);
 
   const toggleEx = id => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -1997,7 +2003,16 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
   useEffect(() => {
     if (params?.routine) { setRoutine(params.routine); return; }
     if (!params?.routineId || !dbRef.current) return;
-    dbOp(dbRef.current, 'routines', 'readonly', s => s.get(params.routineId)).then(r => setRoutine(r));
+    dbOp(dbRef.current, 'routines', 'readonly', s => s.get(params.routineId))
+      .then(r => {
+        if (r) { setRoutine(r); return; }
+        analytics.trackEvent('routine_load_failed', { routineId: params.routineId, reason: 'not_found' });
+        onNavigate(params?.backTo || 'routines', {});
+      })
+      .catch(err => {
+        analytics.trackEvent('routine_load_failed', { routineId: params.routineId, reason: 'db_error', error: String(err?.message || err) });
+        onNavigate(params?.backTo || 'routines', {});
+      });
   }, []);
 
   const exercises = useMemo(() => {
@@ -2048,11 +2063,18 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
     intervalRef.current = setInterval(() => {
       setTimeLeft(t => {
         if (t <= 1) {
+          // Reps/hybrid timeout: default-record bevat target reps (auto-completion)
+          let finalResults = stepResults;
+          if (step && !step.isRest && (step.mode === 'reps' || step.mode === 'hybrid') && !stepResults[step.id]) {
+            const target = step.targetReps || step.duration;
+            finalResults = { ...stepResults, [step.id]: { mode: step.mode, target, actual: target, completed: true } };
+            setStepResults(finalResults);
+          }
           const next = stepIdx + 1;
           if (next >= sequence.length) {
             const dur = Math.floor((Date.now() - startTs) / 1000);
             clearInterval(intervalRef.current);
-            saveSession(dur);
+            saveSession(dur, finalResults);
             return 0;
           }
           setStepIdx(next);
@@ -2065,8 +2087,9 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
     return () => clearInterval(intervalRef.current);
   }, [phase, stepIdx, sequence.length]);
 
-  const saveSession = async dur => {
+  const saveSession = async (dur, finalResults) => {
     if (!dbRef.current || !routine) return;
+    const results = finalResults || stepResults;
     const prof = await getProfile(dbRef.current);
     const calories = calcSessionKcal(activeEx, dur, prof?.weight);
     const sessionId = `s-${Date.now()}`;
@@ -2074,16 +2097,16 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
       id: sessionId, routineId: routine.id, routineName: routine.name,
       levelIdx, duration: dur, exercises: activeEx.map(e => e.name), completedAt: Date.now(),
       mode: activeEx.every(e => e.mode === 'reps') ? 'reps' : (activeEx.every(e => e.mode === 'time') ? 'time' : 'mixed'),
-      stepResults,
+      stepResults: results,
       setCount: activeEx.length,
       calories,
     };
     if (params?.planId)  sessionData.planId  = params.planId;
     if (params?.planDay) sessionData.planDay = params.planDay;
     await dbOp(dbRef.current, 'sessions', 'readwrite', s => s.put(sessionData));
-    await analytics.trackEvent('workout_completed', { routineId: routine.id, duration: dur, exerciseCount: activeEx.length, stepResults }, { sessionId, planId: params?.planId || null });
+    await analytics.trackEvent('workout_completed', { routineId: routine.id, duration: dur, exerciseCount: activeEx.length, stepResults: results }, { sessionId, planId: params?.planId || null });
     relWake();
-    onNavigate('finish', { sessionId, routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx, calories, mode: sessionData.mode, stepResults });
+    onNavigate('finish', { sessionId, routineName: routine.name, levelIdx, duration: dur, exerciseCount: activeEx.length, exercises: activeEx, calories, mode: sessionData.mode, stepResults: results });
   };
 
   const startWorkout = () => {
@@ -2117,12 +2140,14 @@ function TimerScreen({ dbRef, onNavigate, params, analytics }) {
   const completeRepStep = () => {
     if (!step || step.isRest || (step.mode !== 'reps' && step.mode !== 'hybrid')) return;
     const actual = Number(actualInput || step.targetReps || 0);
-    setStepResults(prev => ({ ...prev, [step.id]: { mode: step.mode, target: step.targetReps || step.duration, actual, completed: actual > 0 } }));
+    const record = { mode: step.mode, target: step.targetReps || step.duration, actual, completed: actual > 0 };
+    const finalResults = { ...stepResults, [step.id]: record };
+    setStepResults(finalResults);
     setActualInput('');
     const next = stepIdx + 1;
     if (next >= sequence.length) {
       const dur = Math.floor((Date.now() - startTs) / 1000);
-      saveSession(dur); return;
+      saveSession(dur, finalResults); return;
     }
     setStepIdx(next);
     setTimeLeft(sequence[next].duration || 0);
@@ -3088,6 +3113,10 @@ function SettingsScreen({ dbRef, onNavigate }) {
             <span style={{ fontFamily: C.mono, fontSize: 11, color: C.accent }}>ACTIVE</span>
           ), true)}
         </>)}
+
+        <div style={{ textAlign: 'center', padding: '24px 0 8px', fontFamily: C.mono, fontSize: 11, letterSpacing: '0.16em', color: C.muted }}>
+          TRAINR · v{VERSION} · ALPHA
+        </div>
 
       </div>
     </div>
