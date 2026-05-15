@@ -126,7 +126,7 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 // ================================================================
 // DB LAYER
 // ================================================================
-const VERSION = '0.3';
+const VERSION = '0.4';
 const DB_NAME = 'trainr_v1';
 const DB_VERSION = 5;
 const DEV_MODE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
@@ -2779,19 +2779,45 @@ function ProfileEditModal({ profile, onSave, onClose }) {
   const [error,        setError]        = useState('');
 
   const handleSave = () => {
-    if (!name.trim())                      { setError('Name is required.');   return; }
-    if (!age || parseInt(age) <= 0)        { setError('Age is required.');    return; }
-    if (!height || parseInt(height) <= 0)  { setError('Height is required.'); return; }
-    if (!weight || parseFloat(weight) <= 0){ setError('Weight is required.'); return; }
+    if (!name.trim()) { setError('Name is required.'); return; }
+
+    const ageNum = parseInt(age);
+    if (!age || isNaN(ageNum) || ageNum < 10 || ageNum > 120) {
+      setError('Age must be between 10 and 120.'); return;
+    }
+    const heightNum = parseInt(height);
+    if (!height || isNaN(heightNum) || heightNum < 100 || heightNum > 250) {
+      setError('Height must be between 100 and 250 cm.'); return;
+    }
+    const weightNum = parseFloat(weight);
+    if (!weight || isNaN(weightNum) || weightNum < 30 || weightNum > 250) {
+      setError('Weight must be between 30 and 250 kg.'); return;
+    }
+
+    let startWeightNum = null;
+    if (startWeight) {
+      startWeightNum = parseFloat(startWeight);
+      if (isNaN(startWeightNum) || startWeightNum < 30 || startWeightNum > 250) {
+        setError('Start weight must be between 30 and 250 kg.'); return;
+      }
+    }
+    let targetWeightNum = null;
+    if (targetWeight) {
+      targetWeightNum = parseFloat(targetWeight);
+      if (isNaN(targetWeightNum) || targetWeightNum < 30 || targetWeightNum > 250) {
+        setError('Target weight must be between 30 and 250 kg.'); return;
+      }
+    }
+
     setError('');
     onSave({
       name: name.trim(),
-      age: parseInt(age),
+      age: ageNum,
       gender,
-      height:      parseInt(height),
-      weight:      parseFloat(weight),
-      weightStart: startWeight  ? parseFloat(startWeight)  : null,
-      weightGoal:  targetWeight ? parseFloat(targetWeight) : null,
+      height: heightNum,
+      weight: weightNum,
+      weightStart: startWeightNum,
+      weightGoal:  targetWeightNum,
     });
   };
 

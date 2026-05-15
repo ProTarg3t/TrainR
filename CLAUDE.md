@@ -150,13 +150,10 @@ Faalt een van deze drie → het is niet "gemerged", maar "code op main". Direct 
 
 ## Bekende issues (backlog)
 
-Tijdens een code-audit op 2026-05-15 geïdentificeerde issues die nog niet zijn gefikst. Verwijderen zodra opgepakt.
+Tijdens een code-audit op 2026-05-15 geïdentificeerde issues. Verwijderen zodra opgepakt. (Race in interval-pad, `calcStreak`-TZ en onboarding input-validation gefikst in v0.4 — zie CHANGELOG 2026-05-15.)
 
 | Prio | Issue | Locatie | Aanpak |
 |---|---|---|---|
-| **Kritiek** | `stepResults`-race in TimerScreen interval-pad: stale closure kan laatste record overschrijven | `www/index.html:2061-2088` | Functional `setStepResults(prev => ...)` zoals al toegepast op `completeRepStep` (zie CHANGELOG 2026-05-15 race-fix) |
-| Hoog | `calcStreak` is timezone-gevoelig via `toDateString()` | `www/index.html:1094-1107` | UTC-normalisatie: `new Date(ts).toISOString().slice(0,10)` |
-| Hoog | Geen input-validation onboarding (age/height/weight) | `www/index.html:2769-2780` | `clampNumber(value, min, max)` helper; grenzen: age 10-120, height 100-250, weight 30-250 |
 | Hoog | SW-update doet `controllerchange → reload` mid-workout | `www/index.html:3621-3630` | Reload uitstellen tot na FinishScreen of bij idle |
 | Medium | localStorage analytics-fallback unbounded | `www/index.html:296-298` | Cap op laatste N events |
 | Medium | `ActiveScreen` god-component (~20 useState) | `www/index.html:1979-2500+` | Pas opbreken na alpha; eerst risico's afdekken |

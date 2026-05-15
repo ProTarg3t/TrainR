@@ -7,6 +7,19 @@ Nieuwste bovenaan.
 
 ## 2026-05-15
 
+### v0.4 — Audit-fixes: race / streak-TZ / onboarding-validation
+**Bestanden:** `www/index.html`, `www/sw.js`
+
+Drie hoog/kritiek audit-bevindingen uit de Bekende-issues-tabel afgehandeld in één PR (drie aparte commits zodat per fix te reviewen / reverten).
+
+**1. Race-fix interval-pad** (`TimerScreen`, kritiek). De `setInterval`-callback las `stepResults` als closure-snapshot van het moment dat het `useEffect` (her)opstartte. Tikte je DONE op de **laatste** step kort vóór een `t<=1`-tick, dan kreeg de interval-tick de stale snapshot zonder het zojuist geschreven record, riep opnieuw `saveSession` aan met auto-completion-defaults en overschreef de echte rep-data in IndexedDB. Mirror-ref `stepResultsRef` weerspiegelt nu altijd de actuele state; `completeRepStep` schrijft via de ref en clearInterval'd het interval bij end-of-sequence zodat de tweede `saveSession`-call niet meer kan firen. Zelfde patroon als de v0.1 race-fix in `completeRepStep`, nu doorgetrokken naar het interval-pad.
+
+**2. `calcStreak` UTC-normalisatie** (hoog). `toDateString()` gebruikt de lokale tijdzone — een gebruiker die reist of een sessie net rond middernacht afrondt kreeg verkeerde streaks omdat 'vandaag' van betekenis verschoof. Vervangen door een `dayKey()` helper die `'YYYY-MM-DD'` uit `toISOString()` (UTC) levert; loop-iteratie via `setUTCDate`.
+
+**3. Input-validation `OnboardingScreen.handleSave`** (hoog). `parseInt`/`parseFloat` zonder upper bounds liet 999 / 9999 vrij doorstromen → corrupte BMI- en kcal-berekeningen. Grenzen ingevoerd: age 10-120, height 100-250 cm, weight / startWeight / targetWeight 30-250 kg, met inline foutmeldingen via de bestaande `setError`-pipeline. `onProfileUpdate` is het enige andere edit-pad maar raakt deze velden niet (alleen plan-state), dus dekking is volledig.
+
+VERSION-bump naar **0.4** in `www/index.html` én `www/sw.js` zodat de auto-update-cyclus deze fixes direct naar de PWA pusht.
+
 ### Werkwijze-docs + smoke-CI
 **Bestanden:** `~/.claude/CLAUDE.md` (nieuw, buiten repo), `CLAUDE.md`, `.github/workflows/smoke.yml` (nieuw)
 
