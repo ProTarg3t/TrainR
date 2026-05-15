@@ -1,0 +1,55 @@
+name: Smoke checks
+
+# Minimale CI op elke PR + push naar main:
+#  1. VERSION in www/index.html == VERSION in www/sw.js (anders SW-update-gat)
+#  2. JSX in www/index.html parseert (anders breekt Babel-in-browser bij de gebruiker)
+# Geen unit tests (alpha-stadium, geen build-step).
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check VERSION consistency (index.html vs sw.js)
+        run: |
+          set -euo pipefail
+          INDEX_VER=$(grep -oP "const VERSION = '\K[^']+" www/index.html | head -1)
+          SW_VER=$(grep -oP "const VERSION = '\K[^']+" www/sw.js | head -1)
+          echo "index.html VERSION=$INDEX_VER"
+          echo "sw.js       VERSION=$SW_VER"
+          if [[ -z "$INDEX_VER" || -z "$SW_VER" ]]; then
+            echo "::error::Could not extract VERSION from one of the files"
+            exit 1
+          fi
+          if [[ "$INDEX_VER" != "$SW_VER" ]]; then
+            echo "::error::VERSION mismatch — bump both www/index.html and www/sw.js"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Parse JSX block in www/index.html
+        run: |
+          set -euo pipefail
+          # Extract the <script type="text/babel"> block to a temp .jsx file
+          python3 - <<'PY'
+          import re, sys, pathlib
+          html = pathlib.Path("www/index.html").read_text(encoding="utf-8")
+          m = re.search(r'<script[^>]*type="text/babel"[^>]*>(.*?)</script>',
+                        html, re.DOTALL)
+          if not m:
+              sys.exit("No <script type='text/babel'> block found in www/index.html")
+          pathlib.Path("/tmp/trainr-app.jsx").write_text(m.group(1), encoding="utf-8")
+          print(f"extracted {len(m.group(1))} bytes of JSX")
+          PY
+          # esbuild verifies syntax (transform output discarded)
+          npx --yes esbuild@0.21.5 /tmp/trainr-app.jsx --loader:.jsx=jsx --log-level=warning > /dev/null

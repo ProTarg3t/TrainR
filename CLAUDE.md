@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Universele werkwijze (alle projecten):** zie `~/.claude/CLAUDE.md` voor pre-flight / in-flight / post-merge rituelen en algemene anti-patterns. Dit project-bestand bevat alleen TrainR-specifieke regels.
+
 ## Project Overview
 
 TrainR is an English-language PWA fitness app for home training (no equipment needed). It is intentionally minimalist: **no build step, no bundler, no npm install** — just a single HTML file served directly.
@@ -118,6 +120,48 @@ Bij elke gebruiker-zichtbare release (nieuwe feature of fix die naar gebruikers 
 Waarom op twee plekken: zonder build-step kan de versie niet automatisch geïnjecteerd worden. Doordat `sw.js` byte-verandert (via `CACHE_NAME = 'trainr-v' + VERSION`), detecteert Chrome de nieuwe SW → `updatefound` → SKIP_WAITING → `controllerchange` → automatische reload op het toestel. Vergeet je `sw.js` te bumpen, dan blijft de geïnstalleerde PWA op de oude versie hangen tot de gebruiker de app sluit en opnieuw opent.
 
 Versie-schema: simpele `0.x` notatie. Alpha-fase tot 1.0. Footer in Settings toont `TRAINR · v{VERSION} · ALPHA`.
+
+## Deploy-pijplijn
+
+De **enige weg** van source naar live URL:
+
+```
+main → .github/workflows/deploy-pages.yml → gh-pages-branch → trainr.jeshua.eu
+```
+
+Concreet:
+- Bij elke push/merge naar `main` draait de workflow automatisch.
+- De workflow rsync't `www/` naar de root van `gh-pages`.
+- GitHub Pages serveert vanaf `gh-pages` op `trainr.jeshua.eu`.
+
+**Niet doen:** handmatig naar `gh-pages` pushen. De workflow overschrijft het toch.
+
+**Verificatie na merge** (deze drie, in volgorde):
+
+1. Actions-tab → laatste run van "Deploy www to GitHub Pages" = success.
+2. Live VERSION check vanuit terminal:
+   ```bash
+   curl -sS https://trainr.jeshua.eu/index.html | grep -oP "const VERSION = '\K[^']+"
+   ```
+   moet exact gelijk zijn aan `VERSION` in `www/index.html` op `main`.
+3. PWA op een Android-toestel openen → app refresht naar nieuwe versie (zie Release-flow voor SW-mechaniek).
+
+Faalt een van deze drie → het is niet "gemerged", maar "code op main". Direct opvolgen.
+
+## Bekende issues (backlog)
+
+Tijdens een code-audit op 2026-05-15 geïdentificeerde issues die nog niet zijn gefikst. Verwijderen zodra opgepakt.
+
+| Prio | Issue | Locatie | Aanpak |
+|---|---|---|---|
+| **Kritiek** | `stepResults`-race in TimerScreen interval-pad: stale closure kan laatste record overschrijven | `www/index.html:2061-2088` | Functional `setStepResults(prev => ...)` zoals al toegepast op `completeRepStep` (zie CHANGELOG 2026-05-15 race-fix) |
+| Hoog | `calcStreak` is timezone-gevoelig via `toDateString()` | `www/index.html:1094-1107` | UTC-normalisatie: `new Date(ts).toISOString().slice(0,10)` |
+| Hoog | Geen input-validation onboarding (age/height/weight) | `www/index.html:2769-2780` | `clampNumber(value, min, max)` helper; grenzen: age 10-120, height 100-250, weight 30-250 |
+| Hoog | SW-update doet `controllerchange → reload` mid-workout | `www/index.html:3621-3630` | Reload uitstellen tot na FinishScreen of bij idle |
+| Medium | localStorage analytics-fallback unbounded | `www/index.html:296-298` | Cap op laatste N events |
+| Medium | `ActiveScreen` god-component (~20 useState) | `www/index.html:1979-2500+` | Pas opbreken na alpha; eerst risico's afdekken |
+| Laag | Magic numbers (1000ms / 30000ms / midIdx) | meerdere | Named constants bovenaan TIMER-sectie |
+| Laag | Tap-targets onder 44px (`.rr-play`, `.qc-play`) | `www/index.html:97-98` | min-width/height 44px |
 
 ## Wanneer welk docs-bestand updaten
 
