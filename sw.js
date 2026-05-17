@@ -1,7 +1,7 @@
 // Bump VERSION in zowel www/index.html als www/sw.js bij elke release.
 // Doordat sw.js byte-verandert, detecteert Chrome de nieuwe SW en triggert
 // updatefound → SKIP_WAITING → controllerchange → automatische reload.
-const VERSION = '0.4';
+const VERSION = '0.5';
 const CACHE_NAME = 'trainr-v' + VERSION;
 const STATIC_FILES = ['./manifest.json', './icon-192.png', './icon-512.png'];
 
