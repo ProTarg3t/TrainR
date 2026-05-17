@@ -5,6 +5,39 @@ Nieuwste bovenaan.
 
 ---
 
+## 2026-05-17
+
+### v0.5 — Home overhaul: "Focus & Flow" (Variant B)
+**Bestanden:** `www/index.html`, `www/sw.js`
+
+Home-tab volledig herontworpen op basis van het design-handoff "Variant B" (rustiger, scannable, één hero + 2-koloms beeldgrid).
+
+**Nieuwe layout (top → bottom):**
+- **Top bar** — eyebrow (datum/tijd) + greeting + naam op twee regels; avatar-knop rechts (initialen, opent Profile).
+- **Hero card** — "TODAY'S WORKOUT" in signaal-geel, naam + min/oef/level, prominente START-pill. Bron = eerste `coachWorkout` of fallback eerste preset.
+- **Stats strip** — 3 cellen: streak / week (done/total) / total sessions. Week-total uit `profile.availableDays` (default 5).
+- **Week goal-card** — 7 day-cells (M..Z) met `done`/`on`-states, info-banner met flame icon + dynamische resterend-tekst.
+- **Body Focus** — chips (ALL / CORE / ARMS / LEGS / FULL BODY) + 2-koloms grid van routine-cards. ALL toont één representatieve routine per categorie. Beeld-area = lege placeholder (geen image-infra in DB).
+- **Custom CTA** — signaal-geel omlijnde "BUILD YOUR OWN ROUTINE", opent builder.
+- **Quick (<10 min)** — vertical list met PRESET_ROUTINES ≤10 min + Start-varianten uit `BODY_PART_WORKOUTS`.
+- **My routines** — onder de fold zodat custom workouts bereikbaar blijven; alleen render als er routines zijn.
+
+Engelse copy conform CLAUDE.md. PLAN-tab ongemoeid. Bottom-nav uit het design (HOME/ROUTINES/OPTIES/PROFIEL) **niet** overgenomen — bestaande nav-structuur blijft.
+
+**Code-deletes (dood na overhaul):**
+- `HmTag`, `HmRoutineRow`, `CAT_TO_TAG`, `TAG_LABEL` constants.
+- Oude `.hm-*`, `.qc`, `.rr`, `.tg` CSS-regels (~55 regels) vervangen door `.hmB-*` / `.heroB` / `.goalB` / `.cardB` / `.customB` / `.qkB`.
+- `starterCTA` / `coachIntro` / `todayDone` state — werden niet meer gerenderd.
+
+**Aanvullende vereisten na eerste pass:**
+- **Hero rouleert na voltooide sessie** — `hero` is nu `coachWorkouts[doneTodayCount % coachWorkouts.length]`. Met 3 coach picks: na sessie 1 vandaag wordt pick #2 de hero, na sessie 2 pick #3, daarna terug naar #1. Voorheen toonde de hero altijd `coachWorkouts[0]`.
+- **Week-goal togo-tekst** klopt 1:1 met de fractie: `weekRemain = max(0, weekTotal - weekDone)` en de info-banner toont datzelfde getal ("N sessions to reach your week goal"). Bij `weekDone >= weekTotal` schakelt de tekst om naar "Week goal reached. Nice work."
+- **Avatar → PRO-knop** (placeholder voor toekomstige subscription, geen functie). Initialen-bol vervangen door signaal-geel omlijnde pill met label "PRO", `disabled` zodat tap geen navigatie triggert. Initials-prop volledig verwijderd.
+
+VERSION-bump 0.4 → **0.5** in `www/index.html` én `www/sw.js`.
+
+---
+
 ## 2026-05-15
 
 ### v0.4 — Audit-fixes: race / streak-TZ / onboarding-validation

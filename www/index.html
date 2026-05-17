@@ -62,60 +62,84 @@
     ::-webkit-scrollbar { width: 0; }
     .rpe-slider { position: absolute; inset: -10px 0; width: 100%; opacity: 0; cursor: pointer; -webkit-appearance: none; }
 
-    /* ── HOME (nieuwe design) ── */
-    .hm-head { padding: 28px var(--pad) 8px; }
-    .hm-eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; color: var(--fg-secondary); text-transform: uppercase; }
-    .hm-title { font-size: 40px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin-top: 8px; color: var(--fg-primary); }
-    .hm-section { padding: var(--gap) 0 0; }
-    .hm-rowhead { display: flex; justify-content: space-between; align-items: center; padding: 0 var(--pad) 10px; }
-    .hm-lbl { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; color: var(--fg-secondary); font-weight: 500; text-transform: uppercase; }
-    .hm-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 var(--pad); }
-    .hm-tile { padding: 14px 12px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 4px; align-items: flex-start; background: transparent; }
-    .hm-tnum { font-family: var(--font-mono); font-size: 28px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: var(--fg-primary); font-variant-numeric: tabular-nums; }
-    .hm-tsuf { font-size: 16px; color: var(--fg-tertiary); margin-left: 2px; }
-    .hm-tlbl { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.10em; color: var(--fg-tertiary); font-weight: 500; text-transform: uppercase; }
-    .hm-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding: 14px; margin: 0 var(--pad); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
-    .hm-wcell { aspect-ratio: 1 / 1.4; border-radius: var(--radius-sm); background: var(--bg-elev-1); display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 8px 0; }
-    .hm-wday { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--fg-tertiary); font-weight: 500; }
-    .hm-wdot { width: 6px; height: 6px; border-radius: 50%; background: var(--fg-quaternary); }
-    .hm-wcell.done .hm-wdot { background: var(--signal); }
-    .hm-wcell.done .hm-wday { color: var(--fg-secondary); }
-    .hm-wcell.on { background: var(--bg-elev-2); box-shadow: inset 0 0 0 1px var(--signal); }
-    .hm-wcell.on .hm-wday { color: var(--signal); }
-    .hm-hscroll { display: flex; gap: 10px; padding: 4px var(--pad) 6px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-    .hm-hscroll::-webkit-scrollbar { display: none; }
-    .qc { flex: 0 0 200px; scroll-snap-align: start; background: var(--bg-elev-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; gap: 10px; text-align: left; transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); color: var(--fg-primary); cursor: pointer; }
-    .qc:active { border-color: var(--border-strong); background: var(--bg-elev-2); }
-    .qc-meta { display: flex; gap: 8px; flex-wrap: wrap; min-height: 14px; }
-    .qc-name { font-size: 19px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: var(--fg-primary); flex: 1; }
-    .qc-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 6px; border-top: 1px solid var(--border-subtle); }
-    .qc-stat { display: flex; align-items: baseline; gap: 4px; }
-    .qc-big { font-family: var(--font-mono); font-size: 17px; font-weight: 600; color: var(--fg-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-    .qc-unit { font-family: var(--font-mono); font-size: 10px; color: var(--fg-tertiary); letter-spacing: 0.10em; font-weight: 500; }
-    .qc-sep { color: var(--fg-quaternary); margin: 0 2px; }
-    .qc-play { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--signal); color: var(--signal-fg); flex-shrink: 0; }
-    .hm-rows { display: flex; flex-direction: column; padding: 0 var(--pad); }
-    .rr { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); background: transparent; text-align: left; color: var(--fg-primary); cursor: pointer; border-left: 0; border-right: 0; border-top: 0; }
-    .rr:last-child { border-bottom: none; }
-    .rr-left { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-    .rr-name { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: var(--fg-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .rr-meta { display: flex; gap: 8px; align-items: center; }
-    .rr-dur { font-family: var(--font-mono); font-size: 12px; color: var(--fg-secondary); font-weight: 500; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
-    .rr-play { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--signal); background: var(--signal-08); color: var(--signal); flex-shrink: 0; transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
-    .rr:active .rr-play { background: var(--signal); color: var(--signal-fg); }
-    .tg { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.10em; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; color: var(--fg-secondary); text-transform: uppercase; }
-    .tg::before { content: ''; width: 7px; height: 7px; border-radius: 1px; background: currentColor; }
-    .tg.t-core  { color: var(--signal); }
-    .tg.t-full  { color: var(--status-crit); }
-    .tg.t-legs  { color: var(--status-go); }
-    .tg.t-arms { color: var(--status-warn); }
-    .hm-tinybtn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: transparent; border: 1px solid var(--border-default); border-radius: var(--radius-pill); color: var(--fg-secondary); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.10em; font-weight: 600; cursor: pointer; transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
-    .hm-tinybtn:active { color: var(--signal); border-color: var(--signal); }
-    .hm-chips { display: flex; gap: 8px; padding: 0 var(--pad); overflow-x: auto; scrollbar-width: none; }
-    .hm-chips::-webkit-scrollbar { display: none; }
-    .hm-chip { flex-shrink: 0; padding: 9px 16px; border-radius: var(--radius-pill); border: 1px solid var(--border-default); background: transparent; color: var(--fg-secondary); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.10em; font-weight: 600; cursor: pointer; transition: all var(--dur-fast) var(--ease-out); white-space: nowrap; text-transform: uppercase; }
-    .hm-chip.on { color: var(--signal); border-color: var(--signal); background: var(--signal-08); }
-    .hm-empty { padding: 20px var(--pad); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; color: var(--fg-tertiary); }
+    /* ── HOME — Focus & Flow ── */
+    .hmB { --pad: 16px; --gap: 24px; }
+    .hmB-pad { padding: 0 var(--pad); }
+    .hmB-section { padding: var(--gap) 0 0; }
+    .hmB-row-head { display: flex; justify-content: space-between; align-items: center; padding: 0 var(--pad) 12px; }
+    .hmB-lbl { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; color: var(--fg-secondary); font-weight: 500; text-transform: uppercase; }
+    .hmB-dot { color: var(--fg-quaternary); margin: 0 2px; }
+    .hmB-num { font-variant-numeric: tabular-nums; font-family: var(--font-mono); }
+
+    /* TOP */
+    .hmB-top { padding: 20px var(--pad) 4px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .hmB-eye { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; color: var(--fg-secondary); text-transform: uppercase; }
+    .hmB-title { font-size: 28px; font-weight: 700; letter-spacing: -0.04em; line-height: 1.05; margin: 6px 0 0; color: var(--fg-primary); }
+    .hmB-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--bg-elev-2); border: 1px solid var(--border-default); color: var(--fg-secondary); font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .hmB-pro { padding: 0 12px; height: 32px; min-width: 56px; border-radius: var(--radius-pill); background: var(--signal-08); border: 1px solid var(--signal); color: var(--signal); font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: default; text-transform: uppercase; }
+
+    /* HERO */
+    .heroB { width: 100%; background: var(--signal); color: #0A0A0A; border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; gap: 8px; text-align: left; position: relative; overflow: hidden; border: 0; cursor: pointer; }
+    .heroB::after { content: ''; position: absolute; right: -40px; bottom: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(10,10,10,0.06); z-index: 0; }
+    .heroB > * { position: relative; z-index: 1; }
+    .heroB-top { display: flex; justify-content: space-between; align-items: center; }
+    .heroB-eye { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; font-weight: 700; color: rgba(10,10,10,0.65); text-transform: uppercase; }
+    .heroB-flame { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: var(--radius-pill); background: rgba(10,10,10,0.12); font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: #0A0A0A; }
+    .heroB-name { font-size: 28px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin-top: 4px; text-transform: uppercase; }
+    .heroB-meta { display: flex; gap: 6px; align-items: center; font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: rgba(10,10,10,0.75); }
+    .heroB-meta .hmB-dot { color: rgba(10,10,10,0.35); }
+    .heroB-cta { display: inline-flex; align-items: center; gap: 10px; align-self: flex-start; padding: 12px 16px; margin-top: 10px; border-radius: var(--radius-pill); background: #0A0A0A; color: var(--signal); font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; }
+    .heroB-play { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--signal); color: #0A0A0A; }
+
+    /* STATS */
+    .statsB { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .statB { padding: 14px 12px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 4px; align-items: flex-start; background: transparent; }
+    .statB-num { font-family: var(--font-mono); font-size: 24px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: var(--fg-primary); font-variant-numeric: tabular-nums; }
+    .statB-suf { font-size: 14px; color: var(--fg-tertiary); margin-left: 2px; }
+
+    /* WEEK GOAL */
+    .goalB { background: var(--bg-elev-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 16px; }
+    .goalB-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .goalB-frac { font-family: var(--font-mono); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .goalB-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .goalB-wcell { aspect-ratio: 1 / 1.25; border-radius: var(--radius-sm); background: var(--bg-elev-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .goalB-wd { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; color: var(--fg-tertiary); }
+    .goalB-wn { font-family: var(--font-mono); font-size: 14px; color: var(--fg-secondary); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .goalB-wcell.done { background: var(--bg-elev-3); }
+    .goalB-wcell.done .goalB-wn { color: var(--signal); }
+    .goalB-wcell.on { background: var(--bg-elev-2); box-shadow: inset 0 0 0 1.5px var(--signal); }
+    .goalB-wcell.on .goalB-wn { color: var(--signal); }
+    .goalB-msg { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding: 10px 12px; background: var(--signal-08); border-radius: var(--radius-sm); font-size: 13px; color: var(--fg-secondary); }
+    .goalB-msg-i { color: var(--signal); display: inline-flex; }
+
+    /* CHIPS */
+    .hmB-chips { display: flex; gap: 8px; padding: 0 var(--pad) 12px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .hmB-chips::-webkit-scrollbar { display: none; }
+    .hmB-chip { flex-shrink: 0; padding: 8px 14px; border-radius: var(--radius-pill); border: 1px solid var(--border-default); background: transparent; color: var(--fg-secondary); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.10em; font-weight: 600; transition: all var(--dur-fast) var(--ease-out); white-space: nowrap; text-transform: uppercase; }
+    .hmB-chip.on { color: var(--signal); border-color: var(--signal); background: var(--signal-08); }
+
+    /* 2-COL GRID */
+    .hmB-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 var(--pad); }
+    .cardB { background: var(--bg-elev-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; text-align: left; display: flex; flex-direction: column; color: var(--fg-primary); cursor: pointer; padding: 0; }
+    .cardB-img { width: 100%; height: 100px; background: var(--bg-elev-2); }
+    .cardB-body { padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+    .cardB-name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+    .cardB-meta { display: flex; gap: 6px; align-items: center; font-family: var(--font-mono); font-size: 11px; color: var(--fg-tertiary); letter-spacing: 0.04em; }
+
+    /* CUSTOM */
+    .customB { width: 100%; background: var(--bg-elev-1); border: 1px solid var(--signal); border-radius: var(--radius-md); padding: 18px; display: flex; align-items: center; justify-content: space-between; text-align: left; color: var(--fg-primary); cursor: pointer; gap: 12px; }
+    .customB-eye { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; font-weight: 700; color: var(--signal); margin-bottom: 6px; text-transform: uppercase; }
+    .customB-name { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; text-transform: uppercase; }
+    .customB-sub { font-size: 12px; color: var(--fg-tertiary); margin-top: 3px; }
+    .customB-arrow { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--signal); color: #0A0A0A; flex-shrink: 0; }
+
+    /* QUICK ROWS */
+    .hmB-quickrows { display: flex; flex-direction: column; padding: 0 var(--pad); }
+    .qkB { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); background: transparent; text-align: left; color: var(--fg-primary); cursor: pointer; border-left: 0; border-right: 0; border-top: 0; }
+    .qkB:last-child { border-bottom: none; }
+    .qkB-name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+    .qkB-meta { display: flex; gap: 4px; align-items: center; font-family: var(--font-mono); font-size: 12px; color: var(--fg-secondary); font-variant-numeric: tabular-nums; }
+    .qkB-play { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--signal); background: var(--signal-08); color: var(--signal); flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -126,7 +150,7 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 // ================================================================
 // DB LAYER
 // ================================================================
-const VERSION = '0.4';
+const VERSION = '0.5';
 const DB_NAME = 'trainr_v1';
 const DB_VERSION = 5;
 const DEV_MODE = ['localhost', '127.0.0.1'].includes(window.location.hostname);
@@ -1196,25 +1220,6 @@ const Icon = {
 // ================================================================
 // HOME SCREEN
 // ================================================================
-const CAT_TO_TAG = { 'Core': 'CORE', 'Arms': 'ARMS', 'Legs': 'LEGS', 'Full Body': 'FULL' };
-const TAG_LABEL = { CORE: 'CORE', ARMS: 'ARMS', LEGS: 'LEGS', FULL: 'FULL BODY' };
-function HmTag({ t }) {
-  return <span className={`tg t-${t.toLowerCase()}`}>{TAG_LABEL[t] || t}</span>;
-}
-function HmRoutineRow({ name, min, ex, tags, onClick }) {
-  return (
-    <button className="rr" onClick={onClick}>
-      <div className="rr-left">
-        <div className="rr-name">{name}</div>
-        <div className="rr-meta">
-          {tags.slice(0, 2).map(t => <HmTag key={t} t={t} />)}
-        </div>
-      </div>
-      <span className="rr-dur">{min}M · {ex} EX</span>
-      <span className="rr-play" aria-hidden>{Icon.play(12)}</span>
-    </button>
-  );
-}
 // "~15 MIN" / "15M" / 15 → 15
 function parseMin(v) {
   if (typeof v === 'number') return v;
@@ -1239,13 +1244,46 @@ const DAYS_SHORT = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
 const MONTHS_SHORT = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 const WEEK_LETTERS = ['M','T','W','T','F','S','S']; // Mon..Sun
 
-function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWorkouts, coachIntro, onNavigate, starterCTA, sessions }) {
-  const [group, setGroup] = useState(CATS[0]);
+// Body Focus filters voor Home variant B. ALL toont één representatieve
+// routine per categorie (de "Basics" of eerste variant).
+const FOCUS_CHIPS_B = [
+  { id: 'ALL',       label: 'ALL' },
+  { id: 'Core',      label: 'CORE' },
+  { id: 'Arms',      label: 'ARMS' },
+  { id: 'Legs',      label: 'LEGS' },
+  { id: 'Full Body', label: 'FULL BODY' },
+];
+
+const CAT_SHORT = { 'Core': 'CORE', 'Arms': 'ARMS', 'Legs': 'LEGS', 'Full Body': 'FULL' };
+
+function focusCategoryOf(routine) {
+  const cats = getRoutineCategories(routine.exercises || []);
+  return cats[0] || 'Core';
+}
+
+const IcoFlame = ({ s = 12 }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <path d="M12 2s5 5 5 11a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-3-4-3-8 1 1 3 0 4-2z"/>
+  </svg>
+);
+const IcoArrow = ({ s = 16 }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M5 12h14M13 5l7 7-7 7"/>
+  </svg>
+);
+const IcoPlaySm = ({ s = 12 }) => (
+  <svg width={s} height={s} viewBox="0 0 12 12" fill="currentColor" aria-hidden>
+    <path d="M3 2l7 4-7 4z"/>
+  </svg>
+);
+
+function HomeTab({ greeting, firstName, profile, streak, quickRoutines, coachWorkouts, onNavigate, sessions }) {
+  const [focus, setFocus] = useState('ALL');
 
   const now = new Date();
   const eyebrow = `${DAYS_SHORT[now.getDay()]} ${now.getDate()} ${MONTHS_SHORT[now.getMonth()]} · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
-  // Week ritme — maandag..zondag van deze week
+  // Week — maandag..zondag van deze week (lokaal)
   const week = useMemo(() => {
     const today = new Date(); today.setHours(0,0,0,0);
     const dow = (today.getDay() + 6) % 7; // 0 = maandag
@@ -1256,130 +1294,162 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWor
     }));
     return WEEK_LETTERS.map((letter, i) => {
       const d = new Date(monday); d.setDate(monday.getDate() + i);
-      return { d: letter, done: doneDays.has(d.getTime()), today: d.getTime() === today.getTime() };
+      return {
+        d: letter,
+        done: doneDays.has(d.getTime()),
+        today: d.getTime() === today.getTime(),
+        num: d.getDate(),
+      };
     });
   }, [sessions]);
-  const weekDone = week.filter(w => w.done).length;
+  const weekDone     = week.filter(w => w.done).length;
+  const weekTotal    = Math.max(1, parseInt(profile?.availableDays, 10) || 5);
+  const weekRemain   = Math.max(0, weekTotal - weekDone);
   const totalSessions = (sessions || []).length;
 
-  const filtered = (BODY_PART_WORKOUTS[group] || []);
+  // Hero — rouleert door de coach picks op basis van vandaag-voltooide
+  // sessies. Drie coach picks → na sessie 1 wordt pick 2 de hero, enz.
+  // Geen voltooide sessies vandaag = eerste pick. Fallback = eerste preset.
+  const todayKey = new Date().toDateString();
+  const doneTodayCount = (sessions || []).filter(s => new Date(s.completedAt).toDateString() === todayKey).length;
+  const heroIdx = (coachWorkouts && coachWorkouts.length)
+    ? (doneTodayCount % coachWorkouts.length)
+    : 0;
+  const hero = (coachWorkouts && coachWorkouts[heroIdx]) || PRESET_ROUTINES[0];
+  const heroMin = parseMin(hero.durationLabel) || presetMin(hero, profile?.level);
+  const heroLevelMap = { beginner: 'BEGIN', intermediate: 'INTER', expert: 'EXPERT' };
+  const heroLevel = heroLevelMap[profile?.level] || 'INTER';
+
+  // Body Focus — bij ALL één representatieve routine per categorie
+  const focusItems = focus === 'ALL'
+    ? ['Core', 'Arms', 'Legs', 'Full Body']
+        .map(cat => (BODY_PART_WORKOUTS[cat] || [])[1] || (BODY_PART_WORKOUTS[cat] || [])[0])
+        .filter(Boolean)
+    : (BODY_PART_WORKOUTS[focus] || []);
+
+  // Quick (<10 min) — presets ≤10 min + Start-varianten per categorie als opvulling
+  const quick = useMemo(() => {
+    const out = [];
+    const seen = new Set();
+    PRESET_ROUTINES.forEach(p => {
+      const m = presetMin(p, profile?.level);
+      if (m <= 10 && !seen.has(p.id)) { out.push({ ...p, _min: m }); seen.add(p.id); }
+    });
+    ['Core', 'Arms', 'Legs', 'Full Body'].forEach(cat => {
+      const r = (BODY_PART_WORKOUTS[cat] || [])[0];
+      if (!r) return;
+      const m = parseMin(r.durationLabel);
+      if (m <= 10 && !seen.has(r.id)) { out.push({ ...r, _min: m }); seen.add(r.id); }
+    });
+    return out.slice(0, 4);
+  }, [profile?.level]);
+
+  const restMsg = weekDone >= weekTotal
+    ? 'Week goal reached. Nice work.'
+    : `${weekRemain} session${weekRemain === 1 ? '' : 's'} to reach your week goal. Keep going.`;
 
   return (
-    <>
-      {/* Header */}
-      <header className="hm-head">
-        <div className="hm-eyebrow">{eyebrow}</div>
-        <h1 className="hm-title">{greeting}</h1>
+    <div className="hmB">
+      {/* TOP */}
+      <header className="hmB-top">
+        <div>
+          <div className="hmB-eye">{eyebrow}</div>
+          <h1 className="hmB-title">{greeting},<br/>{firstName}</h1>
+        </div>
+        {/* PRO-knop — placeholder voor toekomstige subscription. Geen functie nu. */}
+        <button className="hmB-pro" type="button" aria-label="Pro (coming soon)" disabled>PRO</button>
       </header>
 
-      {/* Stats tiles */}
-      <section className="hm-section">
-        <div className="hm-tiles">
-          <div className="hm-tile">
-            <div className="hm-tnum">{streak}</div>
-            <div className="hm-tlbl">DAY STREAK</div>
+      {/* HERO */}
+      <section className="hmB-pad" style={{ marginTop: 16 }}>
+        <button className="heroB" onClick={() => onNavigate('timer', { routine: hero, backTo: 'home' })}>
+          <div className="heroB-top">
+            <div className="heroB-eye">TODAY'S WORKOUT</div>
+            <div className="heroB-flame"><IcoFlame s={12} /> <span>{streak}</span></div>
           </div>
-          <div className="hm-tile">
-            <div className="hm-tnum">{weekDone}<span className="hm-tsuf">/7</span></div>
-            <div className="hm-tlbl">THIS WEEK</div>
+          <div className="heroB-name">{hero.name}</div>
+          <div className="heroB-meta">
+            <span>{heroMin} MIN</span>
+            <span className="hmB-dot">·</span>
+            <span>{hero.exercises.length} EX</span>
+            <span className="hmB-dot">·</span>
+            <span>{heroLevel}</span>
           </div>
-          <div className="hm-tile">
-            <div className="hm-tnum">{totalSessions}</div>
-            <div className="hm-tlbl">SESSIONS</div>
+          <div className="heroB-cta">
+            <span>START</span>
+            <span className="heroB-play"><IcoPlaySm s={10} /></span>
+          </div>
+        </button>
+      </section>
+
+      {/* STATS */}
+      <section className="hmB-pad" style={{ marginTop: 14 }}>
+        <div className="statsB">
+          <div className="statB">
+            <div className="statB-num">{streak}</div>
+            <div className="hmB-lbl">DAY STREAK</div>
+          </div>
+          <div className="statB">
+            <div className="statB-num">{weekDone}<span className="statB-suf">/{weekTotal}</span></div>
+            <div className="hmB-lbl">WEEK</div>
+          </div>
+          <div className="statB">
+            <div className="statB-num">{totalSessions}</div>
+            <div className="hmB-lbl">SESSIONS</div>
           </div>
         </div>
       </section>
 
-      {/* Week rhythm */}
-      <section className="hm-section">
-        <div className="hm-rowhead">
-          <span className="hm-lbl">WEEK RHYTHM</span>
-          <span className="hm-lbl" style={{ color: 'var(--signal)' }}>{weekDone}/7</span>
+      {/* WEEK GOAL */}
+      <section className="hmB-pad" style={{ marginTop: 14 }}>
+        <div className="goalB">
+          <div className="goalB-head">
+            <span className="hmB-lbl">WEEK GOAL</span>
+            <span className="goalB-frac">
+              <span style={{ color: 'var(--signal)' }}>{weekDone}</span>
+              <span style={{ color: 'var(--fg-tertiary)' }}>/{weekTotal}</span>
+            </span>
+          </div>
+          <div className="goalB-week">
+            {week.map((w, i) => (
+              <div key={i} className={`goalB-wcell ${w.today ? 'on' : ''} ${w.done ? 'done' : ''}`}>
+                <span className="goalB-wd">{w.d}</span>
+                <span className="goalB-wn">{w.num}</span>
+              </div>
+            ))}
+          </div>
+          <div className="goalB-msg">
+            <span className="goalB-msg-i"><IcoFlame s={12} /></span>
+            <span>{restMsg}</span>
+          </div>
         </div>
-        <div className="hm-week">
-          {week.map((w, i) => (
-            <div key={i} className={`hm-wcell ${w.today ? 'on' : ''} ${w.done ? 'done' : ''}`}>
-              <div className="hm-wday">{w.d}</div>
-              <div className="hm-wdot" />
-            </div>
+      </section>
+
+      {/* BODY FOCUS */}
+      <section className="hmB-section">
+        <div className="hmB-row-head">
+          <span className="hmB-lbl">BODY FOCUS</span>
+        </div>
+        <div className="hmB-chips">
+          {FOCUS_CHIPS_B.map(g => (
+            <button key={g.id}
+              className={`hmB-chip ${focus === g.id ? 'on' : ''}`}
+              onClick={() => setFocus(g.id)}>{g.label}</button>
           ))}
         </div>
-      </section>
-
-      {/* Starter CTA (first time) */}
-      {starterCTA?.show && (
-        <section className="hm-section">
-          <div style={{ margin: '0 var(--pad)', border: `1px solid ${starterCTA.fallback ? 'var(--status-warn)' : 'var(--signal)'}`, borderRadius: 'var(--radius-md)', background: 'var(--bg-elev-1)', padding: 16 }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.1em', color: starterCTA.fallback ? 'var(--status-warn)' : 'var(--signal)', marginBottom: 8 }}>STARTER PLAN</div>
-            <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Start your first workout</div>
-            <div style={{ color: 'var(--fg-secondary)', fontSize: 14, marginBottom: 14 }}>
-              Suggestion: {starterCTA.profileId.replaceAll('_', ' ').toUpperCase()}
-              {starterCTA.fallback ? ' · safe default chosen.' : ''}
-            </div>
-            <Btn onClick={() => onNavigate('timer', { routineId: starterCTA.routineId })}>START FIRST WORKOUT</Btn>
-          </div>
-        </section>
-      )}
-
-      {/* Coach picks — horizontal scroll, gepersonaliseerd op profiel */}
-      {(coachWorkouts || []).length > 0 && (
-        <section className="hm-section">
-          <div className="hm-rowhead">
-            <span className="hm-lbl">COACH PICKS</span>
-            <span className="hm-lbl" style={{ color: 'var(--fg-tertiary)' }}>SWIPE →</span>
-          </div>
-          <div className="hm-hscroll">
-            {coachWorkouts.map(cw => {
-              const tags = routineTags(cw.exercises);
-              const min = parseMin(cw.durationLabel);
-              return (
-                <button key={cw.id} className="qc" onClick={() => onNavigate('timer', { routine: cw, backTo: 'home' })}>
-                  <div className="qc-meta">
-                    {tags.map(t => <HmTag key={t} t={t} />)}
-                  </div>
-                  <div className="qc-name">{cw.name}</div>
-                  <div className="qc-foot">
-                    <div className="qc-stat">
-                      <span className="qc-big">{min}</span>
-                      <span className="qc-unit">MIN</span>
-                      <span className="qc-sep">·</span>
-                      <span className="qc-big">{cw.exercises.length}</span>
-                      <span className="qc-unit">EX</span>
-                    </div>
-                    <span className="qc-play" aria-hidden>{Icon.play(13)}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* Presets — vaste routines 5/10/15/20/25/30 min, schalen met profile.level */}
-      <section className="hm-section">
-        <div className="hm-rowhead">
-          <span className="hm-lbl">PRESETS</span>
-          <span className="hm-lbl" style={{ color: 'var(--fg-tertiary)' }}>SWIPE →</span>
-        </div>
-        <div className="hm-hscroll">
-          {PRESET_ROUTINES.map(p => {
-            const tags = routineTags(p.exercises);
-            const min = presetMin(p, profile?.level);
+        <div className="hmB-grid">
+          {focusItems.map(r => {
+            const cat = focusCategoryOf(r);
             return (
-              <button key={p.id} className="qc" onClick={() => onNavigate('timer', { routine: p, backTo: 'home' })}>
-                <div className="qc-meta">
-                  {tags.map(t => <HmTag key={t} t={t} />)}
-                </div>
-                <div className="qc-name">{p.name}</div>
-                <div className="qc-foot">
-                  <div className="qc-stat">
-                    <span className="qc-big">{min}</span>
-                    <span className="qc-unit">MIN</span>
-                    <span className="qc-sep">·</span>
-                    <span className="qc-big">{p.exercises.length}</span>
-                    <span className="qc-unit">EX</span>
+              <button key={r.id} className="cardB" onClick={() => onNavigate('timer', { routine: r, backTo: 'home' })}>
+                <div className="cardB-img" aria-hidden />
+                <div className="cardB-body">
+                  <div className="cardB-name">{r.name}</div>
+                  <div className="cardB-meta">
+                    <span>{parseMin(r.durationLabel)}M</span>
+                    <span className="hmB-dot">·</span>
+                    <span>{CAT_SHORT[cat] || 'MIX'}</span>
                   </div>
-                  <span className="qc-play" aria-hidden>{Icon.play(13)}</span>
                 </div>
               </button>
             );
@@ -1387,67 +1457,62 @@ function HomeTab({ greeting, profile, streak, todayDone, quickRoutines, coachWor
         </div>
       </section>
 
-      {/* My routines */}
-      <section className="hm-section">
-        <div className="hm-rowhead">
-          <span className="hm-lbl">MY ROUTINES</span>
-          <button className="hm-tinybtn" onClick={() => onNavigate('builder', {})}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            NEW
-          </button>
-        </div>
-        {quickRoutines.length > 0 ? (
-          <div className="hm-rows">
-            {quickRoutines.map(r => (
-              <HmRoutineRow
-                key={r.id}
-                name={r.name}
-                min={parseMin(r.durationLabel) || Math.max(1, Math.round((r.exercises?.length || 0) * 1.5))}
-                ex={r.exercises?.length || 0}
-                tags={routineTags(r.exercises || [])}
-                onClick={() => onNavigate('timer', { routineId: r.id })}
-              />
-            ))}
+      {/* CUSTOM */}
+      <section className="hmB-pad hmB-section">
+        <button className="customB" onClick={() => onNavigate('builder', {})}>
+          <div>
+            <div className="customB-eye">CUSTOM</div>
+            <div className="customB-name">BUILD YOUR OWN ROUTINE</div>
+            <div className="customB-sub">Pick exercises, sets, rest</div>
           </div>
-        ) : (
-          <div className="hm-empty">
-            <span>No custom routines yet</span>
-            <button className="hm-tinybtn" onClick={() => onNavigate('builder', {})}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-              NEW
-            </button>
-          </div>
-        )}
+          <span className="customB-arrow"><IcoArrow s={16} /></span>
+        </button>
       </section>
 
-      {/* By muscle group */}
-      <section className="hm-section">
-        <div className="hm-rowhead">
-          <span className="hm-lbl">BY MUSCLE GROUP</span>
-        </div>
-        <div className="hm-chips">
-          {CATS.map(cat => (
-            <button
-              key={cat}
-              className={`hm-chip ${group === cat ? 'on' : ''}`}
-              onClick={() => setGroup(cat)}
-            >{cat.toUpperCase()}</button>
-          ))}
-        </div>
-        <div className="hm-rows" style={{ marginTop: 10 }}>
-          {filtered.map(w => (
-            <HmRoutineRow
-              key={w.id}
-              name={w.name}
-              min={parseMin(w.durationLabel)}
-              ex={w.exercises.length}
-              tags={routineTags(w.exercises)}
-              onClick={() => onNavigate('timer', { routine: w, backTo: 'home' })}
-            />
-          ))}
-        </div>
-      </section>
-    </>
+      {/* QUICK (<10 MIN) */}
+      {quick.length > 0 && (
+        <section className="hmB-section">
+          <div className="hmB-row-head">
+            <span className="hmB-lbl">QUICK (&lt; 10 MIN)</span>
+          </div>
+          <div className="hmB-quickrows">
+            {quick.map(q => (
+              <button key={q.id} className="qkB" onClick={() => onNavigate('timer', { routine: q, backTo: 'home' })}>
+                <div className="qkB-name">{q.name}</div>
+                <div className="qkB-meta">
+                  <span>{q._min}M</span>
+                  <span className="hmB-dot">·</span>
+                  <span>{q.exercises.length} EX</span>
+                </div>
+                <span className="qkB-play" aria-hidden><IcoPlaySm s={11} /></span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* MY ROUTINES — behouden onder de fold zodat custom workouts bereikbaar blijven */}
+      {quickRoutines.length > 0 && (
+        <section className="hmB-section">
+          <div className="hmB-row-head">
+            <span className="hmB-lbl">MY ROUTINES</span>
+          </div>
+          <div className="hmB-quickrows">
+            {quickRoutines.slice(0, 5).map(r => (
+              <button key={r.id} className="qkB" onClick={() => onNavigate('timer', { routineId: r.id })}>
+                <div className="qkB-name">{r.name}</div>
+                <div className="qkB-meta">
+                  <span>{parseMin(r.durationLabel) || Math.max(1, Math.round((r.exercises?.length || 0) * 1.5))}M</span>
+                  <span className="hmB-dot">·</span>
+                  <span>{r.exercises?.length || 0} EX</span>
+                </div>
+                <span className="qkB-play" aria-hidden><IcoPlaySm s={11} /></span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
   );
 }
 
@@ -1593,7 +1658,6 @@ function HomeScreen({ dbRef, onNavigate, analytics }) {
   const [routines, setRoutines] = useState([]);
   const [profile, setProfile] = useState(null);
   const [ready, setReady] = useState(false);
-  const [starterCTA, setStarterCTA] = useState(null);
 
   useEffect(() => {
     if (!dbRef.current) return;
@@ -1605,25 +1669,20 @@ function HomeScreen({ dbRef, onNavigate, analytics }) {
       setSessions(s.sort((a, b) => b.completedAt - a.completedAt));
       setRoutines(r);
       setProfile(prof);
-      setStarterCTA({
-        show: !s.length,
-        profileId: prof?.starterPlanProfile || SAFE_STARTER_PROFILE,
-        routineId: prof?.starterPlanSelection?.auto?.routineId || DEFAULT_ROUTINE.id,
-        fallback: !!prof?.starterPlanSelection?.fallbackReason,
-      });
       setReady(true);
     });
   }, []);
 
   const streak = useMemo(() => calcStreak(sessions), [sessions]);
   const today = new Date();
-  const todayDone = sessions.some(s => new Date(s.completedAt).toDateString() === today.toDateString());
   const hours = today.getHours();
   const greeting = hours < 6 ? 'GOOD NIGHT' : hours < 12 ? 'GOOD MORNING' : hours < 18 ? 'GOOD AFTERNOON' : 'GOOD EVENING';
 
+  const rawName  = (profile?.name || '').trim();
+  const firstName = (rawName.split(/\s+/)[0] || 'ATHLETE').toUpperCase();
+
   const quickRoutines = routines.filter(r => r.quickStart !== false);
   const coachWorkouts = useMemo(() => profile ? buildCoachWorkouts(profile) : [], [profile]);
-  const coachIntro    = useMemo(() => profile ? buildCoachIntro(profile)    : '', [profile]);
 
   const tabBtn = (tab) => ({
     flex: 1, padding: '10px 0',
@@ -1648,14 +1707,12 @@ function HomeScreen({ dbRef, onNavigate, analytics }) {
       {activeTab === 'home' && (
         <HomeTab
           greeting={greeting}
+          firstName={firstName}
           profile={profile}
           streak={streak}
-          todayDone={todayDone}
           quickRoutines={quickRoutines}
           coachWorkouts={coachWorkouts}
-          coachIntro={coachIntro}
           onNavigate={onNavigate}
-          starterCTA={starterCTA}
           sessions={sessions}
         />
       )}
